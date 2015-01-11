@@ -1,0 +1,30 @@
+{
+	"name" : "mazenet",
+	"version" : "0.0.1",
+	"description" : "social web spelunking",
+	"bugs" : {
+		"url" : "https://github.com/Fresh4Less/mazenet/issues",
+		"email" : "elliot@neurotischism.com"
+	},
+	"license" : "MIT License",
+	"contributors" : [{
+		"name" : "samuel davidson",
+		"email" : "samdamana@gmail.com",
+		"url" : "http://samdamana.com" }, {
+		
+		"name" : "elliot hatch",
+		"email" : "elliot@neurotischism.com",
+		"url" : "http://neurotischism.com"
+	}],
+
+	"scripts" : {
+		"start" : "node app.js"
+	},
+	"dependencies" : {
+		"express" : "4.10.x"
+	},
+
+	"private" : true
+	
+}
+
