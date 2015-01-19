@@ -1,0 +1,15 @@
+/* app.js */
+
+.liveCursor {
+	position: absolute;
+	
+}
+
+.replayedCursor {
+	position: absolute;
+	/*
+	-webkit-transition: left 0.034s linear, top 0.034s linear;
+	transition: left 0.034s linear, top 0.034s linear;
+	*/
+}
+

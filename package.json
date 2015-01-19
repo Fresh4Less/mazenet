@@ -1,33 +1,44 @@
 {
-	"name" : "mazenet",
-	"version" : "0.0.1",
-	"description" : "social web spelunking",
-	"bugs" : {
-		"url" : "https://github.com/Fresh4Less/mazenet/issues",
-		"email" : "elliot@neurotischism.com"
-	},
-	"license" : "MIT License",
-	"contributors" : [{
-		"name" : "samuel davidson",
-		"email" : "samdamana@gmail.com",
-		"url" : "http://samdamana.com" }, {
-		
-		"name" : "elliot hatch",
-		"email" : "elliot@neurotischism.com",
-		"url" : "http://neurotischism.com"
-	}],
-
-	"scripts" : {
-		"start" : "node app.js"
-	},
-	"dependencies" : {
-		"express" : "4.10.x",
-		"body-parser" : "1.10.x",
-		"compression" : "1.3.x",
-		"mongodb" : "1.4.x"
-	},
-
-	"private" : true
-	
+  "name": "mazenet",
+  "version": "0.0.1",
+  "description": "social web spelunking",
+  "bugs": {
+    "url": "https://github.com/Fresh4Less/mazenet/issues",
+    "email": "elliot@neurotischism.com"
+  },
+  "license": "MIT License",
+  "contributors": [
+    {
+      "name": "samuel davidson",
+      "email": "samdamana@gmail.com",
+      "url": "http://samdamana.com"
+    },
+    {
+      "name": "elliot hatch",
+      "email": "elliot@neurotischism.com",
+      "url": "http://neurotischism.com"
+    }
+  ],
+  "scripts": {
+    "postinstall": "bower install",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.10.x",
+    "express-session": "1.10.x",
+    "body-parser": "1.10.x",
+    "compression": "1.3.x",
+    "mongodb": "1.4.x",
+    "socket.io": "1.2.x"
+  },
+  "private": true,
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-uglify": "~0.7.0",
+    "grunt-contrib-concat": "~0.5.0",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-cssmin": "~0.11.0",
+    "grunt-contrib-sass": "~0.8.0",
+    "grunt-contrib-csslint": "~0.3.0"
+  }
 }
-

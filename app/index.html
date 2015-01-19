@@ -1,0 +1,23 @@
+<!doctype htl>
+<html lang="en" ng-app="mazenetApp" ng-controller="MainCtrl">
+<head>
+	<meta charset="utf-8">
+	<title>mazenet - {{Page.title()}}</title>
+	<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="/app/css/app.css">
+	<script src="/bower_components/jquery/dist/jquery.js"></script>
+	<script src="/bower_components/angular/angular.js"></script>
+	<script src="/bower_components/angular-route/angular-route.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/controllers.js"></script>
+	<script src="js/services.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<style>
+		body { background-color: {{Page.backgroundColor()}}; }
+		.floatLink { position: absolute; }
+	</style>
+</head>
+<div ng-view></div>
+</body>
+</html>
+
