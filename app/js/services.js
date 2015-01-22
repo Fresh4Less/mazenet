@@ -22,6 +22,9 @@ mazenetServices.factory('SocketIo', ['$q', function($q) {
 		on : function(eventName, callback) {
 				socket.on(eventName, callback);
 		},
+		removeListener : function(eventName, listener) {
+				socket.removeListener(eventName, listener);
+		},
 		getPage : function(pageId) {
 			var deferred = $q.defer();
 				socket.emit('getPage', pageId, function(data) {
@@ -40,6 +43,7 @@ mazenetServices.factory('SocketIo', ['$q', function($q) {
 					else
 						deferred.reject(data);
 			});
+			return deferred.promise;
 		}
 		
 	};
