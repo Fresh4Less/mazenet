@@ -1,5 +1,12 @@
 /* app.js */
 
+html {
+	overflow: hidden;
+}
+body {
+	overflow: hidden;
+}
+
 .liveCursor {
 	position: absolute;
 	

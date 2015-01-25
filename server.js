@@ -21,6 +21,18 @@ app.use(compress());
 app.use(bodyParser.json());
 app.use(express.static("."));
 
+var mazenetdb = null;
+mongo.connect(mongoUrl, function(err, db) {
+	if(err === null)
+	{
+		mazenetdb = db;
+	}
+	else
+	{
+		console.log(err);
+	}
+});
+
 app.get('/', function(req, res)
 {
 	//test sessions between http requests
@@ -78,13 +90,14 @@ app.post('/pages', function(req, res) {
 });
 
 var ioIdCounter = 0;
+var unsavedCursorData = {};
 
 io.on('connection', function(socket)
 {
 	socket.uniqueId = ioIdCounter++;
 	console.log('a user connected with id: ' + socket.uniqueId);
 	socket.on('disconnect', function() {
-		socket.broadcast.to(socket.rooms[0]).emit('userExited', {"id" : socket.uniqueId});
+		onUserExited(socket, socket.rooms[0]);
 		console.log('user disconnected with id: ' + socket.uniqueId);
 	});
 	socket.on('getPage', function(pageId, response) {
@@ -95,8 +108,9 @@ io.on('connection', function(socket)
 			{
 				delete pageData._id;
 				pageData.status = "success";
+				var oldPageId = socket.rooms[0];
 				socket.leave(socket.rooms[0], function() {
-				socket.broadcast.to(socket.rooms[0]).emit('userExited', {"id" : socket.uniqueId});
+				onUserExited(socket, oldPageId);
 				socket.join(pageId, function () {
 				socket.broadcast.to(socket.rooms[0]).emit('userEntered', { "id" : socket.uniqueId });
 				var roomSockets = io.sockets.adapter.rooms[pageId];
@@ -139,23 +153,37 @@ io.on('connection', function(socket)
 	});
 	socket.on('mouseMoved', function(mouseParams, response) {
 		if(socket.rooms[0])
-		socket.volatile.broadcast.to(socket.rooms[0]).emit('otherMouseMoved', 
-			{ "id" : socket.uniqueId, "x" : mouseParams.x, "y" : mouseParams.y });
+		{
+			socket.volatile.broadcast.to(socket.rooms[0]).emit('otherMouseMoved',
+				{ "id" : socket.uniqueId, "x" : mouseParams.x, "y" : mouseParams.y });
+			if(!unsavedCursorData.hasOwnProperty(socket.uniqueId))
+				unsavedCursorData[socket.uniqueId] = [];
+			
+			unsavedCursorData[socket.uniqueId].push({ "x" : mouseParams.x, "y" : mouseParams.y });
+		}
 	});
 	
 });
 
-
+function onUserExited(socket, room)
+{
+	socket.broadcast.to(room).emit('userExited', {"id" : socket.uniqueId});
+	//save recorded cursor movement to database
+	if(!unsavedCursorData.hasOwnProperty(socket.uniqueId) || unsavedCursorData.hasOwnProperty(socket.uniqueId).length === 0)
+		return;
+	var cursorFrames = unsavedCursorData[socket.uniqueId].slice(0);
+	unsavedCursorData[socket.uniqueId] = [];
+	//[ {frames:[ {x:x,y:y}] } ]
+	var pages = mazenetdb.collection("pages");
+	pages.update( { "_id" : new ObjectID(room) }, { $push : { "cursors" : { "frames" : cursorFrames } } }, function(err, doc) {
+		if(err !== null)
+			console.log("failed to add cursor data: " + err.message);
+	});
+}
 
 function createPage(pageParams, callback)
 {
-	mongo.connect(mongoUrl, function(err, db) {
-	if(err !== null)
-	{
-		callback(err);
-		return;
-	}
-	var pages = db.collection("pages");
+	var pages = mazenetdb.collection("pages");
 	pages.insert( { "name" : pageParams.name ,
 					"backgroundColor" : pageParams.backgroundColor,
 					"links" : pageParams.links },
@@ -166,23 +194,13 @@ function createPage(pageParams, callback)
 			callback(err);
 			return;
 		}
-		db.close();
 		callback(null, result[0]._id);
 		});
-	});
 }
 
 function findPage(pageId, callback)
 {
-	mongo.connect(mongoUrl, function(err, db) {
-	if(err !== null)
-	{
-		callback(err);
-		return;
-	}
-	var pages = db.collection("pages");
-	try
-	{
+	var pages = mazenetdb.collection("pages");
 	pages.findOne( { "_id" : new ObjectID(pageId) },
 		function(err, doc)
 		{
@@ -191,15 +209,8 @@ function findPage(pageId, callback)
 			callback(err);
 			return;
 		}
-		db.close();
 		callback(null, doc);
 		});
-	}
-	catch(e)
-	{
-		callback(e);
-	}
-	});
 }
 
 function hasAllParams(obj, params)

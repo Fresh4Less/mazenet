@@ -41,8 +41,8 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 	
 	var otherMouseMovedListener = function(data) {
 		var liveCursor = $scope.liveCursors[data.id];
-		liveCursor.x = data.x + "%";
-		liveCursor.y = data.y + "%";
+		liveCursor.x = data.x;
+		liveCursor.y = data.y;
 	};
 	
 	SocketIo.on('userEntered', userEnteredListener);
@@ -54,19 +54,8 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		Page.setBackgroundColor(data.backgroundColor);
 		$scope.name = data.name;
 		$scope.links = data.links;
-		//test code
-		var cursors = [];
-		for(var j = 10; j<90; j++)
-		{
-		var cursorFrames = [];
-		for(var i = 10; i<90; i++)
-		{
-			cursorFrames.push({"x":i+"%", "y":j+"%"});
-		}
-		cursors.push({"frames" : cursorFrames});
-		}
-		//end test code
-		$scope.cursors = cursors;
+		$scope.cursors = data.cursors;
+		console.log(data);
 		$scope.liveCursors = data.liveCursors;
 		frame = 0;
 	}, function(data, status) {

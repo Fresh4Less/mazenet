@@ -13,11 +13,19 @@ mazenetServices.factory('Page', function() {
 	};
 });
 
-mazenetServices.factory('SocketIo', ['$q', function($q) {
+mazenetServices.factory('SocketIo', ['$q', '$timeout', function($q, $timeout) {
 	var socket = io();
+	var sendMovement = true;
 	$(document).mousemove(function(event) {
-		socket.emit('mouseMoved', { "x" : event.pageX/$(window).width()*100, "y" : event.pageY/$(window).height()*100 });
+		if(sendMovement)
+			socket.emit('mouseMoved', { "x" : event.pageX/$(window).width()*100+"%", "y" : event.pageY/$(window).height()*100+"%" });
+		sendMovement = false;
 	});
+	
+	(function tick() {
+		sendMovement = true;
+		tickPromise = $timeout(tick, 1000/30);
+	})();
 	return {
 		on : function(eventName, callback) {
 				socket.on(eventName, callback);
