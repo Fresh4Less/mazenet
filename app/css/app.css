@@ -1,10 +1,17 @@
-/* app.js */
+/* app.css */
 
 html {
 	overflow: hidden;
 }
 body {
 	overflow: hidden;
+	margin: 0;
+	height: 100%;
+}
+
+.newPageDialog {
+	width: 80px;
+	height: 150px;
 }
 
 .liveCursor {
@@ -18,5 +25,28 @@ body {
 	-webkit-transition: left 0.034s linear, top 0.034s linear;
 	transition: left 0.034s linear, top 0.034s linear;
 	*/
+}
+.position-fixed {
+	position: fixed;
+}
+
+.popupMenu {
+	padding: 0px 0px 0px 0px;
+	background-color: transparent;
+}
+
+.popupMenu .popover-title {
+	padding: 0px 0px 0px 0px;
+	background-color: transparent;
+}
+
+.popupMenu .popover-content {
+	padding: 0px 0px 0px 0px;
+	background-color: transparent;
+}
+
+.popupMenu .popover-content > * {
+	margin: 0px 0px 0px 0px;
+	border-style: none;
 }
 

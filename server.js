@@ -97,7 +97,7 @@ io.on('connection', function(socket)
 	socket.uniqueId = ioIdCounter++;
 	console.log('a user connected with id: ' + socket.uniqueId);
 	socket.on('disconnect', function() {
-		onUserExited(socket, socket.rooms[0]);
+		onUserExited(socket, socket.currentPage);
 		console.log('user disconnected with id: ' + socket.uniqueId);
 	});
 	socket.on('getPage', function(pageId, response) {
@@ -108,11 +108,12 @@ io.on('connection', function(socket)
 			{
 				delete pageData._id;
 				pageData.status = "success";
-				var oldPageId = socket.rooms[0];
+				var oldPageId = socket.currentPage;
 				socket.leave(socket.rooms[0], function() {
 				onUserExited(socket, oldPageId);
 				socket.join(pageId, function () {
-				socket.broadcast.to(socket.rooms[0]).emit('userEntered', { "id" : socket.uniqueId });
+				socket.currentPage = socket.rooms[0];
+				socket.broadcast.to(socket.currentPage).emit('userEntered', { "id" : socket.uniqueId });
 				var roomSockets = io.sockets.adapter.rooms[pageId];
 				var liveCursors = {};
 				for(var i in roomSockets)
@@ -136,7 +137,7 @@ io.on('connection', function(socket)
 			console.log("Failed to retreive page: " + err.message);
 			response({"status" : "error", "message" : "Failed to retreive page."});
 		}
-	});
+		});
 	});
 	socket.on('createPage', function(pageParams, response) {
 	createPage(pageParams, function(err, pageId) {
@@ -149,12 +150,23 @@ io.on('connection', function(socket)
 			console.log("Failed to create page: " + err.message);
 			response({"status" : "error", "message" : "Failed to create page."});
 		}
+		});
 	});
+	socket.on('addLink', function(linkParams, response) {
+		addLink(socket.currentPage, linkParams, function(err) {
+			if(err === null)
+			{
+				socket.broadcast.to(socket.currentPage).emit('addLink', linkParams);
+				response({"status" : "success"});
+			}
+			else
+				response({"status" : "error", "message" : "Failed to add link."});
+		});
 	});
 	socket.on('mouseMoved', function(mouseParams, response) {
-		if(socket.rooms[0])
+		if(socket.currentPage)
 		{
-			socket.volatile.broadcast.to(socket.rooms[0]).emit('otherMouseMoved',
+			socket.volatile.broadcast.to(socket.currentPage).emit('otherMouseMoved',
 				{ "id" : socket.uniqueId, "x" : mouseParams.x, "y" : mouseParams.y });
 			if(!unsavedCursorData.hasOwnProperty(socket.uniqueId))
 				unsavedCursorData[socket.uniqueId] = [];
@@ -167,6 +179,10 @@ io.on('connection', function(socket)
 
 function onUserExited(socket, room)
 {
+	if(!ObjectID.isValid(room))
+	{
+		return;
+	}
 	socket.broadcast.to(room).emit('userExited', {"id" : socket.uniqueId});
 	//save recorded cursor movement to database
 	if(!unsavedCursorData.hasOwnProperty(socket.uniqueId) || unsavedCursorData.hasOwnProperty(socket.uniqueId).length === 0)
@@ -179,6 +195,20 @@ function onUserExited(socket, room)
 		if(err !== null)
 			console.log("failed to add cursor data: " + err.message);
 	});
+}
+
+function addLink(pageId, linkParams, callback)
+{
+	var pages = mazenetdb.collection("pages");
+	pages.update( { "_id" : new ObjectID(pageId) }, { $push : { "links" : linkParams } }, function(err, result)
+		{
+		if(err !== null)
+		{
+			callback(err);
+			return;
+		}
+		callback(null);
+		});
 }
 
 function createPage(pageParams, callback)

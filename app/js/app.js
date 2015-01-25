@@ -1,6 +1,6 @@
 //App module
 
-var mazenetApp = angular.module('mazenetApp', ['ngRoute', 'mazenetControllers', 'mazenetServices']);
+var mazenetApp = angular.module('mazenetApp', ['ngRoute', 'mazenetControllers', 'mazenetServices', 'mazenetDirectives', 'ng-context-menu']);
 
 mazenetApp.config(['$routeProvider',
 	function($routeProvider) {

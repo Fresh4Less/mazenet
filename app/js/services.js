@@ -5,15 +5,18 @@ var mazenetServices = angular.module('mazenetServices', []);
 mazenetServices.factory('Page', function() {
 	var title = '';
 	var backgroundColor = '#ffffff';
+	var pageId = '';
 	return {
 		title: function() {return title; },
 		setTitle: function(newTitle) { title = newTitle; },
 		backgroundColor: function() { return backgroundColor; },
-		setBackgroundColor: function(newBackgroundColor) { backgroundColor = newBackgroundColor; }
+		setBackgroundColor: function(newBackgroundColor) { backgroundColor = newBackgroundColor; },
+		pageId: function() { return pageId; },
+		setPageId: function(newPageId) { pageId = newPageId; }
 	};
 });
 
-mazenetServices.factory('SocketIo', ['$q', '$timeout', function($q, $timeout) {
+mazenetServices.factory('SocketIo', ['$q', '$interval', function($q, $interval) {
 	var socket = io();
 	var sendMovement = true;
 	$(document).mousemove(function(event) {
@@ -22,10 +25,7 @@ mazenetServices.factory('SocketIo', ['$q', '$timeout', function($q, $timeout) {
 		sendMovement = false;
 	});
 	
-	(function tick() {
-		sendMovement = true;
-		tickPromise = $timeout(tick, 1000/30);
-	})();
+	var tickPromise = $interval(function() { sendMovement = true; }, 1000/30);
 	return {
 		on : function(eventName, callback) {
 				socket.on(eventName, callback);
@@ -52,8 +52,24 @@ mazenetServices.factory('SocketIo', ['$q', '$timeout', function($q, $timeout) {
 						deferred.reject(data);
 			});
 			return deferred.promise;
+		},
+		addLink : function(linkParams) {
+			var deferred = $q.defer();
+				socket.emit('addLink', linkParams, function(data) {
+					if(data.status == 'success')
+						deferred.resolve(data);
+					else
+						deferred.reject(data);
+			});
+			return deferred.promise;
 		}
-		
 	};
 }]);
 
+mazenetServices.factory('ContextMenuService', function() {
+	return {
+		TestF : function() {
+			// Call the method in the controllers. I think. Not sure how to do that.
+		}
+	};
+});
