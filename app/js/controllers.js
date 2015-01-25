@@ -14,12 +14,35 @@ mazenetControllers.controller('ItemDetailCtrl', ['$scope', '$routeParams', funct
 	$scope.itemId = $routeParams.itemId;
 }]);
 
-mazenetControllers.controller('MainCtrl', ['$scope', 'Page', function($scope, Page) {
+mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', function($scope, Page, SocketIo) {
 	$scope.Page = Page;
+	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+	$scope.showPopup = function(x, y) {
+		$scope.newPageDialog.x = x;
+		$scope.newPageDialog.y = y;
+		$scope.newPageDialog.visible = !$scope.newPageDialog.visible;
+	};
+	$scope.createPage = function() {
+		if($scope.newPageDialog.pageTitle.length === 0 || $scope.newPageDialog.linkText.length === 0)
+		{
+			return;
+		}
+		$scope.newPageDialog.buttonText = "creating...";
+		$scope.newPageDialog.buttonDisabled = true;
+		SocketIo.createPage({ "name" : $scope.newPageDialog.pageTitle, "backgroundColor" : "#FFFFFF",
+				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : "back", "page" : Page.pageId() }] }).then(function(data) {
+			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.pageTitle, "page" : data.pageId };
+			SocketIo.addLink(newLink);
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.$broadcast('addLink', newLink);
+		}, function(data) {
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+		});
+	};
 }]);
 
-mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$timeout', 'Page', 'SocketIo',
-	 function($scope, $http, $routeParams, $timeout, Page, SocketIo) {
+mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$interval', 'Page', 'SocketIo',
+	 function($scope, $http, $routeParams, $interval, Page, SocketIo) {
 	var frame = 0;
 	$scope.liveCursors = {};
 	$scope.getCursorX = function(cursor) {
@@ -45,19 +68,30 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		liveCursor.y = data.y;
 	};
 	
-	SocketIo.on('userEntered', userEnteredListener);
-	SocketIo.on('userExited', userExitedListener);
-	SocketIo.on('otherMouseMoved', otherMouseMovedListener);
+	var addLinkListener = function(data) {
+		if(!$scope.hasOwnProperty('links'))
+			$scope.links = [];
+		$scope.links.push(data);
+	};
+	
+	$scope.$on('addLink', function(event, data) {
+		addLinkListener(data);
+	});
 	
 	SocketIo.getPage($routeParams.pageId).then(function(data) {
+		Page.setPageId($routeParams.pageId);
 		Page.setTitle(data.name);
 		Page.setBackgroundColor(data.backgroundColor);
 		$scope.name = data.name;
 		$scope.links = data.links;
 		$scope.cursors = data.cursors;
-		console.log(data);
 		$scope.liveCursors = data.liveCursors;
 		frame = 0;
+		SocketIo.on('userEntered', userEnteredListener);
+		SocketIo.on('userExited', userExitedListener);
+		SocketIo.on('otherMouseMoved', otherMouseMovedListener);
+		SocketIo.on('addLink', addLinkListener);
+	
 	}, function(data, status) {
 		var name = 'Error: ' + status;
 		Page.setTitle(name);
@@ -68,17 +102,14 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		$scope.liveCursors = null;
 		frame = 0;
 	});
-	var tickPromise = null;
-	(function tick() {
-		frame++;
-		tickPromise = $timeout(tick, 1000/30);
-	})();
+	var tickPromise = $interval(function() { frame++; }, 1000/30);
 
 	$scope.$on('$destroy', function handler() {
 		SocketIo.removeListener('userEntered', userEnteredListener);
 		SocketIo.removeListener('userExited', userExitedListener);
 		SocketIo.removeListener('otherMouseMoved', otherMouseMovedListener);
-		$timeout.cancel(tickPromise);
+		SocketIo.removeListener('addLink', addLinkListener);
+		$interval.cancel(tickPromise);
 	});
 
 }]);

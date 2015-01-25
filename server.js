@@ -136,7 +136,7 @@ io.on('connection', function(socket)
 			console.log("Failed to retreive page: " + err.message);
 			response({"status" : "error", "message" : "Failed to retreive page."});
 		}
-	});
+		});
 	});
 	socket.on('createPage', function(pageParams, response) {
 	createPage(pageParams, function(err, pageId) {
@@ -149,7 +149,18 @@ io.on('connection', function(socket)
 			console.log("Failed to create page: " + err.message);
 			response({"status" : "error", "message" : "Failed to create page."});
 		}
+		});
 	});
+	socket.on('addLink', function(linkParams, response) {
+		addLink(socket.rooms[0], linkParams, function(err) {
+			if(err === null)
+			{
+				socket.broadcast.to(socket.rooms[0]).emit('addLink', linkParams);
+				response({"status" : "success"});
+			}
+			else
+				response({"status" : "error", "message" : "Failed to add link."});
+		});
 	});
 	socket.on('mouseMoved', function(mouseParams, response) {
 		if(socket.rooms[0])
@@ -167,6 +178,10 @@ io.on('connection', function(socket)
 
 function onUserExited(socket, room)
 {
+	if(!ObjectID.isValid(room))
+	{
+		return;
+	}
 	socket.broadcast.to(room).emit('userExited', {"id" : socket.uniqueId});
 	//save recorded cursor movement to database
 	if(!unsavedCursorData.hasOwnProperty(socket.uniqueId) || unsavedCursorData.hasOwnProperty(socket.uniqueId).length === 0)
@@ -179,6 +194,20 @@ function onUserExited(socket, room)
 		if(err !== null)
 			console.log("failed to add cursor data: " + err.message);
 	});
+}
+
+function addLink(pageId, linkParams, callback)
+{
+	var pages = mazenetdb.collection("pages");
+	pages.update( { "_id" : new ObjectID(pageId) }, { $push : { "links" : linkParams } }, function(err, result)
+		{
+		if(err !== null)
+		{
+			callback(err);
+			return;
+		}
+		callback(null);
+		});
 }
 
 function createPage(pageParams, callback)
