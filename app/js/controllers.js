@@ -14,15 +14,46 @@ mazenetControllers.controller('ItemDetailCtrl', ['$scope', '$routeParams', funct
 	$scope.itemId = $routeParams.itemId;
 }]);
 
-mazenetControllers.controller('MainCtrl', ['$scope', 'Page', function($scope, Page) {
+mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'ContextMenuService', function($scope, Page, SocketIo, ContextMenuService) {
 	$scope.Page = Page;
-	$scope.NewPageDialog = function() {
-	// Do elliot's context menu thing.
+	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+	$scope.showNewPageDialog = function() {
+		var leftStr = ContextMenuService.menuElement.css('left');
+		var topStr = ContextMenuService.menuElement.css('top');
+		$scope.newPageDialog.x = parseFloat(leftStr.substr(0, leftStr.length-2))/$(window).width()*100+"%";
+		$scope.newPageDialog.y = parseFloat(topStr.substr(0, topStr.length-2))/$(window).height()*100+"%";
+		$scope.newPageDialog.visible = 'switching';
+		var watch = $scope.$watch('$scope.newPageDialog.visible', function() {
+			$scope.newPageDialog.visible = 'true';
+			watch();
+		});
+	};
+	
+	$scope.hideNewPageDialog = function() {
+		$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+	};
+	
+	$scope.createPage = function() {
+		if($scope.newPageDialog.pageTitle.length === 0 || $scope.newPageDialog.linkText.length === 0)
+		{
+			return;
+		}
+		$scope.newPageDialog.buttonText = "creating...";
+		$scope.newPageDialog.buttonDisabled = true;
+		SocketIo.createPage({ "name" : $scope.newPageDialog.pageTitle, "backgroundColor" : "#FFFFFF",
+				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : "back", "page" : Page.pageId() }] }).then(function(data) {
+			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.pageTitle, "page" : data.pageId };
+			SocketIo.addLink(newLink);
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.$broadcast('addLink', newLink);
+		}, function(data) {
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+		});
 	};
 }]);
 
-mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$timeout', 'Page', 'SocketIo',
-	 function($scope, $http, $routeParams, $timeout, Page, SocketIo) {
+mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$interval', 'Page', 'SocketIo',
+	 function($scope, $http, $routeParams, $interval, Page, SocketIo) {
 	var frame = 0;
 	$scope.liveCursors = {};
 	$scope.getCursorX = function(cursor) {
@@ -34,46 +65,44 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 	$scope.getCursorOpacity = function() {
 		return (0.8-0.4)*Math.pow($scope.cursors.length, -1.1) + 0.4;
 	};
-	SocketIo.on('userEntered', function(data) {
+	var userEnteredListener = function(data) {
 		$scope.liveCursors[data.id] = { "x" : "0%", "y" : "0%"};
-		console.log("user entered: " + data.id);
-	});
-	SocketIo.on('userExited', function(data) {
-		console.log("user exited: " + data.id);
+	};
+
+	var userExitedListener = function(data) {
 		delete $scope.liveCursors[data.id];
-	});
-	SocketIo.on('otherMouseMoved', function(data) {
-		console.log('moved by ' + data.id);
-		console.log($scope.liveCursors);
-		console.log($scope.name);
+	};
+	
+	var otherMouseMovedListener = function(data) {
 		var liveCursor = $scope.liveCursors[data.id];
-		liveCursor.x = data.x + "%";
-		liveCursor.y = data.y + "%";
+		liveCursor.x = data.x;
+		liveCursor.y = data.y;
+	};
+	
+	var addLinkListener = function(data) {
+		if(!$scope.hasOwnProperty('links'))
+			$scope.links = [];
+		$scope.links.push(data);
+	};
+	
+	$scope.$on('addLink', function(event, data) {
+		addLinkListener(data);
 	});
 	
 	SocketIo.getPage($routeParams.pageId).then(function(data) {
+		Page.setPageId($routeParams.pageId);
 		Page.setTitle(data.name);
 		Page.setBackgroundColor(data.backgroundColor);
 		$scope.name = data.name;
 		$scope.links = data.links;
-		//test code
-		var cursors = [];
-		for(var j = 10; j<90; j++)
-		{
-		var cursorFrames = [];
-		for(var i = 10; i<90; i++)
-		{
-			cursorFrames.push({"x":i+"%", "y":j+"%"});
-		}
-		cursors.push({"frames" : cursorFrames});
-		}
-		//end test code
-		$scope.cursors = cursors;
-		console.log("connected to page");
-		console.log($scope.liveCursors);
+		$scope.cursors = data.cursors;
 		$scope.liveCursors = data.liveCursors;
-		console.log($scope.liveCursors);
 		frame = 0;
+		SocketIo.on('userEntered', userEnteredListener);
+		SocketIo.on('userExited', userExitedListener);
+		SocketIo.on('otherMouseMoved', otherMouseMovedListener);
+		SocketIo.on('addLink', addLinkListener);
+	
 	}, function(data, status) {
 		var name = 'Error: ' + status;
 		Page.setTitle(name);
@@ -84,9 +113,15 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		$scope.liveCursors = null;
 		frame = 0;
 	});
-	(function tick() {
-		frame++;
-		$timeout(tick, 1000/30);
-	})();
+	var tickPromise = $interval(function() { frame++; }, 1000/30);
+
+	$scope.$on('$destroy', function handler() {
+		SocketIo.removeListener('userEntered', userEnteredListener);
+		SocketIo.removeListener('userExited', userExitedListener);
+		SocketIo.removeListener('otherMouseMoved', otherMouseMovedListener);
+		SocketIo.removeListener('addLink', addLinkListener);
+		$interval.cancel(tickPromise);
+	});
+
 }]);
 
