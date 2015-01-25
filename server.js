@@ -9,7 +9,7 @@ var mongo = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;
 
 var mongoUrl = 'mongodb://localhost:27017/mazenet';
-server.listen(8090);
+server.listen(8094);
 
 app.use(session({
 	secret: 'change this',

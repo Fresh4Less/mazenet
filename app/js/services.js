@@ -45,3 +45,10 @@ mazenetServices.factory('SocketIo', ['$q', function($q) {
 	};
 }]);
 
+mazenetServices.factory('ContextMenuService', function() {
+	return {
+		TestF : function() {
+			// Call the method in the controllers. I think. Not sure how to do that.
+		}
+	};
+});

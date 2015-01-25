@@ -12,4 +12,6 @@
 	transition: left 0.034s linear, top 0.034s linear;
 	*/
 }
-
+.position-fixed {
+	position: fixed;
+}

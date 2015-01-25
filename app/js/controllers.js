@@ -16,6 +16,9 @@ mazenetControllers.controller('ItemDetailCtrl', ['$scope', '$routeParams', funct
 
 mazenetControllers.controller('MainCtrl', ['$scope', 'Page', function($scope, Page) {
 	$scope.Page = Page;
+	$scope.NewPageDialog = function() {
+	// Do elliot's context menu thing.
+	};
 }]);
 
 mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$timeout', 'Page', 'SocketIo',

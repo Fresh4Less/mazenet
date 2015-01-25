@@ -8,6 +8,7 @@
 	<script src="/bower_components/jquery/dist/jquery.js"></script>
 	<script src="/bower_components/angular/angular.js"></script>
 	<script src="/bower_components/angular-route/angular-route.js"></script>
+	<script src="/bower_components/ng-context-menu/dist/ng-context-menu.js"></script>
 	<script src="js/app.js"></script>
 	<script src="js/controllers.js"></script>
 	<script src="js/services.js"></script>
@@ -17,7 +18,39 @@
 		.floatLink { position: absolute; }
 	</style>
 </head>
-<div ng-view></div>
+<body context-menu
+	data-target="menu-{{ $index }}"
+	ng-class="{ 'highlight': highlight, 'expanded': expanded }">
+	<div ng-view></div>
+	<div class="dropdown position-fixed" id="menu-{{ $index }}">
+	  <ul class="dropdown-menu" role="menu">
+		<li>
+		  <a class="pointer" role="menuitem" tabindex="1"
+			 ng-click="panel.highlight = true; Page.setTitle('test')">
+			 Tunnel Room
+		  </a>
+		</li>
+		<li>
+		  <a class="pointer" role="menuitem" tabindex="2"
+			 ng-click="panel.highlight = false">
+			 Add Hyperlink
+		  </a>
+		</li>
+		<li>
+		  <a class="pointer" role="menuitem" tabindex="3"
+			 ng-click="panel.expanded = false">
+			 Draw
+		  </a>
+		</li>
+		<li>
+		  <a href="https://github.com/Fresh4Less/mazenet"
+			 role="menuitem"
+			 tabindex="-1">
+			 View GitHub
+		  </a>
+		</li>
+	  </ul>
+	</div>
 </body>
 </html>
 
