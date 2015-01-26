@@ -1,11 +1,13 @@
 /* app.css */
 
 html {
+	margin: 0px;
 	overflow: hidden;
+	height: 100%;
 }
 body {
 	overflow: hidden;
-	margin: 0;
+	margin: 0px;
 	height: 100%;
 }
 
@@ -16,11 +18,12 @@ body {
 
 .liveCursor {
 	position: absolute;
-	
+	pointer-events: none;
 }
 
 .replayedCursor {
 	position: absolute;
+	pointer-events: none;
 	/*
 	-webkit-transition: left 0.034s linear, top 0.034s linear;
 	transition: left 0.034s linear, top 0.034s linear;
@@ -48,5 +51,9 @@ body {
 .popupMenu .popover-content > * {
 	margin: 0px 0px 0px 0px;
 	border-style: none;
+}
+
+.backLink {
+	color: red;
 }
 

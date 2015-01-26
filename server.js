@@ -26,6 +26,7 @@ mongo.connect(mongoUrl, function(err, db) {
 	if(err === null)
 	{
 		mazenetdb = db;
+		//resetPages();
 	}
 	else
 	{
@@ -176,6 +177,17 @@ io.on('connection', function(socket)
 	});
 	
 });
+
+function resetPages()
+{
+	var pages = mazenetdb.collection('pages');
+	pages.remove({ "_id" : { $ne: new ObjectID("54b726e40f786c2f0b7a58ed") }}, function(err, numberRemoved) {
+		console.log('Deleted all pages: ' + numberRemoved + ' removed.');
+	});
+	pages.update({}, { "$set" : { "cursors" : [], "links" : [] }}, {multi: true}, function(err, doc) {
+		console.log('Cleared out homepage');
+	});
+}
 
 function onUserExited(socket, room)
 {

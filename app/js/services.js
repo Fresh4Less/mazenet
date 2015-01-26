@@ -6,13 +6,16 @@ mazenetServices.factory('Page', function() {
 	var title = '';
 	var backgroundColor = '#ffffff';
 	var pageId = '';
+	var depth = 0;
 	return {
 		title: function() {return title; },
 		setTitle: function(newTitle) { title = newTitle; },
 		backgroundColor: function() { return backgroundColor; },
 		setBackgroundColor: function(newBackgroundColor) { backgroundColor = newBackgroundColor; },
 		pageId: function() { return pageId; },
-		setPageId: function(newPageId) { pageId = newPageId; }
+		setPageId: function(newPageId) { pageId = newPageId; },
+		depth: function() { return depth; },
+		setDepth: function(newDepth) { depth = newDepth; }
 	};
 });
 

@@ -1,5 +1,6 @@
 <h1>{{name}}</h1>
-<a ng-repeat="link in links" href="#/pages/{{link.page}}" style="left:{{link.x}}; top:{{link.y}}" class="floatLink">{{link.text}}</a>
+<a ng-repeat="link in links" href="#/pages/{{link.page}}" style="left:{{link.x}}; top:{{link.y}}"
+	class="floatLink" ng-class="link.classes">{{link.text}}</a>
 <img ng-repeat="cursor in cursors" 
 	ng-style="{left:getCursorX(cursor), top:getCursorY(cursor), opacity:getCursorOpacity()}"
 	class="replayedCursor" ng-src="img/cursor.png">

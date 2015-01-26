@@ -40,9 +40,10 @@ mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'Contex
 		}
 		$scope.newPageDialog.buttonText = "creating...";
 		$scope.newPageDialog.buttonDisabled = true;
-		SocketIo.createPage({ "name" : $scope.newPageDialog.pageTitle, "backgroundColor" : "#FFFFFF",
-				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : "back", "page" : Page.pageId() }] }).then(function(data) {
-			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.pageTitle, "page" : data.pageId };
+		var backgroundColor = RGBtoHex(HSVtoRGB(Math.floor(Math.random() * 12) / 12, 0.5, 1.0));
+		SocketIo.createPage({ "name" : $scope.newPageDialog.pageTitle, "backgroundColor" : backgroundColor, "depth" : Page.depth() + 1,
+				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : Page.title(), "page" : Page.pageId(), "classes" : "backLink" }] }).then(function(data) {
+			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.linkText, "page" : data.pageId };
 			SocketIo.addLink(newLink);
 			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 			$scope.$broadcast('addLink', newLink);
@@ -93,6 +94,7 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		Page.setPageId($routeParams.pageId);
 		Page.setTitle(data.name);
 		Page.setBackgroundColor(data.backgroundColor);
+		Page.setDepth(data.depth);
 		$scope.name = data.name;
 		$scope.links = data.links;
 		$scope.cursors = data.cursors;
@@ -108,8 +110,7 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		Page.setTitle(name);
 		Page.setBackgroundColor('#ffffff');
 		$scope.name = name;
-		$scope.links = null;
-		$scope.cursors = null;
+		$scope.links = null; $scope.cursors = null;
 		$scope.liveCursors = null;
 		frame = 0;
 	});
@@ -125,3 +126,43 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 
 }]);
 
+/* accepts parameters
+ * h  Object = {h:x, s:y, v:z}
+ * OR 
+ * h, s, v
+*/
+function HSVtoRGB(h, s, v) 
+{
+	var r, g, b, i, f, p, q, t;
+	if (h && s === undefined && v === undefined) {
+		s = h.s; v = h.v; h = h.h;
+	}
+	i = Math.floor(h * 6);
+	f = h * 6 - i;
+	p = v * (1 - s);
+	q = v * (1 - f * s);
+	t = v * (1 - (1 - f) * s);
+	switch (i % 6) {
+		case 0: r = v; g = t; b = p; break;
+		case 1: r = q; g = v; b = p; break;
+		case 2: r = p; g = v; b = t; break;
+		case 3: r = p; g = q; b = v; break;
+		case 4: r = t; g = p; b = v; break;
+		case 5: r = v; g = p; b = q; break;
+	}
+	return {
+		r: Math.floor(r * 255),
+		g: Math.floor(g * 255),
+		b: Math.floor(b * 255)
+	};
+}
+
+//0-255
+function RGBtoHex(r, g, b)
+{
+	if(r && g === undefined && b === undefined) {
+	g = r.g; b = r.b; r = r.r;
+}
+	var decColor = (r << 16) + (g << 8) + b;
+	return "#" + decColor.toString(16);
+}
