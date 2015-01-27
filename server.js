@@ -121,7 +121,7 @@ io.on('connection', function(socket)
 				{
 					var currentSocket = io.sockets.connected[i];
 					if(currentSocket.uniqueId !== socket.uniqueId)
-						liveCursors[currentSocket.uniqueId] = {"x" : "0%", "y" : "0%" };
+						liveCursors[currentSocket.uniqueId] = {"x" : 0, "y" : 0 };
 				}
 				pageData.liveCursors = liveCursors;
 				response(pageData);

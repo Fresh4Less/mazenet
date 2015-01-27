@@ -24,7 +24,7 @@ mazenetServices.factory('SocketIo', ['$q', '$interval', function($q, $interval) 
 	var sendMovement = true;
 	$(document).mousemove(function(event) {
 		if(sendMovement)
-			socket.emit('mouseMoved', { "x" : event.pageX/$(window).width()*100+"%", "y" : event.pageY/$(window).height()*100+"%" });
+			socket.emit('mouseMoved', { "x" : event.pageX/$(window).width()*100, "y" : event.pageY/$(window).height()*100 });
 		sendMovement = false;
 	});
 	

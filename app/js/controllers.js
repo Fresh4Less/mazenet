@@ -16,12 +16,12 @@ mazenetControllers.controller('ItemDetailCtrl', ['$scope', '$routeParams', funct
 
 mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'ContextMenuService', function($scope, Page, SocketIo, ContextMenuService) {
 	$scope.Page = Page;
-	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+	$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 	$scope.showNewPageDialog = function() {
 		var leftStr = ContextMenuService.menuElement.css('left');
 		var topStr = ContextMenuService.menuElement.css('top');
-		$scope.newPageDialog.x = parseFloat(leftStr.substr(0, leftStr.length-2))/$(window).width()*100+"%";
-		$scope.newPageDialog.y = parseFloat(topStr.substr(0, topStr.length-2))/$(window).height()*100+"%";
+		$scope.newPageDialog.x = parseFloat(leftStr.substr(0, leftStr.length-2))/$(window).width()*100;
+		$scope.newPageDialog.y = parseFloat(topStr.substr(0, topStr.length-2))/$(window).height()*100;
 		$scope.newPageDialog.visible = 'switching';
 		var watch = $scope.$watch('$scope.newPageDialog.visible', function() {
 			$scope.newPageDialog.visible = 'true';
@@ -30,7 +30,7 @@ mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'Contex
 	};
 	
 	$scope.hideNewPageDialog = function() {
-		$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+		$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 	};
 	
 	$scope.createPage = function() {
@@ -45,10 +45,10 @@ mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'Contex
 				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : Page.title(), "page" : Page.pageId(), "classes" : "backLink" }] }).then(function(data) {
 			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.linkText, "page" : data.pageId };
 			SocketIo.addLink(newLink);
-			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 			$scope.$broadcast('addLink', newLink);
 		}, function(data) {
-			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 		});
 	};
 }]);
@@ -58,10 +58,10 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 	var frame = 0;
 	$scope.liveCursors = {};
 	$scope.getCursorX = function(cursor) {
-		return cursor.frames[Math.min(frame, cursor.frames.length-1)].x;
+		return cursor.frames[Math.min(frame, cursor.frames.length-1)].x + "%";
 	};
 	$scope.getCursorY = function(cursor) {
-		return cursor.frames[Math.min(frame, cursor.frames.length-1)].y;
+		return cursor.frames[Math.min(frame, cursor.frames.length-1)].y + "%";
 	};
 	$scope.getCursorOpacity = function() {
 		return (0.8-0.4)*Math.pow($scope.cursors.length, -1.1) + 0.4;
@@ -76,8 +76,8 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 	
 	var otherMouseMovedListener = function(data) {
 		var liveCursor = $scope.liveCursors[data.id];
-		liveCursor.x = data.x;
-		liveCursor.y = data.y;
+		liveCursor.x = data.x + "%";
+		liveCursor.y = data.y + "%";
 	};
 	
 	var addLinkListener = function(data) {
@@ -91,6 +91,21 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 	});
 	
 	SocketIo.getPage($routeParams.pageId).then(function(data) {
+		//convert positions to percentages
+		for(var i in data.links)
+		{
+			data.links[i].x += "%";
+			data.links[i].y += "%";
+		}
+		for(var j in data.cursors)
+		{
+			var cursor = data.cursors[j];
+			for(var k in cursor.frames)
+			{
+				cursor.frames[k].x += "%";
+				cursor.frames[k].y += "%";
+			}
+		}
 		Page.setPageId($routeParams.pageId);
 		Page.setTitle(data.name);
 		Page.setBackgroundColor(data.backgroundColor);
