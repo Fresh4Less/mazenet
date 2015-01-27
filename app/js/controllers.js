@@ -58,10 +58,10 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 	var frame = 0;
 	$scope.liveCursors = {};
 	$scope.getCursorX = function(cursor) {
-		return cursor.frames[Math.min(frame, cursor.frames.length-1)].x + "%";
+		return cursor.frames[Math.min(frame*2, cursor.frames.length-2)] + "%";
 	};
 	$scope.getCursorY = function(cursor) {
-		return cursor.frames[Math.min(frame, cursor.frames.length-1)].y + "%";
+		return cursor.frames[Math.min(frame*2 + 1, cursor.frames.length-1)] + "%";
 	};
 	$scope.getCursorOpacity = function() {
 		return (0.8-0.4)*Math.pow($scope.cursors.length, -1.1) + 0.4;
@@ -96,15 +96,6 @@ mazenetControllers.controller('PageCtrl', ['$scope', '$http', '$routeParams', '$
 		{
 			data.links[i].x += "%";
 			data.links[i].y += "%";
-		}
-		for(var j in data.cursors)
-		{
-			var cursor = data.cursors[j];
-			for(var k in cursor.frames)
-			{
-				cursor.frames[k].x += "%";
-				cursor.frames[k].y += "%";
-			}
 		}
 		Page.setPageId($routeParams.pageId);
 		Page.setTitle(data.name);

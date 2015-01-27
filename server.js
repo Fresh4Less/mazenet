@@ -26,7 +26,7 @@ mongo.connect(mongoUrl, function(err, db) {
 	if(err === null)
 	{
 		mazenetdb = db;
-		//resetPages();
+		//resetSavedCursors();
 	}
 	else
 	{
@@ -121,7 +121,20 @@ io.on('connection', function(socket)
 				{
 					var currentSocket = io.sockets.connected[i];
 					if(currentSocket.uniqueId !== socket.uniqueId)
-						liveCursors[currentSocket.uniqueId] = {"x" : 0, "y" : 0 };
+					{
+						var x = 0;
+						var y = 0;
+						if(unsavedCursorData.hasOwnProperty(currentSocket.uniqueId))
+						{
+							var cursorData = unsavedCursorData[currentSocket.uniqueId];
+							if(cursorData.length >= 2)
+							{
+								x = cursorData[0];
+								y = cursorData[1];
+							}
+						}
+						liveCursors[currentSocket.uniqueId] = {"x" : x, "y" : y };
+					}
 				}
 				pageData.liveCursors = liveCursors;
 				response(pageData);
@@ -171,21 +184,26 @@ io.on('connection', function(socket)
 				{ "id" : socket.uniqueId, "x" : mouseParams.x, "y" : mouseParams.y });
 			if(!unsavedCursorData.hasOwnProperty(socket.uniqueId))
 				unsavedCursorData[socket.uniqueId] = [];
-			
-			unsavedCursorData[socket.uniqueId].push({ "x" : mouseParams.x, "y" : mouseParams.y });
+			//positions are saved as an array [x1,y1,x2,y2,...]
+			unsavedCursorData[socket.uniqueId].push(mouseParams.x, mouseParams.y );
 		}
 	});
 	
 });
 
-function resetPages()
+function deleteAllPages()
 {
 	var pages = mazenetdb.collection('pages');
 	pages.remove({ "_id" : { $ne: new ObjectID("54b726e40f786c2f0b7a58ed") }}, function(err, numberRemoved) {
 		console.log('Deleted all pages: ' + numberRemoved + ' removed.');
 	});
-	pages.update({}, { "$set" : { "cursors" : [], "links" : [] }}, {multi: true}, function(err, doc) {
-		console.log('Cleared out homepage');
+}
+
+function resetSavedCursors()
+{
+	var pages = mazenetdb.collection('pages');
+	pages.update({}, { "$set" : { "cursors" : [] }}, {multi: true}, function(err, doc) {
+		console.log('Cleared out cursors');
 	});
 }
 
