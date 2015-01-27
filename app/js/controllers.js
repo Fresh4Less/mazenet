@@ -16,12 +16,12 @@ mazenetControllers.controller('ItemDetailCtrl', ['$scope', '$routeParams', funct
 
 mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'ContextMenuService', function($scope, Page, SocketIo, ContextMenuService) {
 	$scope.Page = Page;
-	$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 	$scope.showNewPageDialog = function() {
 		var leftStr = ContextMenuService.menuElement.css('left');
 		var topStr = ContextMenuService.menuElement.css('top');
-		$scope.newPageDialog.x = parseFloat(leftStr.substr(0, leftStr.length-2))/$(window).width()*100;
-		$scope.newPageDialog.y = parseFloat(topStr.substr(0, topStr.length-2))/$(window).height()*100;
+		$scope.newPageDialog.x = parseFloat(leftStr.substr(0, leftStr.length-2))/$(window).width()*100+"%";
+		$scope.newPageDialog.y = parseFloat(topStr.substr(0, topStr.length-2))/$(window).height()*100+"%";
 		$scope.newPageDialog.visible = 'switching';
 		var watch = $scope.$watch('$scope.newPageDialog.visible', function() {
 			$scope.newPageDialog.visible = 'true';
@@ -45,10 +45,10 @@ mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'Contex
 				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : Page.title(), "page" : Page.pageId(), "classes" : "backLink" }] }).then(function(data) {
 			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.linkText, "page" : data.pageId };
 			SocketIo.addLink(newLink);
-			$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "%0", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 			$scope.$broadcast('addLink', newLink);
 		}, function(data) {
-			$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
 		});
 	};
 }]);

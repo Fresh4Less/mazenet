@@ -11,6 +11,10 @@ body {
 	height: 100%;
 }
 
+a {
+	font-weight: bold;
+}
+
 .newPageDialog {
 	width: 80px;
 	height: 150px;
