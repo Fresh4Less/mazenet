@@ -1,2 +1,2 @@
 #!/bin/bash
-/usr/local/bin/forever stop /srv/nodeserver/mazenet/app.js
+/usr/local/bin/forever stop /srv/nodeserver/mazenet/server.js
