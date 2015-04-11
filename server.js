@@ -19,6 +19,7 @@ app.use(session({
 
 app.use(compress());
 app.use(bodyParser.json());
+app.use(express.static("app"));
 app.use(express.static("."));
 
 var mazenetdb = null;
@@ -34,19 +35,19 @@ mongo.connect(mongoUrl, function(err, db) {
 	}
 });
 
-app.get('/', function(req, res)
-{
-	//test sessions between http requests
-	if(req.session.hasOwnProperty('views'))
-	{
-		res.end('' + (++req.session.views));
-	}
-	else
-	{
-		req.session.views = 1;
-		res.send('' + req.session.views);
-	}
-});
+//app.get('/', function(req, res)
+//{
+	////test sessions between http requests
+	//if(req.session.hasOwnProperty('views'))
+	//{
+		//res.end('' + (++req.session.views));
+	//}
+	//else
+	//{
+		//req.session.views = 1;
+		//res.send('' + req.session.views);
+	//}
+//});
 
 app.get('/pages/:pageId', function(req, res) {
 	findPage(req.param('pageId'), function(err, pageData) {

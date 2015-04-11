@@ -2,18 +2,6 @@
 
 var mazenetControllers = angular.module('mazenetControllers', []);
 
-mazenetControllers.controller('ItemListCtrl', ['$scope', '$http', function($scope, $http) {
-	$http.get('data/items.json').success(function(data) {
-		$scope.items = data;
-	});
-	
-	$scope.orderProp = 'title';
-}]);
-
-mazenetControllers.controller('ItemDetailCtrl', ['$scope', '$routeParams', function($scope, $routeParams) {
-	$scope.itemId = $routeParams.itemId;
-}]);
-
 mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'ContextMenuService', function($scope, Page, SocketIo, ContextMenuService) {
 	$scope.Page = Page;
 	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
