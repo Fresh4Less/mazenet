@@ -4,12 +4,13 @@ var mazenetControllers = angular.module('mazenetControllers', []);
 
 mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'ContextMenuService', function($scope, Page, SocketIo, ContextMenuService) {
 	$scope.Page = Page;
-	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+	$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "Tunnel" };
 	$scope.showNewPageDialog = function() {
 		var leftStr = ContextMenuService.menuElement.css('left');
 		var topStr = ContextMenuService.menuElement.css('top');
 		$scope.newPageDialog.x = parseFloat(leftStr.substr(0, leftStr.length-2))/$(window).width()*100+"%";
 		$scope.newPageDialog.y = parseFloat(topStr.substr(0, topStr.length-2))/$(window).height()*100+"%";
+		
 		$scope.newPageDialog.visible = 'switching';
 		var watch = $scope.$watch('$scope.newPageDialog.visible', function() {
 			$scope.newPageDialog.visible = 'true';
@@ -18,7 +19,7 @@ mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'Contex
 	};
 	
 	$scope.hideNewPageDialog = function() {
-		$scope.newPageDialog = { "visible" : "false", "x" : 0, "y" : 0, "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+		$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "Tunnel" };
 	};
 	
 	$scope.createPage = function() {
@@ -26,17 +27,17 @@ mazenetControllers.controller('MainCtrl', ['$scope', 'Page', 'SocketIo', 'Contex
 		{
 			return;
 		}
-		$scope.newPageDialog.buttonText = "creating...";
+		$scope.newPageDialog.buttonText = "Tunnelling...";
 		$scope.newPageDialog.buttonDisabled = true;
 		var backgroundColor = RGBtoHex(HSVtoRGB(Math.floor(Math.random() * 12) / 12, 0.5, 1.0));
 		SocketIo.createPage({ "name" : $scope.newPageDialog.pageTitle, "backgroundColor" : backgroundColor, "depth" : Page.depth() + 1,
 				"links" : [{ "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : Page.title(), "page" : Page.pageId(), "classes" : "backLink" }] }).then(function(data) {
 			var newLink = { "x" : $scope.newPageDialog.x, "y" : $scope.newPageDialog.y, "text" : $scope.newPageDialog.linkText, "page" : data.pageId };
 			SocketIo.addLink(newLink);
-			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "%0", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "Tunnel" };
 			$scope.$broadcast('addLink', newLink);
 		}, function(data) {
-			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "create page" };
+			$scope.newPageDialog = { "visible" : "false", "x" : "0%", "y" : "0%", "pageTitle" : "", "linkText" : "", "buttonDisabled" : false, "buttonText" : "Tunnel" };
 		});
 	};
 }]);
