@@ -1,96 +1,33 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-var io = require('socket.io')(server);
 var session = require('express-session');
 var bodyParser = require('body-parser');
 var compress = require('compression');
-var mongo = require('mongodb').MongoClient;
-var ObjectID = require('mongodb').ObjectID;
 
-var mongoUrl = 'mongodb://localhost:27017/mazenet';
-server.listen(8090);
+var config = require('config');
+var appPort = config.get('port');
 
-app.use(session({
-	secret: 'change this',
-	resave: false,
-	saveUninitialized: true
-}));
+var routes = require('./routes');
+
+server.listen(appPort);
+console.log('Listening on port ' + appPort);
+//
+//app.use(session({
+//	secret: 'change this',
+//	resave: false,
+//	saveUninitialized: true
+//}));
 
 app.use(compress());
 app.use(bodyParser.json());
-app.use(express.static("app"));
-app.use(express.static("."));
+//app.use(express.static("app"));
+//app.use(express.static("."));
 
-var mazenetdb = null;
-mongo.connect(mongoUrl, function(err, db) {
-	if(err === null)
-	{
-		mazenetdb = db;
-		//resetSavedCursors();
-	}
-	else
-	{
-		console.log(err);
-	}
-});
+app.use(routes);
 
-//app.get('/', function(req, res)
-//{
-	////test sessions between http requests
-	//if(req.session.hasOwnProperty('views'))
-	//{
-		//res.end('' + (++req.session.views));
-	//}
-	//else
-	//{
-		//req.session.views = 1;
-		//res.send('' + req.session.views);
-	//}
-//});
-
-app.get('/pages/:pageId', function(req, res) {
-	findPage(req.param('pageId'), function(err, pageData) {
-		if(err === null)
-		{
-			if(pageData !== null)
-			{
-				delete pageData._id;
-				res.status(200).json(pageData);
-			}
-			else
-			{
-				res.status(404).send("Page not found.");
-			}
-		}
-		else
-		{
-			console.log("Failed to retreive page: " + err.message);
-			res.status(500).send("Failed to retreive page.");
-		}
-	});
-});
-
-app.post('/pages', function(req, res) {
-	if(!hasAllParams(req.body, ['name', 'backgroundColor']))
-	{
-		res.status(400).send("Bad request.");
-		return;
-	}
-	
-	createPage(req.body, function(err, pageId) {
-		if(err === null)
-		{
-			res.status(201).json({ "pageId" : pageId});
-		}
-		else
-		{
-			console.log("Failed to create page: " + err.message);
-			res.status(400).send("Failed to create page.");
-		}
-	});
-});
-
+//var io = require('./sockets')(server);
+/*
 var ioIdCounter = 0;
 var unsavedCursorData = {};
 
@@ -274,13 +211,5 @@ function findPage(pageId, callback)
 		});
 }
 
-function hasAllParams(obj, params)
-{
-	for(var i = 0; i < params.length; i++)
-	{
-		if(!obj.hasOwnProperty(params[i]))
-			return false;
-	}
-	return true;
-}
 
+*/
