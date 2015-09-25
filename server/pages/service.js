@@ -45,10 +45,10 @@ function _sanitizePageParams(pageParams) {
 		sanitized.owners = [new ObjectID(pageParams.creator)];
 	}
 	if(pageParams.hasOwnProperty('permissions')) {	
-	sanitized.permissions = pageParams.permissions;
+		sanitized.permissions = pageParams.permissions;
 	}
 	if(pageParams.hasOwnProperty('name')) {	
-	sanitized.name = pageParams.name;
+		sanitized.name = pageParams.name;
 	}
 	return sanitized;
 }
@@ -95,20 +95,28 @@ function _pushNotNull(arr, paramName, elem) {
 
 //returns null if okay, otherwise returns the error message as a string
 function _validateObjectId(objectId, required) {
-	return _validateRequired(objectId, required) ||
-		(ObjectID.isValid(objectId) ? null : 'must be a valid MongoDb objectID');
+	if(objectId === undefined || objectId === null) {
+		return required ? 'is a required field' : null;
+	}
+		
+	return ObjectID.isValid(objectId) ? null : 'must be a valid MongoDb objectID';
 }
 
 function _validatePagePermissions(permissions, required) {
 	var validValues = ['none', 'links', 'all'];
-	return _validateRequired(permissions, required) ||
-		((validValues.indexOf(permissions) === -1) ?
-			'must be one of the following values: ' + validValues.join(', ') : null );
+	if(permissions === undefined || permissions === null) {
+		return required ? 'is a required field' : null;
+	}
+	return validValues.indexOf(permissions) === -1 ?
+			'must be one of the following values: ' + validValues.join(', ') : null;
 }
 
 function _validateString(str, required) {
-	return _validateRequired(str, required) ||
-		(typeof str === 'string' ? null : 'must be a string');
+	if(str === undefined || str === null) {
+		return required ? 'is a required field' : null;
+	}
+	
+	return typeof str === 'string' ? null : 'must be a string';
 }
 
 function _validateRequired(obj, required) {
