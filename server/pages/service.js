@@ -3,127 +3,60 @@ var ObjectID = require('mongodb').ObjectID;
 var CustomErrors = require('../util/custom-errors');
 
 var pagesDataAccess = require('./dataAccess');
+var Validator = require('fresh-validation').Validator;
 
-function getPage(pageId) {
-	_validateGetPage(pageId);
-	return pagesDataAccess.getPage(new ObjectID(pageId))
+// initialze validator
+var validator = new Validator();
+
+//pages schema
+// field names in parentheses () optional
+//  creator: String (userId)
+//  owner: Array String (userId)
+//  permissions: String ('none', 'links', 'all')
+//  title: String,
+//  (whitelist): Array (userId)
+//  background: object { type: String, data: {...} },
+//  elements: Array (see /elements/service)
+//  cursors: Array { uId: String, frames: Array { position: { x: int, y: int }, time: int } }
+
+var permissionsValues = ['none', 'links', 'all'];
+var backgroundTypes = ['color'];
+
+function getPage(pageIdStr) {
+	validator.is(pageIdStr, 'pageId').required().objectId();
+	try {
+		validator.throwErrors();
+	}
+	catch(err) {
+		return BPromise.reject(err);
+	}
+	return pagesDataAccess.getPage(validator.transformationOutput())
 		.then(function(page) {
 			return page;
 		});
 }
 
 function createPage(pageParams) {
+	validator.is(pageParams, 'pageParams').required().object()
+		.property('creator').required().objectId().back()
+		.property('permissions').required().elementOf(permissionsValues).back()
+		.property('title').required().string().back()
+		.property('background').required().object()
+			.property('type').elementOf(backgroundTypes).back();
 	try {
-		_validateNewPage(pageParams);
+		validator.throwErrors();
 	}
 	catch(err) {
 		return BPromise.reject(err);
 	}
-	//TODO: require a link be created on the parent page
-	//TODO: create a link
-	//TODO: emit socket event when a page is created
-	var sanitizedPageParams = _sanitizePageParams(pageParams);
+	
+	validator.whitelist({ creator: true, background: { data: true } });
+	var sanitizedPageParams = validator.transformationOutput();
+	sanitizedPageParams.owners = [sanitizedPageParams.creator];
 	return pagesDataAccess.createPage(sanitizedPageParams)
 		.then(function(page) {
 			return page;
 		});
-}
-
-function _sanitizePageParams(pageParams) {
-	var sanitized = {};
-	
-	function addObjectID(property, src, dest) {
-		if(src.hasOwnProperty(property)) {
-			dest[property] = new ObjectID(src[property]);
-		}
-	}
-	
-	//whitelist and sanitize
-	addObjectID('parentPage', pageParams, sanitized);
-	addObjectID('creator', pageParams, sanitized);
-	if(pageParams.hasOwnProperty('creator')) {
-		sanitized.owners = [new ObjectID(pageParams.creator)];
-	}
-	if(pageParams.hasOwnProperty('permissions')) {	
-		sanitized.permissions = pageParams.permissions;
-	}
-	if(pageParams.hasOwnProperty('name')) {	
-		sanitized.name = pageParams.name;
-	}
-	return sanitized;
-}
-
-function _validateGetPage(pageId) {
-	var error = _validateObjectId(pageId);
-	if(error !== null) {
-		throw new CustomErrors.ValidationError('pageId ' + error);
-	}
-	return true;
-}
-
-//validation (move into own module?)
-function _validateNewPage(pageParams) {
-	var errors = [];
-	if(!_pushNull(errors, 'Page parameters', pageParams)) {
-		_pushNotNull(errors, 'parentPage', _validateObjectId(pageParams.parentPage, true));
-		_pushNotNull(errors, 'creator', _validateObjectId(pageParams.creator, true));
-		_pushNotNull(errors, 'permissions', _validatePagePermissions(pageParams.permissions, true));
-		_pushNotNull(errors, 'name', _validateString(pageParams.name, true));
-	}
-	if(errors.length > 0) {
-		throw new CustomErrors.ValidationError(errors.join(', '));
-	}
-	
-	return true;
-}
-
-function _pushNull(arr, paramName, elem) {
-	if(elem === undefined || elem === null) {
-		arr.push(paramName + ' must be defined');
-		return true;
-	}
-	return false;
-}
-
-function _pushNotNull(arr, paramName, elem) {
-	if(elem !== undefined && elem !== null) {
-		arr.push(paramName + ' ' + elem);
-		return true;
-	}
-	return false;
-}
-
-//returns null if okay, otherwise returns the error message as a string
-function _validateObjectId(objectId, required) {
-	if(objectId === undefined || objectId === null) {
-		return required ? 'is a required field' : null;
-	}
-		
-	return ObjectID.isValid(objectId) ? null : 'must be a valid MongoDb objectID';
-}
-
-function _validatePagePermissions(permissions, required) {
-	var validValues = ['none', 'links', 'all'];
-	if(permissions === undefined || permissions === null) {
-		return required ? 'is a required field' : null;
-	}
-	return validValues.indexOf(permissions) === -1 ?
-			'must be one of the following values: ' + validValues.join(', ') : null;
-}
-
-function _validateString(str, required) {
-	if(str === undefined || str === null) {
-		return required ? 'is a required field' : null;
-	}
-	
-	return typeof str === 'string' ? null : 'must be a string';
-}
-
-function _validateRequired(obj, required) {
-	if((obj === undefined || obj === null) && required) {
-		return 'is a required field';
-	}
-	return null;
 }
 
 module.exports = {

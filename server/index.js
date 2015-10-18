@@ -10,6 +10,31 @@ var appPort = config.get('port');
 
 var routes = require('./routes');
 
+var ObjectID = require('mongodb').ObjectID;
+var Validator = require('fresh-validation').Validator;
+
+var BPromise = require('bluebird');
+
+// debug
+BPromise.longStackTraces();
+
+Validator.addGlobalValidator({
+	name: 'objectId',
+	continueOnFail: false,
+	errorMessage: '{name} ({val}) must be an objectId',
+	validationFunction: function(target) {
+		//return target instanceof ObjectID || ObjectID.isValid(target);
+		return target.toHexString || ObjectID.isValid(target); //TODO: make this not a hack
+	},
+	transformationFunction: function(target) {
+		//if(target instanceof ObjectID) {
+		if(target.toHexString) { //TODO: make this not a hack
+			return target;
+		}
+		return new ObjectID(target);
+	}
+});
+
 server.listen(appPort);
 console.log('Listening on port ' + appPort);
 //

@@ -1,45 +1,17 @@
-//pages schema
-// field names in parentheses () optional
-//	parentPage: ObjectId
-//  creator: String (userId)
-//  owner: Array String (userId)
-//  permissions: String ('none', 'links', 'all')
-//	name: String,
-//  (whitelist): Array (userId)
-//	background: object { type: String, ... },
-//			types: 'color': { color: String }
-//	elements: Array { type: String, position: { x: int, y: int }, ... }
-//	cursors: Array { userId: String, frames: Array { position: { x: int, y: int }, time: int } }
-
 var config = require('config');
 var BPromise = require('bluebird');
 var MongoDb = require('mongodb');
 var CustomErrors = require('../util/custom-errors');
+var db = require('../util/db');
 var MongoClient = MongoDb.MongoClient;
 BPromise.promisifyAll(MongoDb);
 BPromise.promisifyAll(MongoClient);
 
-var dbConfig = config.get('dbConfig');
-
-var mazenetDb = null;
-
-function connect() {
-	if(mazenetDb) {
-		console.warn('Already connected to mazenetDb');
-		mazenetDb.close();
-	}
-	return MongoClient.connectAsync('mongodb://' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.dbName)
-		.then(function(db) {
-			mazenetDb = db;
-			return db;
-		});
-}
-
 function getPage(pageId) {
-	return getMazenetDb()
+	return db.getMazenetDb()
 		.then(function(db) {
 			return db.collection('pages')
-				.findOneAsync({ "_id" : new MongoDb.ObjectID(pageId) });	
+				.find({ "_id" : pageId }).limit(1).nextAsync();
 		})
 		.then(function(page) {
 			if(!page) {
@@ -50,7 +22,7 @@ function getPage(pageId) {
 }
 
 function createPage(pageParams) {
-	return getMazenetDb()
+	return db.getMazenetDb()
 		.then(function(db) {
 			return db.collection('pages')
 				.insertOneAsync(pageParams);
@@ -66,17 +38,7 @@ function createPage(pageParams) {
 		});
 }
 
-function getMazenetDb() {
-	if(!mazenetDb) {
-		return connect();
-	}
-	else {
-		return BPromise.resolve(mazenetDb);
-	}
-}
-
 module.exports = {
-	connect: connect,
 	getPage: getPage,
 	createPage: createPage
 };

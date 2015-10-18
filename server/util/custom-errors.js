@@ -10,6 +10,5 @@ function _createError(name) {
 
 module.exports = {
 	NotFoundError: _createError('NotFoundError'),
-	ValidationError: _createError('ValidationError')	
 };
 
