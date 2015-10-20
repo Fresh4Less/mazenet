@@ -1,83 +1,37 @@
 <!doctype html>
-<html lang="en" ng-app="mazenetApp" ng-controller="MainCtrl">
-<head>
-	<meta charset="utf-8">
-	<title>mazenet - {{Page.title()}}</title>
-	<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
-	<link rel="stylesheet" href="css/app.css">
-	<script src="/bower_components/jquery/dist/jquery.js"></script>
-	<script src="/bower_components/bootstrap/dist/js/bootstrap.js"></script>
-	<script src="/bower_components/angular/angular.js"></script>
-	<script src="/bower_components/angular-route/angular-route.js"></script>
-	<script src="/bower_components/ng-context-menu/dist/ng-context-menu.js"></script>
-	<script src="js/app.js"></script>
-	<script src="js/controllers.js"></script>
-	<script src="js/services.js"></script>
-	<script src="js/directives.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
-	<style>
-		body { background-color: {{Page.backgroundColor()}}; }
-		.floatLink { position: absolute; }
-	</style>
-</head>
-<body context-menu
-		data-target="menu-{{ $index }}"
-		ng-class="{ 'highlight': highlight, 'expanded': expanded }">
+<html>
+<head></head>
+<body>
 
-	<div ng-view></div>
-	
-	<div class="dropdown position-fixed" id="menu-{{ $index }}">
-	  <ul class="dropdown-menu" role="menu">
-		<li>
-		  <a class="pointer" role="menuitem" tabindex="1"
-			 ng-click="panel.highlight = true; showNewPageDialog();">
-			 Tunnel Room
-		  </a>
-		</li>
-		<li>
-		  <a class="pointer" role="menuitem" tabindex="2"
-			 ng-click="panel.highlight = false">
-			 Add Hyperlink
-		  </a>
-		</li>
-		<li>
-		  <a class="pointer" role="menuitem" tabindex="3"
-			 ng-click="panel.expanded = false">
-			 Draw
-		  </a>
-		</li>
-		<li>
-		  <a href="https://github.com/Fresh4Less/mazenet"
-			 role="menuitem"
-			 tabindex="-1">
-			 View GitHub
-		  </a>
-		</li>
-	  </ul>
-	</div>
-	
-	<div style="position: absolute" ng-style="{left: newPageDialog.x, top: newPageDialog.y}">
-		<a>{{newPageDialog.linkText}}</a>
-		<popup-menu visible="{{newPageDialog.visible}}" >
-			<div class="panel panel-primary">
-				<div class="panel-heading">
-					<h3 class="panel-title">New Room</h3>
-				</div>
-				<div class="panel-body">
-					<div class="input-group">
-						<span class="input-group-addon" id="newPageDialog-name-addon">name</span>
-						<input type="text" class="form-control" placeholder="name" aria-describedby="newPageDialog-name-addon" ng-model="newPageDialog.pageTitle" />
-					</div>
-					<div class="input-group">
-						<span class="input-group-addon" id="newPageDialog-linktext-addon">link text</span>
-						<input type="text" class="form-control" placeholder="link text" aria-describedby="newPageDialog-linktext-addon" ng-model="newPageDialog.linkText" />
-					</div>
-					<button type="button" class="btn btn-primary" ng-click="hideNewPageDialog()">Cancel</button>
-					<button type="button" class="btn btn-primary" ng-disabled="newPageDialog.buttonDisabled" ng-click="createPage()">{{newPageDialog.buttonText}}</button>
-				</div>
-			</div>
-		</popup-menu>
-	</div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var startPage = '5626ad59333eb8942f017d1d';
+  var socket = io('http://localhost:8090/mazenet');
+  socket.on('pages/enter:success', function(page) {
+		  console.log(page);
+		  });
+  socket.on('pages/enter:failure', function(error) {
+		  console.log(error);
+		  });
+  socket.on('pages/elements/created', function(element) {
+		  console.log('element created');
+		  console.log(element);
+		  });
+  socket.on('pages/elements/create:failure', function(error) {
+		  console.log(error);
+		  });
+  socket.emit('pages/enter', startPage);
+  socket.emit('pages/elements/create', {
+            "type": "link",
+            "creator": "101010101010101010101010",
+            "pos": {
+                "x": 40,
+                "y": 40
+            },
+            "data": {
+                "text": "my link!"
+            }
+        });
+</script>
 </body>
 </html>
-
