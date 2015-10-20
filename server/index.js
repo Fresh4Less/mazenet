@@ -46,10 +46,10 @@ console.log('Listening on port ' + appPort);
 
 app.use(compress());
 app.use(bodyParser.json());
-//app.use(express.static("app"));
 //app.use(express.static("."));
 
 app.use(routes);
+app.use(express.static(__dirname + "/../client"));
 
 //var io = require('./sockets')(server);
 /*

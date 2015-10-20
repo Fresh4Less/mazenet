@@ -1,0 +1,11 @@
+{
+    "version": "0.1.0",
+    "command": "grunt",
+    "isShellCommand": true,
+    "args": [],
+    "windows":{
+            "command": "tsc"
+    },
+    "problemMatcher": "$tsc"
+    
+}
