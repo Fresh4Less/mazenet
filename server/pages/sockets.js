@@ -1,4 +1,5 @@
 var pagesService = require('./service');
+var elementsSockets = require('../elements/sockets');
 
 var CustomErrors = require('../util/custom-errors');
 var ValidatorErrors = require('fresh-validation').Errors;
@@ -8,13 +9,14 @@ function registerHandlers(route, io) {
 		socket.on(route + '/enter', function(pageId) {
 			pagesService.getPage(pageId)
 				.then(function(page) {
+					// leave all related rooms
 					socket.rooms.forEach(function(r) {
-						console.log(r);
-						console.log(typeof r);
+						if(r.indexOf(route) === 0) {
+							socket.leave(r);
+						}
 					});
 					socket.join(route + '/' + page._id);
-					console.log('joined pages/' + page._id);
-					socket.emit('pages/enter:success', page);
+					socket.emit(route + '/enter:success', page);
 				})
 				.catch(ValidatorErrors.ValidationError, function(err) {
 					err.status = 400;
@@ -26,6 +28,7 @@ function registerHandlers(route, io) {
 				});
 		});
 	});
+	elementsSockets.registerHandlers(route + '/elements', io);
 }
 
 module.exports = {
