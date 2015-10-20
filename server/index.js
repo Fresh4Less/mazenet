@@ -1,6 +1,9 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
+
+var socketio = require('./sockets').listen(server);
+
 var session = require('express-session');
 var bodyParser = require('body-parser');
 var compress = require('compression');
@@ -46,6 +49,7 @@ console.log('Listening on port ' + appPort);
 
 app.use(compress());
 app.use(bodyParser.json());
+app.use('/static', express.static(__dirname + '/../client'));
 //app.use(express.static("app"));
 //app.use(express.static("."));
 
