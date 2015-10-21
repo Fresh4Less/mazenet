@@ -1,27 +1,3 @@
-/*MAZENET - Fresh4Less [ Elliot Hatch, Samuel Davidson ]*/
-
-var app = angular.module('mazenet', []);
-app.controller('RootController', function($scope) {
-	$scope.test = "Controller Loaded!";
-});;
-angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService', MazenetController]);
-
-function MazenetController($scope, SocketService) {
-	$scope.testVar = "MazenetController loaded!";
-	$scope.pageData = 'unloaded...';
-	SocketService.Setup().then(function(data) {
-		$scope.pageData = data;
-	}, function(error) {
-		$scope.pageData = error;
-	});
-};;
-angular.module('mazenet').directive('mzMazenet', function() {
-	return {
-		restrict: 'E',
-		templateUrl: '/modules/MazenetTemplate.html',
-		controller: 'MazenetController'
-	}
-});;
 angular.module('mazenet').factory ('SocketService', function ($q) {
 	function setup() {
 		var promise = $q.defer();
