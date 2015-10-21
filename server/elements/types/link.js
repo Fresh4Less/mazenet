@@ -8,8 +8,10 @@ var pagesService = require('../../pages/service');
 var elementsService = require('../service');
 var elementsDataAccess = require('../dataAccess');
 
-function create(pageId, linkParams) {
-	var whitelistedDataProperties = { text: false };
+function create(pageIdStr, linkParams) {
+	validator.is(pageIdStr, 'pageId').required().objectId();
+	var pageId = validator.transformationOutput();
+	var whitelistedDataProperties = { pId: true, text: false };
 	validator.is(linkParams, 'linkParams')
 		.property('data').required().object()
 			.property('text').required().string();

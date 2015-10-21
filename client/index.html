@@ -1,4 +1,5 @@
 <!doctype html>
+<<<<<<< HEAD
 <html lang="en"  ng-app="mazenet">
 <head>
 	<meta charset="utf-8">
@@ -12,6 +13,35 @@
 <body ng-controller="RootController">
 	Hi: {{test}}
 	
+
+<script>
+  var startPage = '5626ad59333eb8942f017d1d';
+  var socket = io('http://localhost:8090/mazenet');
+  socket.on('pages/enter:success', function(page) {
+		  console.log(page);
+		  });
+  socket.on('pages/enter:failure', function(error) {
+		  console.log(error);
+		  });
+  socket.on('pages/elements/created', function(element) {
+		  console.log('element created');
+		  console.log(element);
+		  });
+  socket.on('pages/elements/create:failure', function(error) {
+		  console.log(error);
+		  });
+  socket.emit('pages/enter', startPage);
+  socket.emit('pages/elements/create', {
+            "type": "link",
+            "creator": "101010101010101010101010",
+            "pos": {
+                "x": 40,
+                "y": 40
+            },
+            "data": {
+                "text": "my link!"
+            }
+        });
+</script>
 </body>
 </html>
-

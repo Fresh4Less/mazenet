@@ -4,11 +4,12 @@ function _createError(name) {
 		this.stack = (new Error()).stack;
 	};
 	error.prototype = new Error();
-	error.prototype.name = name;	
+	error.prototype.name = name;
 	return error;
 }
 
 module.exports = {
 	NotFoundError: _createError('NotFoundError'),
+	NotInitializedError: _createError('NotInitializedError'),
 };
 

@@ -34,10 +34,15 @@ function createElement(pageIdStr, elementParams) {
 		return BPromise.reject(err);
 	}
 
-	return elementTypes[elementParams.type](pageId, elementParams);
+	return elementTypes[elementParams.type](pageId, elementParams)
+		.then(function(element) {
+			return element;
+		});
 }
 
-function buildElement(pageId, elementParams, whitelistedDataProperties) {
+function buildElement(pageIdStr, elementParams, whitelistedDataProperties) {
+	validator.is(pageIdStr, 'pageId').required().objectId();
+	var pageId = validator.transformationOutput();
 	validator.is(elementParams, 'elementParams')
 		.property('type').required().string().back()
 		.property('creator').required().objectId().back()
