@@ -21,16 +21,34 @@ module.exports = function(grunt) {
 				src: ['client/**/*.js'],
 				dest: 'dist/mazenet.js',
 			} 
+		},
+		express: {
+			dev: {
+				options: {
+					script: 'server/index.js'
+				}
+			}
+		},
+		watch: {
+			options: {
+				livereload: true	
+			},
+			js: {
+				files: ['client/**/*.js'],
+				tasks: ['concat', 'express:dev']
+			}
 		}
 	});
 	
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-express-server');
 //	grunt.loadNpmTasks('grunt-contrib-uglify');
 //	grunt.loadNpmTasks('grunt-contrib-sass');
 //	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	
 //	grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'sass', 'cssmin']);
-	grunt.registerTask('default', ['test']);
-	grunt.registerTask('test', ['jshint']);
+	grunt.registerTask('default', ['concat']);
+	grunt.registerTask('dev', ['express:dev', 'watch:js']);
 };
