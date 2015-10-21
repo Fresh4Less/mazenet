@@ -5,7 +5,7 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var startPage = '5626ad59333eb8942f017d1d';
+  var startPage = '5626dd4222c29474002e148e';
   var socket = io('http://localhost:8090/mazenet');
   socket.on('pages/enter:success', function(page) {
 		  console.log(page);
@@ -20,6 +20,13 @@
   socket.on('pages/elements/create:failure', function(error) {
 		  console.log(error);
 		  });
+  socket.on('pages/cursors/created', function(cursor) {
+		  console.log('cursor created');
+		  console.log(cursor);
+		  });
+  socket.on('pages/cursors/create:failure', function(error) {
+		  console.log(error);
+		  });
   socket.emit('pages/enter', startPage);
   socket.emit('pages/elements/create', {
             "type": "link",
@@ -31,6 +38,13 @@
             "data": {
                 "text": "my link!"
             }
+        });
+  socket.emit('pages/cursors/create', {
+            "uId": "101010101010101010101010",
+			frames: [
+			{ pos: { x: 10, y: 10}, t: 0 },
+			{ pos: { x: 20, y: 20}, t: 30 }
+			]
         });
 </script>
 </body>

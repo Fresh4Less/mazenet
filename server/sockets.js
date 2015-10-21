@@ -14,7 +14,7 @@ function listen(server) {
 	var mazenetIo = io.of('/mazenet');
 	pagesSockets.registerHandlers('pages', mazenetIo);
 	return io;
-};
+}
 
 module.exports = {
 	listen: listen
