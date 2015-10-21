@@ -52,21 +52,7 @@ function createPage(pageParams) {
 	});
 }
 
-function createCursor(pageIdStr, cursorParams) {
-	return BPromise.try(function() {
-		validator.is(pageIdStr, 'pageId').required().objectId();
-		var pageId = validator.transformationOutput();
-		validator.is(cursorParams, 'cursorParams').required().object()
-			.property('uId').required().objectId().back()
-			.property('frames').required().array();//.foreach()
-		validator.throwErrors();
-		validator.whitelist();
-		return pagesDataAccess.createCursor(pageId, validator.transformationOutput());
-	});
-}
-
 module.exports = {
 	getPage: getPage,
 	createPage: createPage,
-	createCursor: createCursor
 };
