@@ -1,11 +1,9 @@
 {
     "version": "0.1.0",
-    "command": "grunt",
+    "command": "tsc",
     "isShellCommand": true,
-    "args": [],
-    "windows":{
-            "command": "tsc"
-    },
+    "showOutput": "always",
+    "args": ["client/*.ts"],
     "problemMatcher": "$tsc"
     
 }
