@@ -1,4 +1,4 @@
-angular.module('mazenet').factory ('SocketService', function ($q) {
+angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 	function loadPage(pageId) {
 		var promise = $q.defer();
 		var startPage = pageId;
@@ -13,7 +13,29 @@ angular.module('mazenet').factory ('SocketService', function ($q) {
 		return promise.promise;	
 	}
 	
+	function createPage(color) {
+		var promise = $q.defer();
+		$http.post('/pages', {
+			"creator": "101010101010101010101010",
+    		"permissions": "all",
+    		"title": "elliot's place",
+    		"background": {
+        	"type": "color",
+       		"data": {
+           		"color": color
+        	}
+   		 }
+		}).then(function(page) {
+			promise.resolve(page);
+		}, function (error){
+			promise.reject(error);
+		});
+		
+		return promise.promise;
+	}
+	
 	return {
-		LoadPage : loadPage
+		LoadPage : loadPage,
+		CreatePage : createPage
 	}
 })
