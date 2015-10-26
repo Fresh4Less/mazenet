@@ -8,7 +8,7 @@ var elementsDataAccess = require('./dataAccess');
 // element schema {
 //    _id: objectId,
 //    creator: objectId
-//    type: String,
+//    eType: String,
 //    editable: boolean
 //    pos: { x: int, y: int },
 //    classes: [String],
@@ -26,7 +26,7 @@ function createElement(pageIdStr, elementParams) {
 	validator.is(pageIdStr, 'pageId').required().objectId();
 	var pageId = validator.transformationOutput();
 	validator.is(elementParams, 'elementParams').required().object()
-		.property('type').required().string().elementOf(elementTypes);
+		.property('eType').required().string().elementOf(elementTypes);
 	try {
 		validator.throwErrors();
 	}
@@ -34,7 +34,7 @@ function createElement(pageIdStr, elementParams) {
 		return BPromise.reject(err);
 	}
 
-	return elementTypes[elementParams.type](pageId, elementParams)
+	return elementTypes[elementParams.eType](pageId, elementParams)
 		.then(function(element) {
 			return element;
 		});
@@ -44,7 +44,7 @@ function buildElement(pageIdStr, elementParams, whitelistedDataProperties) {
 	validator.is(pageIdStr, 'pageId').required().objectId();
 	var pageId = validator.transformationOutput();
 	validator.is(elementParams, 'elementParams')
-		.property('type').required().string().back()
+		.property('eType').required().string().back()
 		.property('creator').required().objectId().back()
 		.property('pos').required().object()
 			.property('x').required().number().back()

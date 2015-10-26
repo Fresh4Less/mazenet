@@ -15,7 +15,7 @@ var validator = new Validator();
 //  permissions: String ('none', 'links', 'all')
 //  title: String,
 //  (whitelist): Array (userId)
-//  background: object { type: String, data: {...} },
+//  background: object { bType: String, data: {...} },
 //  elements: Array (see /elements/service)
 //  cursors: Array { uId: String, frames: Array { pos: { x: int, y: int }, t: int } }
 
@@ -40,7 +40,7 @@ function createPage(pageParams) {
 			.property('permissions').required().elementOf(permissionsValues).back()
 			.property('title').required().string().back()
 			.property('background').required().object()
-			.property('type').elementOf(backgroundTypes).back();
+			.property('bType').elementOf(backgroundTypes).back();
 		validator.throwErrors();
 		validator.whitelist({ creator: true, background: { data: true } });
 		var sanitizedPageParams = validator.transformationOutput();
