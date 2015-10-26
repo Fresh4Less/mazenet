@@ -9,24 +9,24 @@ var elementsService = require('../service');
 var elementsDataAccess = require('../dataAccess');
 
 function create(pageIdStr, linkParams) {
-	validator.is(pageIdStr, 'pageId').required().objectId();
-	var pageId = validator.transformationOutput();
-	var whitelistedDataProperties = { pId: true, text: false };
-	validator.is(linkParams, 'linkParams')
-		.property('data').required().object()
-			.property('text').required().string();
-	try {
-		validator.throwErrors();
-	}
-	catch(err) {
-		return BPromise.reject(err);
-	}
+validator.is(pageIdStr, 'pageId').required().objectId();
+var pageId = validator.transformationOutput();
+var whitelistedDataProperties = { pId: true, text: false };
+validator.is(linkParams, 'linkParams')
+	.property('data').required().object()
+		.property('text').required().string();
+try {
+	validator.throwErrors();
+}
+catch(err) {
+	return BPromise.reject(err);
+}
 
-	var pageParams = {
-			creator: linkParams.creator,
-			permissions: 'all',
-			title: linkParams.data.text,
-			background: { type: 'color', data: { color: '#ffffff' } }
+var pageParams = {
+		creator: linkParams.creator,
+		permissions: 'all',
+		title: linkParams.data.text,
+		background: { bType: 'color', data: { color: '#ffffff' } }
 	};
 
 	linkParams.editable = true;

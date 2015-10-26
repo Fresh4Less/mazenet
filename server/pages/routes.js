@@ -65,14 +65,14 @@ function resetAllPages() {
 			  "creator": "101010101010101010101010",
 			  "permissions": "all",
 			  "title": "mazenet",
-			  "background" : { "type" : "color", "data" : { "color" : "#ffffff" } }
+			  "background" : { "bType" : "color", "data" : { "color" : "#ffffff" } }
 			};
 			return pagesService.createPage(initialPage);
 		})
 		.then(function(page) {
 			mainPage = page;
 			var initialLink = {
-				"type": "link",
+				"eType": "link",
 				"creator": "101010101010101010101010",
 				"pos": {"x": 50, "y": 50},
 				"data": { "text": "enter mazenet" }
