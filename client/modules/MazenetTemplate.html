@@ -1,14 +1,22 @@
-<section> 
+<section  style="{{ globalPageStyles.stringified }}"> 
+	<h3>{{page.title}}</h3>
 	<div>
 		<label>Enter Page ID to Load:</label>
 		<input ng-model="pageId"/>
 		<button ng-click="loadPage()">Load</button>
 	</div>
+	<form>
 	<div>
-		<label>New Page?!?!</label>
-		<input ng-model="newPageColor"/>
+		<label>Title</label>
+		<input ng-model="newPage.title"/>
+		<label>Title</label>
+		<input ng-model="newPage.hyperlinkName"/>
+		<label>Color</label>
+		<input ng-model="newPage.color"/>
 		<button ng-click="createPage()">Create</button>
 	</div>
+	</form>
+
 	<div>
 		Page: {{page}}
 	</div>

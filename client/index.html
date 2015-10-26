@@ -4,13 +4,16 @@
 	<meta charset="utf-8">
 	<title>Mazenet</title>
 	<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="mazenet.css">
 	<script src="/bower_components/angular/angular.js"></script>
+	<script src="/bower_components/ng-context-menu/dist/ng-context-menu.min.js"></script>
+	<script src="/bower_components/angular-route/angular-route.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/mazenet.js"></script>
 	
 </head>
-<body ng-controller="RootController" style="background : {{background}}">
-	<h3>Welcome to Mazenet</h3>
+<body ng-controller="RootController" style="{{ globalPageStyles.stringified }}">
 	<mz-mazenet></mz-mazenet>
+	<!-- SETUP CUSTOM CONTEXT MENU -->
 </body>
 </html>

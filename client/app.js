@@ -1,8 +1,7 @@
-var app = angular.module('mazenet', []);
-app.controller('RootController', function($scope, PageService) {
-	updateBG()
-	PageService.UpdateColorCallback  = updateBG;
-	function updateBG() {
-		$scope.background = PageService.GetColor();
-	}
-});
+var app = angular.module('mazenet', ['ngRoute', 'ng-context-menu']);
+
+var rootController = function($scope, ActivePageService) {
+	$scope.globalPageStyles = ActivePageService.styles;
+};
+
+app.controller('RootController', ['$scope' , 'ActivePageService', rootController]);

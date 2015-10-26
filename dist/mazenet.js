@@ -1,39 +1,46 @@
 /*MAZENET - Fresh4Less [ Elliot Hatch, Samuel Davidson ]*/
 
-var app = angular.module('mazenet', []);
-app.controller('RootController', function($scope, PageService) {
-	updateBG()
-	PageService.UpdateColorCallback  = updateBG;
-	function updateBG() {
-		$scope.background = PageService.GetColor();
-	}
-});;
-;
-angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','PageService', MazenetController]);
+var app = angular.module('mazenet', ['ngRoute', 'ng-context-menu']);
 
+var rootController = function($scope, ActivePageService) {
+	$scope.globalPageStyles = ActivePageService.styles;
+};
+
+app.controller('RootController', ['$scope' , 'ActivePageService', rootController]);;
+;
 function MazenetController($scope, SocketService, PageService) {
+	//Scope Variables
 	$scope.testVar = "MazenetController loaded!";
 	$scope.pageId = '5629b4171d18d8fd01c83513';
-	$scope.page = undefined;
-	$scope.newPageColor = '';
+	$scope.page = PageService.pageData;
+	$scope.newPage = {
+		hyperlinkName: 'New Page',
+		title: 'Untitled',
+		color: '#ffffff'
+	};
+	
+	//Scope Functions
 	$scope.loadPage = function() {
 		SocketService.LoadPage($scope.pageId).then(function(data) {
-			console.log(data);
-			$scope.page = data;
-			PageService.SetColor(data.background.data.color);
+			console.log('Loaded Data', data);
+			PageService.UpdatePage(data);
 		}, function(error) {
 			console.error(error);
 		});
 	}
 	$scope.createPage = function() {
 		SocketService.CreatePage($scope.newPageColor).then(function(data) {
-			$scope.page = data;
-			PageService.SetColor(data.background.data.color);
+			console.log('Created Page Data', data);
+			PageService.UpdatePage(data.data);
 		}, function(error) {
 			console.error(error);
 		});
 	}
-};;
+	
+	//End Scope
+};
+
+angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','ActivePageService', MazenetController]);;
 angular.module('mazenet').directive('mzMazenet', function() {
 	return {
 		restrict: 'E',
@@ -41,24 +48,127 @@ angular.module('mazenet').directive('mzMazenet', function() {
 		controller: 'MazenetController'
 	}
 });;
-angular.module('mazenet').factory('PageService', function($q) {
-	var ret = {
-		GetColor : getColor,
-		UpdateColorCallback : null,
-		SetColor : setColor
-	}; 
-	var color = '#af2266';
-	function setColor(newColor) {
-		color = newColor;
-		if(ret.UpdateColorCallback){
-			ret.UpdateColorCallback();
+var activePageService = function($q) { 
+	var pageData = {
+		_id : 0,
+		title: 'Welcome to Mazenet',
+		background : {
+			$type : 'color',
+			data : {
+				color : '#cccccc'
+			}
 		}
 	}
-	function getColor() {
-		return color;
+	
+	var styles = {
+		background: {
+			$type : 'color',
+			data : {
+				color : '#cccccc'
+			}
+		},
+		stringified: 'background : #cccccc'
+	};
+
+	
+	function UpdatePage ( newPage ) {
+		var pageUpdateErrors = "";
+		if(newPage) {
+			//Id
+			if(newPage._id) {
+				pageData._id = newPage._id;
+			} else {
+				pageUpdateErrors += 'Page contains no "_id".\n'
+			}
+			//Background
+			if(newPage.background){
+				//REMOVE after elliot fixes type to $type
+				newPage.background.$type = newPage.background.type;
+				//END REMOVE
+				if(newPage.background.$type && newPage.background.data) {
+					pageData.background = newPage.background;
+				} else {
+					pageUpdateErrors += 'Page contains invalid background.\n';
+				}
+			}
+			/* TODO: Add other fields */
+			updateStyles();	
+		} else {
+			pageUpdateErrors += 'Page is undefined.\n';
+		}
+		//(Optional) Error Reporting.
+		if(pageUpdateErrors.length > 0) {
+			console.error('"PageService.UpdatePage" Warning(s) / Error(s):\n' + pageUpdateErrors, newPage);
+		}
 	}
-	return ret;
-});;
+	
+	function updateStyles() {
+		//Background
+		if(pageData.background.$type == 'color' && pageData.background.data) {
+			styles.background = pageData.background;
+		} else {
+			styles.background.data.color = '#cccccc';
+		}
+		
+		styles.stringified = '';
+		//Stringify for 'styles'.
+		if(styles.background.$type == 'color') {
+			styles.stringified += 'background : ' + styles.background.data.color + ';';
+		}
+	}
+	return {
+		pageData : pageData,
+		styles : styles,
+		UpdatePage : UpdatePage
+	};
+};
+
+angular.module('mazenet').factory('ActivePageService', ['$q', activePageService]);;
+var pageFactoryService = function() {
+	var getPageTemplate = function() {
+		
+		var setBackground = function ($type, data) {
+			var errors = '';
+			
+			if($type && data){
+				if($type == 'color') {
+					if(data.color) {
+						this.background.$type = $type;
+						this.background.data = data;
+					} else {
+						errors += 'Color is not defined.\n';
+					}
+				} else {
+					errors += 'Unsupported background $type.\n';
+				}	
+			} else {
+				errors += '$type and data must both be defined.\n';
+			}
+			
+			if(errors.length > 0) {
+				console.error('PageFactoryService.setBackground: Warning(s) / Error(s):\n' + errors, $type, data);
+			}
+			
+		}
+		
+		return {
+			title: 'Untitled',
+			background: {
+				$type: 'color',
+				data: {
+					color: '#ffffff'
+				}
+			},
+			SetBackground : setBackground
+		}
+	}
+	
+	return {
+		GetPageTemplate : getPageTemplate
+	}
+};
+
+angular.module('mazenet').factory('PageFactory', pageFactoryService);;
 angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 	function loadPage(pageId) {
 		var promise = $q.defer();
