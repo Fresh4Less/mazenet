@@ -4,8 +4,9 @@
 	<meta charset="utf-8">
 	<title>Mazenet</title>
 	<link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="mazenet.css">
+  	<link rel="stylesheet" href="mazenet.css">
 	<script src="/bower_components/angular/angular.js"></script>
+	<script src="/bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 	<script src="/bower_components/ng-context-menu/dist/ng-context-menu.min.js"></script>
 	<script src="/bower_components/angular-route/angular-route.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
@@ -13,7 +14,37 @@
 	
 </head>
 <body ng-controller="RootController" style="{{ globalPageStyles.stringified }}">
+	<!-- Mazenet -->
 	<mz-mazenet></mz-mazenet>
-	<!-- SETUP CUSTOM CONTEXT MENU -->
+	<!-- Dropdown Menu -->
+	<div class="dropdown position-fixed" id="rootContextMenu">
+		<ul class="dropdown-menu" role="menu">
+			<li>
+				<a class="pointer" role="menuitem" tabindex="1"
+					ng-click="panel.expanded = false">
+					<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b>
+				</a>
+			</li>
+			<li>
+				<a class="pointer" role="menuitem" tabindex="2">
+					<span class="glyphicon glyphicon-camera"></span> <b>Insert Image</b>
+				</a>
+			</li>
+			<li>
+				<a class="pointer" role="menuitem" tabindex="3">
+					<span class="glyphicon glyphicon-lock"></span> <b>Edit Permissions</b>
+				</a>
+			</li>
+			<hr>
+			<li>
+				<a href="https://github.com/Fresh4Less/mazenet"
+					target="_blank"
+					role="menuitem"
+					tabindex="-1">
+					<b>Mazenet on GitHub</b> <span class="glyphicon glyphicon-share-alt"></span>
+				</a>
+			</li>
+		</ul>
+	</div>
 </body>
 </html>

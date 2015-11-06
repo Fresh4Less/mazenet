@@ -1,18 +1,16 @@
 /*MAZENET - Fresh4Less [ Elliot Hatch, Samuel Davidson ]*/
 
-var app = angular.module('mazenet', ['ngRoute', 'ng-context-menu']);
+var app = angular.module('mazenet', ['ui.bootstrap', 'ngRoute', 'ng-context-menu']);
 
 var rootController = function($scope, ActivePageService) {
 	$scope.globalPageStyles = ActivePageService.styles;
 };
 
 app.controller('RootController', ['$scope' , 'ActivePageService', rootController]);;
-;
-function MazenetController($scope, SocketService, PageService) {
+function mazenetController($scope, SocketService, ActivePageService) {
 	//Scope Variables
-	$scope.testVar = "MazenetController loaded!";
 	$scope.pageId = '5629b4171d18d8fd01c83513';
-	$scope.page = PageService.pageData;
+	$scope.page = ActivePageService.pageData;
 	$scope.newPage = {
 		hyperlinkName: 'New Page',
 		title: 'Untitled',
@@ -20,27 +18,31 @@ function MazenetController($scope, SocketService, PageService) {
 	};
 	
 	//Scope Functions
-	$scope.loadPage = function() {
+	$scope.loadPage = function() { 
 		SocketService.LoadPage($scope.pageId).then(function(data) {
 			console.log('Loaded Data', data);
-			PageService.UpdatePage(data);
+			ActivePageService.UpdatePage(data);
 		}, function(error) {
 			console.error(error);
 		});
 	}
 	$scope.createPage = function() {
-		SocketService.CreatePage($scope.newPageColor).then(function(data) {
+		SocketService.CreatePage($scope.newPage).then(function(data) {
 			console.log('Created Page Data', data);
-			PageService.UpdatePage(data.data);
+			ActivePageService.UpdatePage(data.data);
 		}, function(error) {
 			console.error(error);
 		});
 	}
 	
+	$scope.doubleClick = function(event) {
+		console.log("Double clicked!!", event);
+	}
+	
 	//End Scope
 };
 
-angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','ActivePageService', MazenetController]);;
+angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','ActivePageService', mazenetController]);;
 angular.module('mazenet').directive('mzMazenet', function() {
 	return {
 		restrict: 'E',
@@ -79,6 +81,9 @@ var activePageService = function($q) {
 				pageData._id = newPage._id;
 			} else {
 				pageUpdateErrors += 'Page contains no "_id".\n'
+			}
+			if(newPage.title) {
+				pageData.title = newPage.title;
 			}
 			//Background
 			if(newPage.background){
@@ -184,16 +189,16 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 		return promise.promise;	
 	}
 	
-	function createPage(color) {
+	function createPage(page) {
 		var promise = $q.defer();
 		$http.post('/pages', {
 			"creator": "101010101010101010101010",
     		"permissions": "all",
-    		"title": "elliot's place",
+    		"title": page.title,
     		"background": {
         	"type": "color",
        		"data": {
-           		"color": color
+           		"color": page.color
         	}
    		 }
 		}).then(function(page) {

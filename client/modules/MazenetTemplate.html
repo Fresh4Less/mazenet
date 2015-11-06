@@ -1,23 +1,39 @@
-<section  style="{{ globalPageStyles.stringified }}"> 
-	<h3>{{page.title}}</h3>
-	<div>
-		<label>Enter Page ID to Load:</label>
-		<input ng-model="pageId"/>
-		<button ng-click="loadPage()">Load</button>
-	</div>
-	<form>
-	<div>
-		<label>Title</label>
-		<input ng-model="newPage.title"/>
-		<label>Title</label>
-		<input ng-model="newPage.hyperlinkName"/>
-		<label>Color</label>
-		<input ng-model="newPage.color"/>
-		<button ng-click="createPage()">Create</button>
-	</div>
-	</form>
-
-	<div>
-		Page: {{page}}
+<section  	class="mainbody"
+			style="{{ globalPageStyles.stringified }}"
+			context-menu
+			data-target="rootContextMenu"
+			ng-dblclick="doubleClick($event)">
+	<label popover-placement="right" uib-popover="id: {{page._id}}" popover-animation="false">
+		<h3><b>{{page.title}}<b></h3>
+	</label>
+	<div class="row">
+		<div id="npInputArea" class="col-sm-2">
+			<div>
+				<label for="loadPageId">Enter Page ID to Load:</label>
+				<input id="loadPageId" class="form-control" ng-model="pageId"/>
+				<button class="btn btn-success" ng-click="loadPage()">Load</button>
+			</div>
+			<h4>New Page:</h4>
+			<form role="form">
+				<div class="form-group">
+					<label for="npTitle">Title</label>
+					<input id="npTitle" class="form-control" type="text" ng-model="newPage.title"/>
+				</div>
+				<div class="form-group">
+					<label for="npHyperlink">Hyperlink Name:</label>
+					<input id="npHyperlink" class="form-control" type="text" ng-model="newPage.hyperlinkName"/>
+				</div>
+				<div class="form-group">
+					<label for="npColor">Color: {{newPage.color}}</label>
+					<input id="npColor" class="form-control" type="color" ng-model="newPage.color"/>
+				</div>
+			</form>
+			<button class="btn btn-primary" ng-click="createPage()">Create</button>
+		</div>
+		<div id="pageInfo" class="col-sm-10">
+			<div>
+				Page: {{page}}
+			</div>
+		</div>
 	</div>
 </section>

@@ -30,6 +30,9 @@ var activePageService = function($q) {
 			} else {
 				pageUpdateErrors += 'Page contains no "_id".\n'
 			}
+			if(newPage.title) {
+				pageData.title = newPage.title;
+			}
 			//Background
 			if(newPage.background){
 				//REMOVE after elliot fixes type to $type

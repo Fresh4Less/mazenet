@@ -13,16 +13,16 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 		return promise.promise;	
 	}
 	
-	function createPage(color) {
+	function createPage(page) {
 		var promise = $q.defer();
 		$http.post('/pages', {
 			"creator": "101010101010101010101010",
     		"permissions": "all",
-    		"title": "elliot's place",
+    		"title": page.title,
     		"background": {
         	"type": "color",
        		"data": {
-           		"color": color
+           		"color": page.color
         	}
    		 }
 		}).then(function(page) {

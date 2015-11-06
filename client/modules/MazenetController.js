@@ -1,8 +1,7 @@
-function MazenetController($scope, SocketService, PageService) {
+function mazenetController($scope, SocketService, ActivePageService) {
 	//Scope Variables
-	$scope.testVar = "MazenetController loaded!";
 	$scope.pageId = '5629b4171d18d8fd01c83513';
-	$scope.page = PageService.pageData;
+	$scope.page = ActivePageService.pageData;
 	$scope.newPage = {
 		hyperlinkName: 'New Page',
 		title: 'Untitled',
@@ -10,24 +9,28 @@ function MazenetController($scope, SocketService, PageService) {
 	};
 	
 	//Scope Functions
-	$scope.loadPage = function() {
+	$scope.loadPage = function() { 
 		SocketService.LoadPage($scope.pageId).then(function(data) {
 			console.log('Loaded Data', data);
-			PageService.UpdatePage(data);
+			ActivePageService.UpdatePage(data);
 		}, function(error) {
 			console.error(error);
 		});
 	}
 	$scope.createPage = function() {
-		SocketService.CreatePage($scope.newPageColor).then(function(data) {
+		SocketService.CreatePage($scope.newPage).then(function(data) {
 			console.log('Created Page Data', data);
-			PageService.UpdatePage(data.data);
+			ActivePageService.UpdatePage(data.data);
 		}, function(error) {
 			console.error(error);
 		});
 	}
 	
+	$scope.doubleClick = function(event) {
+		console.log("Double clicked!!", event);
+	}
+	
 	//End Scope
 };
 
-angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','ActivePageService', MazenetController]);
+angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','ActivePageService', mazenetController]);
