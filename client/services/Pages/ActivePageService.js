@@ -17,7 +17,8 @@ var activePageService = function($q) {
 				color : '#cccccc'
 			}
 		},
-		stringified: 'background : #cccccc'
+		stringified: '',
+		canvasStringified: 'background : #cccccc'
 	};
 
 	
@@ -64,9 +65,11 @@ var activePageService = function($q) {
 		}
 		
 		styles.stringified = '';
+		styles.canvasStringified = '';
+
 		//Stringify for 'styles'.
 		if(styles.background.$type == 'color') {
-			styles.stringified += 'background : ' + styles.background.data.color + ';';
+			styles.canvasStringified += 'background : ' + styles.background.data.color + ';';
 		}
 	}
 	return {

@@ -1,0 +1,62 @@
+<div class="dropdown position-fixed" id="rootContextMenu">
+	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='root'">
+		<li>
+			<a class="pointer" role="menuitem" tabindex="1"
+				ng-click="newRoomSelected()">
+				<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b> <span class="glyphicon glyphicon-chevron-right rightarrow"></span>
+			</a>
+		</li>
+		<li>
+			<a class="pointer" role="menuitem" tabindex="2"
+			ng-click="newImageSelected()">
+				<span class="glyphicon glyphicon-camera"></span> <b>Insert Image</b>
+			</a>
+		</li>
+		<li>
+			<a class="pointer" role="menuitem" tabindex="3">
+				<span class="glyphicon glyphicon-lock"></span> <b>Edit Permissions</b>
+			</a>
+		</li>
+		<hr>
+		<li>
+			<a href="https://github.com/Fresh4Less/mazenet"
+				target="_blank"
+				role="menuitem"
+				tabindex="-1"
+				ng-click="closeContextMenu()">
+				<b>Mazenet on GitHub</b> <span class="glyphicon glyphicon-share-alt"></span>
+			</a>
+		</li>
+	</ul>
+	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='newRoom'">
+		<li>
+			<a class="pointer" role="menuitem" tabindex="1"
+				ng-click="backToRoot()">
+				<span class="glyphicon glyphicon-chevron-left"></span> <b>Back</b> <b><span class="glyphicon glyphicon-edit rightarrow"></span></b>
+			</a>
+		</li>
+		<hr class="smallhr">
+		<li class="buildmenuitem">
+			<div class="pageoptionsheader">Room Details:</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Title</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="newPage.title"/>
+			</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Link</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="newPage.hyperlinkName"/>
+			</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Color</span>
+				<input class="form-control" role="menuitem"type="color" ng-model="newPage.color"/>
+			</div>
+		</li>
+		<hr class="smallhr">
+		<li>
+			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="createPage()">
+				<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b>
+			</a>
+		</li>
+		
+	</ul>
+</div>

@@ -38,4 +38,4 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 		LoadPage : loadPage,
 		CreatePage : createPage
 	}
-})
+});
