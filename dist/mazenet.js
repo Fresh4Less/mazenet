@@ -64,8 +64,8 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 			canvas = document.getElementById('canvas-'+$scope.id);
 			if(canvas) {
 				cContext = canvas.getContext("2d");
-				cContext.font = "30px Arial";
-				cContext.fillText("Hello World",10,50);
+				cContext.font = "20px Arial";
+				cContext.fillText("Text on background canvas!",10,70);
 			} else {
 				console.error("Error loading canvas.", newValue);	
 			}
