@@ -10,10 +10,13 @@ var validator = new Validator();
 
 var activeCursors = {}; // pageIdStr: { uIdStr: { cursor data } }
 
-function createActiveCursor(pageIdStr, uIdStr) {
+function createActiveCursor(pageIdStr, uIdStr, position) {
 	validator.is(pageIdStr, 'pageId').required().objectId();
 	validator.is(uIdStr, 'uId').required().objectId();
 	var uId = validator.transformationOutput();
+	validator.is(position, 'position').required().object()
+			.property('x').required().number().back()
+			.property('y').required().number().back();
 	validator.throwErrors();
 	if(activeCursors[pageIdStr] === undefined) {
 		activeCursors[pageIdStr] = {};
@@ -21,7 +24,7 @@ function createActiveCursor(pageIdStr, uIdStr) {
 	if(activeCursors[pageIdStr][uIdStr] !== undefined) {
 		console.warn('cursors/service: createActiveCursor: Cursor already exists: ' + uIdStr + '. Overwriting.');
 	}
-	activeCursors[pageIdStr][uIdStr] = { uId: uId, frames: [] };
+	activeCursors[pageIdStr][uIdStr] = { uId: uId, frames: [{ pos: position, t: 0 }] };
 }
 
 function addActiveFrame(pageIdStr, uIdStr, frame) {
@@ -38,7 +41,7 @@ function addActiveFrame(pageIdStr, uIdStr, frame) {
 	validator.is(frame, 'frame').required().object()
 		.property('pos').required().object()
 			.property('x').required().number().back()
-			.property('x').required().number().back()
+			.property('y').required().number().back()
 		.back()
 		.property('t').required().number();
 	validator.throwErrors();
@@ -50,6 +53,9 @@ function addActiveFrame(pageIdStr, uIdStr, frame) {
 // commits the active cursor to the database and deletes it
 function commitActiveCursor(pageIdStr, uIdStr) {
 	return BPromise.try(function() {
+		validator.is(pageIdStr, 'pageId').required().objectId();
+		var pageId = validator.transformationOutput();
+		validator.is(uIdStr, 'userId').required().objectId();
 		var pageObj = activeCursors[pageIdStr];
 		if(pageObj === undefined) {
 			console.error('cursors/service: commitActiveCursor: No active cursors on page: ' + pageIdStr);
@@ -61,10 +67,25 @@ function commitActiveCursor(pageIdStr, uIdStr) {
 			return;
 		}
 		delete pageObj[uIdStr];
-		validator.is(pageIdStr, 'pageId').required().objectId();
-		var pageId = validator.transformationOutput();
 		return cursorsDataAccess.createCursor(pageId, cursorObj);
 	});
+}
+
+// returns an object with userIds mapped to {x: curX, y: curY}
+function getActiveCursors(pageIdStr) {
+	validator.is(pageIdStr, 'pageId').required().objectId();
+	validator.throwErrors();
+	var pageCursors = [];
+	var pageObj = activeCursors[pageIdStr];
+	// copy each userId and its last frame position
+	for (var userId in pageObj) {
+		if (pageObj.hasOwnProperty(userId)) {
+			var userObj = pageObj[userId];
+			var lastFrame = userObj.frames[userObj.frames.length - 1];
+			pageCursors.push({ uId: userId, pos: { x: lastFrame.pos.x, y: lastFrame.pos.y }});
+		}
+	}
+	return pageCursors;
 }
 
 function createCursor(pageIdStr, cursorParams) {
@@ -84,5 +105,6 @@ module.exports = {
 	createCursor: createCursor,
 	createActiveCursor: createActiveCursor,
 	addActiveFrame: addActiveFrame,
-	commitActiveCursor: commitActiveCursor
+	commitActiveCursor: commitActiveCursor,
+	getActiveCursors: getActiveCursors
 };
