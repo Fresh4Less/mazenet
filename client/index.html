@@ -5,12 +5,14 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var startPage = '562dcae63df8fe68dd7c223b';
+  var startPage = '5640380dac9566fc1444278e';
   var socket = io('http://localhost:8090/mazenet');
   socket.on('pages/enter:success', function(page) {
+		  console.log('entered page');
 		  console.log(page);
 		  });
   socket.on('pages/enter:failure', function(error) {
+		  console.log('enter page failed');
 		  console.log(error);
 		  });
   socket.on('pages/elements/created', function(element) {
@@ -18,11 +20,37 @@
 		  console.log(element);
 		  });
   socket.on('pages/elements/create:failure', function(error) {
+		  console.log('create element failed');
 		  console.log(error);
 		  });
-  socket.emit('pages/enter', startPage);
+  socket.on('pages/userEntered', function(user) {
+		  console.log('user entered');
+		  console.log(user);
+		  });
+  socket.on('pages/userLeft', function(user) {
+		  console.log('user left');
+		  console.log(user);
+		  });
+  socket.on('pages/cursors/moved', function(cursor) {
+		  console.log('user moved cursor');
+		  console.log(cursor);
+		  });
+socket.on('users/connected', function(user) {
+		console.log('connected');
+		console.log(user);
+		});
+//  socket.on('pages/cursors/created', function(cursor) {
+//		  console.log('cursor created');
+//		  console.log(cursor);
+//		  });
+//  socket.on('pages/cursors/create:failure', function(error) {
+//		  console.log(error);
+//		  });
+  socket.emit('pages/enter', { pId: startPage, pos: { x: 50, y: 50 }});
+  socket.emit('pages/cursors/moved', { pos: { x: 10, y: 10}, t: 10});
+  socket.emit('pages/cursors/moved', { pos: { x: 20, y: 30}, t: 20});
   socket.emit('pages/elements/create', {
-            "type": "link",
+            "eType": "link",
             "creator": "101010101010101010101010",
             "pos": {
                 "x": 40,
@@ -32,6 +60,13 @@
                 "text": "my link!"
             }
         });
+//  socket.emit('pages/cursors/create', {
+//            "uId": "101010101010101010101010",
+//			frames: [
+//			{ pos: { x: 10, y: 10}, t: 0 },
+//			{ pos: { x: 20, y: 20}, t: 30 }
+//			]
+//        });
 </script>
 </body>
 </html>

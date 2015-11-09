@@ -12,7 +12,7 @@ function registerHandlers(route, io) {
 				if(r.indexOf('pages') === 0) {
 					elementsService.createElement(r.substring('pages/'.length), params)
 					.then(function(element) {
-						socket.emit(route + '/created', element);
+						io.to(r).emit(route + '/created', element);
 					})
 					.catch(ValidatorErrors.ValidationError, function(err) {
 						err.status = 400;
