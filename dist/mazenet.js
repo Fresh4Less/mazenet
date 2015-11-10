@@ -9,10 +9,16 @@ var rootController = function($scope, ActivePageService) {
 app.controller('RootController', ['$scope' , 'ActivePageService', rootController]);;
 var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService) {
 	
-	$scope.newPage = {
-		hyperlinkName: 'New Page',
-		title: 'Untitled',
-		color: '#ffffff'
+	$scope.newLink = {
+		eType: "link",
+		creator: "101010101010101010101010", //temp
+		pos: {
+			x: 0,
+			y: 0
+		},
+		data: {
+			text: "new room"
+		}
 	};
 	$scope.state = "root";
 	$scope.backToRoot = function() {
@@ -25,9 +31,12 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		$scope.state = "root";
 	}
 	$scope.createPage = function() {
+		$scope.newLink.pos.x = ContextMenuService.position.x;
+		$scope.newLink.pos.y = ContextMenuService.position.y;
 		$scope.closeContextMenu();
-		SocketService.CreatePage($scope.newPage).then(function(data) {
-			ActivePageService.UpdatePage(data.data);
+		SocketService.CreateLink(ActivePageService.pageData._id, $scope.newLink).then(function(data) {
+			console.log('link created', data);
+			ActivePageService.AddElement(data.data);
 		}, function(error) {
 			console.error(error);
 		});
@@ -65,7 +74,8 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 			if(canvas) {
 				cContext = canvas.getContext("2d");
 				cContext.font = "20px Arial";
-				cContext.fillText("Text on background canvas!",10,70);
+				cContext.fillStyle = "#dddddd";
+				cContext.fillText("ALERT: Mazenet is the future.",10,70);
 			} else {
 				console.error("Error loading canvas.", newValue);	
 			}
@@ -87,21 +97,22 @@ angular.module('mazenet').directive('mzCanvas', function() {
 });;
 function mazenetController($scope, SocketService, ActivePageService) {
 	//Scope Variables
-	$scope.pageId = '';
+	$scope.pageId = '563ff6d5ed248da731bcfae6';
 	$scope.page = ActivePageService.pageData;
 	
 	//Scope Functions
-	$scope.loadPage = function() { 
-		SocketService.LoadPage($scope.pageId).then(function(data) {
+	$scope.loadPage = function(pId) { 
+		var id = pId;
+		if(!pId) {
+			id = $scope.pageId
+		}
+		
+		SocketService.LoadPage(id).then(function(data) {
 			console.log('Loaded Data', data);
 			ActivePageService.UpdatePage(data);
 		}, function(error) {
 			console.error(error);
 		});
-	}
-	
-	$scope.doubleClick = function(event) {
-		console.log("Double clicked!!", event);
 	}
 	
 	//End Scope
@@ -130,7 +141,11 @@ angular
       element: null,
       menuElement: null,
       forceClose: false,
-      closeCallback: null
+      closeCallback: null,
+      position : {
+        x: 0,
+        y: 0
+      }
     };
   })
   .directive('contextMenu', [
@@ -197,7 +212,7 @@ angular
             opened = false;
           }
 
-          $element.bind('contextmenu', function(event) {
+          $element.bind('contextmenu dblclick', function(event) {
             if (!$scope.disabled()) {
               if (ContextMenuService.menuElement !== null) {
                 close(ContextMenuService.menuElement);
@@ -205,8 +220,11 @@ angular
               ContextMenuService.menuElement = angular.element(
                 document.getElementById($attrs.target)
               );
+              
               ContextMenuService.element = event.target;
-
+              ContextMenuService.position.x = (event.pageX / event.view.innerWidth);
+              ContextMenuService.position.y = (event.pageY / event.view.innerHeight);
+              
               event.preventDefault();
               event.stopPropagation();
               $scope.$apply(function() {
@@ -252,12 +270,14 @@ angular
           // while other browsers just treat it as a contextmenu event
           $document.bind('click', handleClickEvent);
           $document.bind('contextmenu', handleClickEvent);
+          $document.bind('dblclick', handleClickEvent);
 
           $scope.$on('$destroy', function() {
             //console.log('destroy');
             $document.unbind('keyup', handleKeyUpEvent);
             $document.unbind('click', handleClickEvent);
             $document.unbind('contextmenu', handleClickEvent);
+            $document.bind('dblclick', handleClickEvent);
           });
         }
       };
@@ -274,19 +294,23 @@ angular.module('mazenet').factory('BackgroundCanvasService', function() {
 });;
 var activePageService = function($q) { 
 	var pageData = {
-		_id : 0,
+		_id : '563ff6d5ed248da731bcfae6',
+		creator: "0",
 		title: 'Welcome to Mazenet',
 		background : {
-			$type : 'color',
+			bType : 'color',
 			data : {
 				color : '#cccccc'
 			}
-		}
+		},
+		owners : [],
+		permissions : 'all',
+		elements : []
 	}
 	
 	var styles = {
 		background: {
-			$type : 'color',
+			bType : 'color',
 			data : {
 				color : '#cccccc'
 			}
@@ -308,12 +332,24 @@ var activePageService = function($q) {
 			if(newPage.title) {
 				pageData.title = newPage.title;
 			}
+			if(newPage.creator) {
+				pageData.creator = newPage.creator;
+			}
+			if(newPage.owners) {
+				pageData.owners = newPage.owners;
+			}
+			if(newPage.permissions) {
+				pageData.permissions = newPage.permissions;
+			}
+			if(newPage.elements) {
+				pageData.elements = newPage.elements;
+			}
 			//Background
 			if(newPage.background){
 				//REMOVE after elliot fixes type to $type
-				newPage.background.$type = newPage.background.type;
+				newPage.background.bType = newPage.background.bType;
 				//END REMOVE
-				if(newPage.background.$type && newPage.background.data) {
+				if(newPage.background.bType && newPage.background.data) {
 					pageData.background = newPage.background;
 				} else {
 					pageUpdateErrors += 'Page contains invalid background.\n';
@@ -332,7 +368,7 @@ var activePageService = function($q) {
 	
 	function updateStyles() {
 		//Background
-		if(pageData.background.$type == 'color' && pageData.background.data) {
+		if(pageData.background.bType == 'color' && pageData.background.data) {
 			styles.background = pageData.background;
 		} else {
 			styles.background.data.color = '#cccccc';
@@ -342,14 +378,20 @@ var activePageService = function($q) {
 		styles.canvasStringified = '';
 
 		//Stringify for 'styles'.
-		if(styles.background.$type == 'color') {
+		if(styles.background.bType == 'color') {
 			styles.canvasStringified += 'background : ' + styles.background.data.color + ';';
+		}
+	}
+	function addElement(element) {
+		if(element) {
+			pageData.elements.push(element);	
 		}
 	}
 	return {
 		pageData : pageData,
 		styles : styles,
-		UpdatePage : UpdatePage
+		UpdatePage : UpdatePage,
+		AddElement : addElement 
 	};
 };
 
@@ -414,19 +456,10 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 		return promise.promise;	
 	}
 	
-	function createPage(page) {
+	function createLink(pageId, link) {
 		var promise = $q.defer();
-		$http.post('/pages', {
-			"creator": "101010101010101010101010",
-    		"permissions": "all",
-    		"title": page.title,
-    		"background": {
-        	"type": "color",
-       		"data": {
-           		"color": page.color
-        	}
-   		 }
-		}).then(function(page) {
+		$http.post('/pages/'+ pageId +'/elements', link)
+		.then(function(page) {
 			promise.resolve(page);
 		}, function (error){
 			promise.reject(error);
@@ -437,6 +470,6 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 	
 	return {
 		LoadPage : loadPage,
-		CreatePage : createPage
+		CreateLink : createLink
 	}
 });

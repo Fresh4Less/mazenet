@@ -13,7 +13,8 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 			if(canvas) {
 				cContext = canvas.getContext("2d");
 				cContext.font = "20px Arial";
-				cContext.fillText("Text on background canvas!",10,70);
+				cContext.fillStyle = "#dddddd";
+				cContext.fillText("ALERT: Mazenet is the future.",10,70);
 			} else {
 				console.error("Error loading canvas.", newValue);	
 			}

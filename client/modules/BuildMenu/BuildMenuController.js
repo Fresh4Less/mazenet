@@ -1,9 +1,15 @@
 var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService) {
 	
-	$scope.newPage = {
-		hyperlinkName: 'New Page',
-		title: 'Untitled',
-		color: '#ffffff'
+	$scope.newLink = {
+		eType: "link",
+		creator: "101010101010101010101010", //temp
+		pos: {
+			x: 0,
+			y: 0
+		},
+		data: {
+			text: "new room"
+		}
 	};
 	$scope.state = "root";
 	$scope.backToRoot = function() {
@@ -16,9 +22,12 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		$scope.state = "root";
 	}
 	$scope.createPage = function() {
+		$scope.newLink.pos.x = ContextMenuService.position.x;
+		$scope.newLink.pos.y = ContextMenuService.position.y;
 		$scope.closeContextMenu();
-		SocketService.CreatePage($scope.newPage).then(function(data) {
-			ActivePageService.UpdatePage(data.data);
+		SocketService.CreateLink(ActivePageService.pageData._id, $scope.newLink).then(function(data) {
+			console.log('link created', data);
+			ActivePageService.AddElement(data.data);
 		}, function(error) {
 			console.error(error);
 		});

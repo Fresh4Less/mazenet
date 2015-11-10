@@ -1,18 +1,22 @@
 var activePageService = function($q) { 
 	var pageData = {
-		_id : 0,
+		_id : '563ff6d5ed248da731bcfae6',
+		creator: "0",
 		title: 'Welcome to Mazenet',
 		background : {
-			$type : 'color',
+			bType : 'color',
 			data : {
 				color : '#cccccc'
 			}
-		}
+		},
+		owners : [],
+		permissions : 'all',
+		elements : []
 	}
 	
 	var styles = {
 		background: {
-			$type : 'color',
+			bType : 'color',
 			data : {
 				color : '#cccccc'
 			}
@@ -34,12 +38,24 @@ var activePageService = function($q) {
 			if(newPage.title) {
 				pageData.title = newPage.title;
 			}
+			if(newPage.creator) {
+				pageData.creator = newPage.creator;
+			}
+			if(newPage.owners) {
+				pageData.owners = newPage.owners;
+			}
+			if(newPage.permissions) {
+				pageData.permissions = newPage.permissions;
+			}
+			if(newPage.elements) {
+				pageData.elements = newPage.elements;
+			}
 			//Background
 			if(newPage.background){
 				//REMOVE after elliot fixes type to $type
-				newPage.background.$type = newPage.background.type;
+				newPage.background.bType = newPage.background.bType;
 				//END REMOVE
-				if(newPage.background.$type && newPage.background.data) {
+				if(newPage.background.bType && newPage.background.data) {
 					pageData.background = newPage.background;
 				} else {
 					pageUpdateErrors += 'Page contains invalid background.\n';
@@ -58,7 +74,7 @@ var activePageService = function($q) {
 	
 	function updateStyles() {
 		//Background
-		if(pageData.background.$type == 'color' && pageData.background.data) {
+		if(pageData.background.bType == 'color' && pageData.background.data) {
 			styles.background = pageData.background;
 		} else {
 			styles.background.data.color = '#cccccc';
@@ -68,14 +84,20 @@ var activePageService = function($q) {
 		styles.canvasStringified = '';
 
 		//Stringify for 'styles'.
-		if(styles.background.$type == 'color') {
+		if(styles.background.bType == 'color') {
 			styles.canvasStringified += 'background : ' + styles.background.data.color + ';';
+		}
+	}
+	function addElement(element) {
+		if(element) {
+			pageData.elements.push(element);	
 		}
 	}
 	return {
 		pageData : pageData,
 		styles : styles,
-		UpdatePage : UpdatePage
+		UpdatePage : UpdatePage,
+		AddElement : addElement 
 	};
 };
 

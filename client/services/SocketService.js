@@ -13,19 +13,10 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 		return promise.promise;	
 	}
 	
-	function createPage(page) {
+	function createLink(pageId, link) {
 		var promise = $q.defer();
-		$http.post('/pages', {
-			"creator": "101010101010101010101010",
-    		"permissions": "all",
-    		"title": page.title,
-    		"background": {
-        	"type": "color",
-       		"data": {
-           		"color": page.color
-        	}
-   		 }
-		}).then(function(page) {
+		$http.post('/pages/'+ pageId +'/elements', link)
+		.then(function(page) {
 			promise.resolve(page);
 		}, function (error){
 			promise.reject(error);
@@ -36,6 +27,6 @@ angular.module('mazenet').factory ('SocketService', function ($q, $http) {
 	
 	return {
 		LoadPage : loadPage,
-		CreatePage : createPage
+		CreateLink : createLink
 	}
 });

@@ -39,16 +39,15 @@
 		<li class="buildmenuitem">
 			<div class="pageoptionsheader">Room Details:</div>
 			<div class="input-group input-group-sm inputoption">
-				<span class="input-group-addon">Title</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="newPage.title"/>
+				<span class="input-group-addon">Name</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
 			</div>
 			<div class="input-group input-group-sm inputoption">
-				<span class="input-group-addon">Link</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="newPage.hyperlinkName"/>
-			</div>
-			<div class="input-group input-group-sm inputoption">
-				<span class="input-group-addon">Color</span>
-				<input class="form-control" role="menuitem"type="color" ng-model="newPage.color"/>
+				<span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span>?</span>
+				<input class="form-control" role="menuitem" type="text" placeholder="user-1 , user-2 , ..."/>
+				<span class="input-group-addon">
+					<input type="checkbox"/>
+				</span>
 			</div>
 		</li>
 		<hr class="smallhr">

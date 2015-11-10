@@ -17,4 +17,7 @@
 		<div id="pageInfo" class="col-sm-10">
 		</div>
 	</div>
+	<div ng-repeat="element in page.elements" style="position: absolute; left: {{(element.pos.x*100)}}%;  top: {{(element.pos.y*100)}}%">
+		<a class="linkelement" ng-click="loadPage(element.data.pId)">{{element.data.text}}</a>
+	</div>
 </section>

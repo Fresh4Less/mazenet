@@ -13,7 +13,11 @@ angular
       element: null,
       menuElement: null,
       forceClose: false,
-      closeCallback: null
+      closeCallback: null,
+      position : {
+        x: 0,
+        y: 0
+      }
     };
   })
   .directive('contextMenu', [
@@ -80,7 +84,7 @@ angular
             opened = false;
           }
 
-          $element.bind('contextmenu', function(event) {
+          $element.bind('contextmenu dblclick', function(event) {
             if (!$scope.disabled()) {
               if (ContextMenuService.menuElement !== null) {
                 close(ContextMenuService.menuElement);
@@ -88,8 +92,11 @@ angular
               ContextMenuService.menuElement = angular.element(
                 document.getElementById($attrs.target)
               );
+              
               ContextMenuService.element = event.target;
-
+              ContextMenuService.position.x = (event.pageX / event.view.innerWidth);
+              ContextMenuService.position.y = (event.pageY / event.view.innerHeight);
+              
               event.preventDefault();
               event.stopPropagation();
               $scope.$apply(function() {
@@ -135,12 +142,14 @@ angular
           // while other browsers just treat it as a contextmenu event
           $document.bind('click', handleClickEvent);
           $document.bind('contextmenu', handleClickEvent);
+          $document.bind('dblclick', handleClickEvent);
 
           $scope.$on('$destroy', function() {
             //console.log('destroy');
             $document.unbind('keyup', handleKeyUpEvent);
             $document.unbind('click', handleClickEvent);
             $document.unbind('contextmenu', handleClickEvent);
+            $document.bind('dblclick', handleClickEvent);
           });
         }
       };
