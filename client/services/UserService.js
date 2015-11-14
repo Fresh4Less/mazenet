@@ -8,4 +8,4 @@ var userService = function () {
 	return serviceObject;
 }
 
-angular.module('maenet').factory('UserService', [userService]);
+angular.module('mazenet').factory('UserService', [userService]);

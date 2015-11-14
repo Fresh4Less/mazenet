@@ -3,12 +3,14 @@ var socketService = function ($q, $http, UserService, ActivePageService) {
 	var socket = null;
 	/* Event Handlers */
 	var connected = function(userId) {
+		console.log("Connected. Id:", userId);
 		UserService.UserData.id = userId;
 	}
 	
 	/* External Functions */
 	function init() {
 		if(!socket || !socket.connected) {
+			console.log("Socket initialized");
 			socket = io('http://localhost:8090/mazenet');
 			socket.on('users/connected', connected);
 		}
@@ -18,7 +20,7 @@ var socketService = function ($q, $http, UserService, ActivePageService) {
 		var promise = $q.defer();
 		var startPage = pageId;
   		socket.on('pages/enter:success', function(page) {
-			ActivePageService.UpdatePage(data);
+			ActivePageService.UpdatePage(page);
 			promise.resolve(page);
 		});
   		socket.on('pages/enter:failure', function(error) {
