@@ -4,17 +4,16 @@ function mazenetController($scope, SocketService, ActivePageService) {
 	$scope.page = ActivePageService.pageData;
 	
 	//Scope Functions
-	$scope.loadPage = function(pId) { 
+	$scope.EnterPage = function(pId) { 
 		var id = pId;
 		if(!pId) {
 			id = $scope.pageId
 		}
 		
-		SocketService.LoadPage(id).then(function(data) {
-			console.log('Loaded Data', data);
-			ActivePageService.UpdatePage(data);
+		SocketService.EnterPage(id).then(function(data) {
+			//Page entered
 		}, function(error) {
-			console.error(error);
+			console.error('Error entering page:', id, error);
 		});
 	}
 	
