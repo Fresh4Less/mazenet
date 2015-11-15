@@ -11,7 +11,8 @@ var activePageService = function($q) {
 		},
 		owners : [],
 		permissions : 'all',
-		elements : []
+		elements : [],
+		enterTime: 0
 	}
 	
 	var styles = {
@@ -62,13 +63,14 @@ var activePageService = function($q) {
 				}
 			}
 			/* TODO: Add other fields */
+			pageData.enterTime = (new Date()).getTime();
 			updateStyles();	
 		} else {
 			pageUpdateErrors += 'Page is undefined.\n';
 		}
 		//(Optional) Error Reporting.
 		if(pageUpdateErrors.length > 0) {
-			console.error('"PageService.UpdatePage" Warning(s) / Error(s):\n' + pageUpdateErrors, newPage);
+			console.error('"ActivePageService.UpdatePage" Warning(s) / Error(s):\n' + pageUpdateErrors, newPage);
 		}
 	}
 	

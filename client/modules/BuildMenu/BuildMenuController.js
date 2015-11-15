@@ -1,8 +1,8 @@
-var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService) {
+var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService, UserService) {
 	
 	$scope.newLink = {
 		eType: "link",
-		creator: "101010101010101010101010", //temp
+		creator: "unset",
 		pos: {
 			x: 0,
 			y: 0
@@ -22,14 +22,17 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		$scope.state = "root";
 	}
 	$scope.createPage = function() {
+		
 		$scope.newLink.pos.x = ContextMenuService.position.x;
 		$scope.newLink.pos.y = ContextMenuService.position.y;
+		$scope.newLink.creator = UserService.UserData.uId;
+		
 		$scope.closeContextMenu();
-		SocketService.CreateLink(ActivePageService.pageData._id, $scope.newLink).then(function(data) {
-			console.log('link created', data);
-			ActivePageService.AddElement(data.data);
+		SocketService.CreateElement($scope.newLink)
+		.then(function(element) {
+			ActivePageService.AddElement(element);
 		}, function(error) {
-			console.error(error);
+			console.error("Error Creating Page:" , error);
 		});
 	}
 	
@@ -42,4 +45,4 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 	}
 	
 }
-angular.module('mazenet').controller('BuildMenuController', ['$scope', 'SocketService','ActivePageService', 'ContextMenuService', buildMenuController]);
+angular.module('mazenet').controller('BuildMenuController', ['$scope', 'SocketService','ActivePageService', 'ContextMenuService', 'UserService', buildMenuController]);

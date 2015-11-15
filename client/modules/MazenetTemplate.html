@@ -2,8 +2,9 @@
 			style="{{ globalPageStyles.stringified }}"
 			context-menu
 			data-target="rootContextMenu"
-			ng-dblclick="doubleClick($event)">
-	<label popover-placement="bottom" uib-popover="{{page}}" popover-animation="false">
+			ng-dblclick="doubleClick($event)"
+			ng-mousemove="CursorMove($event)">
+	<label popover-placement="right" uib-popover="_id: {{page._id}}" popover-animation="false">
 		<h3><b>{{page.title}}<b></h3>
 	</label>
 	<div class="row">
@@ -11,13 +12,17 @@
 			<div>
 				<label for="enterPageId">Enter Page ID to Load:</label>
 				<input id="enterPageId" class="form-control" ng-model="pageId"/>
-				<button class="btn btn-success" ng-click="EnterPage()">Load</button>
+				<button class="btn btn-success" ng-click="EnterPage($event)">Load</button>
 			</div>
 		</div>
 		<div id="pageInfo" class="col-sm-10">
 		</div>
 	</div>
 	<div ng-repeat="element in page.elements" style="position: absolute; left: {{(element.pos.x*100)}}%;  top: {{(element.pos.y*100)}}%">
-		<a class="linkelement" ng-click="EnterPage(element.data.pId)">{{element.data.text}}</a>
+		<a class="linkelement" ng-click="EnterPage($event, element.data.pId)">{{element.data.text}}</a>
+	</div>
+	Users: {{OtherUsers}}
+	<div ng-repeat="user in OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%; background: orange;">
+		<img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/b3/b30a96f300be73b607c57d1297bb28148e3d879e_full.jpg" alt="{{user.uId}}">
 	</div>
 </section>

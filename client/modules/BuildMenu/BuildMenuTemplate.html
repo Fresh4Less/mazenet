@@ -1,5 +1,6 @@
 <div class="dropdown position-fixed" id="rootContextMenu">
 	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='root'">
+		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="1"
 				ng-click="newRoomSelected()">
@@ -14,6 +15,11 @@
 		</li>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="3">
+				<span class="glyphicon glyphicon-cog"></span> <b>Page Settings</b>
+			</a>
+		</li>
+		<li>
+			<a class="pointer" role="menuitem" tabindex="4">
 				<span class="glyphicon glyphicon-lock"></span> <b>Edit Permissions</b>
 			</a>
 		</li>
@@ -29,6 +35,7 @@
 		</li>
 	</ul>
 	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='newRoom'">
+		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="1"
 				ng-click="backToRoot()">
@@ -42,6 +49,7 @@
 				<span class="input-group-addon">Name</span>
 				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
 			</div>
+			<!-- 
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span>?</span>
 				<input class="form-control" role="menuitem" type="text" placeholder="user-1 , user-2 , ..."/>
@@ -49,6 +57,7 @@
 					<input type="checkbox"/>
 				</span>
 			</div>
+			-->
 		</li>
 		<hr class="smallhr">
 		<li>

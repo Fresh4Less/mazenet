@@ -84,7 +84,7 @@ angular
             opened = false;
           }
 
-          $element.bind('contextmenu dblclick', function(event) {
+          $element.bind('contextmenu', function(event) {
             if (!$scope.disabled()) {
               if (ContextMenuService.menuElement !== null) {
                 close(ContextMenuService.menuElement);
@@ -142,14 +142,12 @@ angular
           // while other browsers just treat it as a contextmenu event
           $document.bind('click', handleClickEvent);
           $document.bind('contextmenu', handleClickEvent);
-          $document.bind('dblclick', handleClickEvent);
 
           $scope.$on('$destroy', function() {
             //console.log('destroy');
             $document.unbind('keyup', handleKeyUpEvent);
             $document.unbind('click', handleClickEvent);
             $document.unbind('contextmenu', handleClickEvent);
-            $document.bind('dblclick', handleClickEvent);
           });
         }
       };

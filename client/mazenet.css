@@ -44,3 +44,12 @@
 	text-align: center;
 	cursor: pointer;
 }
+.buildmenu-corner {
+	position: absolute;
+	font-size: 3rem;
+    top: -31px;
+    left: -16px;
+}
+.pointer {
+	cursor: pointer;
+}

@@ -12,9 +12,9 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 			canvas = document.getElementById('canvas-'+$scope.id);
 			if(canvas) {
 				cContext = canvas.getContext("2d");
-				cContext.font = "20px Arial";
+				cContext.font = "29px Arial";
 				cContext.fillStyle = "#dddddd";
-				cContext.fillText("ALERT: Mazenet is the future.",10,70);
+				cContext.fillText("Mazenet is the future.",10,70);
 			} else {
 				console.error("Error loading canvas.", newValue);	
 			}
