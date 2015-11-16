@@ -59,8 +59,23 @@ function createCursor(pageId, cursorParams) {
 		});
 }
 
+function getRootPageId() {
+	return db.getMazenetDb()
+		.then(function(db) {
+			return db.collection('pages')
+				.find({ "isRoot" : true }, {'_id': 1}).limit(1).nextAsync();
+		})
+		.then(function(page) {
+			if(!page) {
+				throw new CustomErrors.NotFoundError('Root page not found.');
+			}
+			return page._id;
+		});
+}
+
 module.exports = {
 	getPage: getPage,
 	createPage: createPage,
-	createCursor: createCursor
+	createCursor: createCursor,
+	getRootPageId: getRootPageId
 };

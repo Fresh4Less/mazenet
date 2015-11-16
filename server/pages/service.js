@@ -33,7 +33,9 @@ function getPage(pageIdStr) {
 	});
 }
 
-function createPage(pageParams) {
+// isRoot marks this page as the root page. Be careful! There should only be one,
+// and it should only be enabled for extremely privliaged connections (probably not externally at all)
+function createPage(pageParams, isRoot) {
 	return BPromise.try(function() {
 		validator.is(pageParams, 'pageParams').required().object()
 			.property('creator').required().objectId().back()
@@ -45,6 +47,9 @@ function createPage(pageParams) {
 		validator.whitelist({ creator: true, background: { data: true } });
 		var sanitizedPageParams = validator.transformationOutput();
 		sanitizedPageParams.owners = [sanitizedPageParams.creator];
+		if(isRoot) {
+			sanitizedPageParams.isRoot = true;
+		}
 		return pagesDataAccess.createPage(sanitizedPageParams);
 	})
 	.then(function(page) {
@@ -52,7 +57,12 @@ function createPage(pageParams) {
 	});
 }
 
+function getRootPageId() {
+	return pagesDataAccess.getRootPageId();
+}
+
 module.exports = {
 	getPage: getPage,
 	createPage: createPage,
+	getRootPageId: getRootPageId
 };
