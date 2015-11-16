@@ -51,7 +51,7 @@ function registerHandlers(route, io) {
 				socket.emit(route + '/enter:failure', err);
 			})
 			.catch(function(err) {
-				console.log(err.stack);
+				console.error(err.stack);
 				err.status = 500;
 				socket.emit(route + '/enter:failure', err);
 			});
@@ -69,6 +69,25 @@ function registerHandlers(route, io) {
 			catch(err) {
 				console.error('pages/sockets: ' + route + '/cursors/moved: Failed: ' + err);
 			}
+		});
+		socket.on(route + '/update', function(params) {
+			// find the room the user is currently in and update that page
+			socket.rooms.forEach(function(r) {
+				if(r.indexOf('pages') === 0) {
+					pagesService.updatePage(r.substring('pages/'.length), params)
+					.then(function(pageChanges) {
+						io.to(r).emit(route + '/updated', pageChanges);
+					})
+					.catch(ValidatorErrors.ValidationError, function(err) {
+						err.status = 400;
+						socket.emit(route + '/update:failure', err);
+					})
+					.catch(CustomErrors.NotFoundError, function(err) {
+						err.status = 404;
+						socket.emit(route  + '/update:failure', err);
+					});
+				}
+			});
 		});
 		socket.on('disconnect', function() {
 			// doesn't work because socket.io leaves the rooms before disconnect event
