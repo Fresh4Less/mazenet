@@ -25,6 +25,11 @@ socket.on('users/connected', function(userData) {
 			"text": "my link!"
 			}
 			});
+		socket.emit('pages/update', {
+			permissions: "links",
+			title: "updated title",
+			"background" : { "data" : { "color" : "#aaffaa" } },
+			owners: ['101010101010101010101010']});
 		});
 socket.on('users/connected:failure', function(err) {
 		console.log('failed connected');
@@ -44,6 +49,14 @@ socket.on('pages/elements/created', function(element) {
 		});
 socket.on('pages/elements/create:failure', function(error) {
 		console.log('create element failed');
+		console.log(error);
+		});
+socket.on('pages/updated', function(pageChanges) {
+		console.log('page updated');
+		console.log(pageChanges);
+		});
+socket.on('pages/update:failure', function(error) {
+		console.log('update page failed');
 		console.log(error);
 		});
 socket.on('pages/userEntered', function(user) {
