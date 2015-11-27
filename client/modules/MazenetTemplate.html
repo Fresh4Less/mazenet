@@ -2,25 +2,15 @@
 			style="{{ globalPageStyles.stringified }}"
 			context-menu
 			data-target="rootContextMenu"
-			ng-dblclick="doubleClick($event)"
 			ng-mousemove="CursorMove($event)">
 	<label popover-placement="right" uib-popover="_id: {{page._id}}" popover-animation="false">
 		<h3><b>{{page.title}}<b></h3>
 	</label>
-	<div class="row">
-		<div id="npInputArea" class="col-sm-2">
-			<div>
-				<label for="enterPageId">Enter Page ID to Load:</label>
-				<input id="enterPageId" class="form-control" ng-model="pageId"/>
-				<button class="btn btn-success" ng-click="EnterPage($event)">Load</button>
-			</div>
-		</div>
-		<div id="pageInfo" class="col-sm-10">
-		</div>
+	
+	<div ng-repeat="element in page.elements">
+		<mz-element element="element"></mz-element>
 	</div>
-	<div ng-repeat="element in page.elements" style="position: absolute; left: {{(element.pos.x*100)}}%;  top: {{(element.pos.y*100)}}%">
-		<a class="linkelement" ng-click="EnterPage($event, element.data.pId)">{{element.data.text}}</a>
-	</div>
+	
 	<div ng-repeat="user in OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%;">
 		<img src="http://doc.qt.io/qt-5/images/cursor-arrow.png" alt="{{user.uId}}">
 		<div style="font-size: 60%;">{{user.uId}}</div>

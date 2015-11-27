@@ -2,27 +2,7 @@ function mazenetController($scope, $window, SocketService, ActivePageService, Us
 	var cursorTimeout = true;
 	var networkTiming = 30;
 	//Scope Variables
-	$scope.pageId = '563ff6d5ed248da731bcfae6';
 	$scope.page = ActivePageService.pageData;
-	
-	/* Scope Functions */
-	$scope.EnterPage = function($event, pId) { 
-		var id = pId;
-		if(!pId) {
-			id = $scope.pageId
-		}
-		var pos = {
-			x: $event.clientX,
-			y: $event.clientY
-		};
-		
-		SocketService.EnterPage(id, pos).then(function(data) {
-			//Page entered
-		}, function(error) {
-			console.error('Error entering page:', id, error);
-			alert("Unable To Enter Page.\n" + error);
-		});
-	}
 	
 	$scope.CursorMove = function($event) {
 		if(cursorTimeout) {

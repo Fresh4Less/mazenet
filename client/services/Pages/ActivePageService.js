@@ -6,7 +6,9 @@ var activePageService = function($q) {
 	}
 	var pageData = {
 		_id : '563ff6d5ed248da731bcfae6',
+		isRoot: false,
 		creator: "0",
+		cursors: null,
 		title: 'Welcome to Mazenet',
 		background : {
 			bType : 'color',
@@ -32,7 +34,7 @@ var activePageService = function($q) {
 	};
 
 	
-	function UpdatePage ( newPage ) {
+	function updatePage ( newPage ) {
 		var pageUpdateErrors = "";
 		if(newPage) {
 			//Id
@@ -58,9 +60,8 @@ var activePageService = function($q) {
 			}
 			//Background
 			if(newPage.background){
-				//REMOVE after elliot fixes type to $type
 				newPage.background.bType = newPage.background.bType;
-				//END REMOVE
+			
 				if(newPage.background.bType && newPage.background.data) {
 					pageData.background = newPage.background;
 				} else {
@@ -104,7 +105,7 @@ var activePageService = function($q) {
 		pageData : pageData,
 		RootPages : rootPages,
 		styles : styles,
-		UpdatePage : UpdatePage,
+		UpdatePage : updatePage,
 		AddElement : addElement 
 	};
 };

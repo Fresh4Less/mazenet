@@ -9,18 +9,14 @@
 		</li>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="2"
+				ng-click="pageSettingsSelected()">
+				<span class="glyphicon glyphicon-cog"></span> <b>Page Settings</b> <span class="glyphicon glyphicon-chevron-right rightarrow"></span>
+			</a>
+		</li>
+		<li>
+			<a class="pointer" role="menuitem" tabindex="3"
 			ng-click="newImageSelected()">
 				<span class="glyphicon glyphicon-camera"></span> <b>Insert Image</b>
-			</a>
-		</li>
-		<li>
-			<a class="pointer" role="menuitem" tabindex="3">
-				<span class="glyphicon glyphicon-cog"></span> <b>Page Settings</b>
-			</a>
-		</li>
-		<li>
-			<a class="pointer" role="menuitem" tabindex="4">
-				<span class="glyphicon glyphicon-lock"></span> <b>Edit Permissions</b>
 			</a>
 		</li>
 		<hr>
@@ -34,6 +30,7 @@
 			</a>
 		</li>
 	</ul>
+	<!-- NEW ROOM -->
 	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='newRoom'">
 		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
@@ -46,23 +43,49 @@
 		<li class="buildmenuitem">
 			<div class="pageoptionsheader">Room Details:</div>
 			<div class="input-group input-group-sm inputoption">
-				<span class="input-group-addon">Name</span>
+				<span class="input-group-addon">Title</span>
 				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
 			</div>
-			<!-- 
-			<div class="input-group input-group-sm inputoption">
-				<span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span>?</span>
-				<input class="form-control" role="menuitem" type="text" placeholder="user-1 , user-2 , ..."/>
-				<span class="input-group-addon">
-					<input type="checkbox"/>
-				</span>
-			</div>
-			-->
 		</li>
 		<hr class="smallhr">
 		<li>
 			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="createPage()">
 				<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b>
+			</a>
+		</li>
+		
+	</ul>
+	<!-- PAGE SETTINGS -->
+	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='pageSettings'">
+		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
+		<li>
+			<a class="pointer" role="menuitem" tabindex="1"
+				ng-click="backToRoot()">
+				<span class="glyphicon glyphicon-chevron-left"></span> <b>Back</b> <b><span class="glyphicon glyphicon-edit rightarrow"></span></b>
+			</a>
+		</li>
+		<hr class="smallhr">
+		<li class="buildmenuitem">
+			<div class="pageoptionsheader">Background:</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Color</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
+			</div>
+			<div class="pageoptionsheader">Title:</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Title</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
+			</div>
+			<div class="pageoptionsheader">Permissions:</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Permissions</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
+			</div>
+		</li>
+		<hr class="smallhr">
+		<li>
+			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="updatePage()">
+				<span class="glyphicon glyphicon-cog"></span> <b>Apply Settings</b>
 			</a>
 		</li>
 		

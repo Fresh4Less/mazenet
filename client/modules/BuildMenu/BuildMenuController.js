@@ -18,6 +18,9 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 	$scope.newRoomSelected = function() {
 		$scope.state = "newRoom"
 	}
+	$scope.pageSettingsSelected = function() {
+		$scope.state = "pageSettings"
+	}
 	$scope.newImageSelected = function() {
 		$scope.state = "root";
 	}

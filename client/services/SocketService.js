@@ -5,11 +5,13 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	var elementCreatePromise = null;
 	/* Event Handlers */
 	var connected = function(user) {
-		console.log('Connected', user);
 		UserService.UserData.uId = user.uId;
 		ActivePageService.RootPages.root = user.rootPageId;
 		ActivePageService.RootPages.homepage = user.homepageId;
 		loadInitialPage();
+	}
+	var connectError = function(error) {
+		console.error("Connecting error.", error);
 	}
 	var userEntered = function(user) {
 		UserService.AddUser(user);
@@ -35,12 +37,20 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	var elementCreateFailure = function(error) {
 		elementCreatePromise.reject(error);	
 	}
+	var pageUpdated = function(pageChanges) {
+		console.log('Page updated', pageChanges);
+		ActivePageService.UpdatePage(pageChanges)
+	}
+	var pageUpdateFailure = function(error) {
+		console.error('Error updating page.', error);
+	}
 	
 	/* External Functions */
 	function init() {
 		if(!socket || !socket.connected) {
 			socket = io('http://'+ $location.host() +':' + $location.port() + '/mazenet');
 			socket.on('users/connected', connected);
+			socket.on('users/connected:failure', connectError);
 			socket.on('pages/userEntered', userEntered);
 			socket.on('pages/userLeft', userLeft);
 			socket.on('pages/cursors/moved', userMovedCursor);
@@ -48,6 +58,8 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 			socket.on('pages/enter:failure', userEnterPageFailure);
 			socket.on('pages/elements/created', elementCreated);
 			socket.on('pages/element/create:failure', elementCreateFailure);
+			socket.on('pages/updated', pageUpdated);
+			socket.on('pages/update:failure', pageUpdateFailure);
 		}
 	}
 	
@@ -77,13 +89,14 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	}
 	
 	function loadInitialPage() {
+
 		var successCallback = function(page) {
-			ActivePageService.UpdatePage(page.page);
+			console.log('Welcome to Mazenet.', UserService.UserData);
 		}
 		var failureCallback = function(error) {
-			console.error('Could not enter page defaulting to root.');
+			console.error('Could not enter page... redirecting to root.');
 			enterPage(error.rootPageId).then(successCallback, function(error) {
-				console.error('Error loading root page. The Mazenet is dead');
+				console.error('Error loading root page. The Mazenet is dead.');
 			})
 		}
 		if(ActivePageService.RootPages.url) {
