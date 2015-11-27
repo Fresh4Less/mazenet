@@ -119,6 +119,21 @@ Parameters:
 
 `pages/enter:failure`
 
+### `pages/update`
+Update page data.
+
+Parameters (all optional):
+ - `permissions` [string]: Permissions level of the page. Allowed values:
+                           `all`, `links`, `none`
+ - `title` [string]: Page title
+ - `background` [object]
+    - `bType`: The type of background: Allowed values: `color`
+    - `data`: Type-specific background data
+ - `owners` [array of userId]: an array of users who are owners of this page
+
+Responses:
+`pages/update:failure`
+
 ### `pages/elements/create`
 
 Parameters:
@@ -145,10 +160,14 @@ Parameters:
 
 ### `users/connected`
 Emitted when the client has been assigned a userId. Contains information about
-the client's user account.
+the client's user account, as well as the root page id.
 
 Parameters:
  - `uId` [userId]: the client's user id
+ - `rootPageId` [pageId]: the pageId of the root page for all of mazenet
+
+### `users/connected:failure`
+Emitted when the user fails to connect and recieve a userId
 
 ### `pages/userEntered`
 Emitted when a user enters the client's current page
@@ -165,10 +184,15 @@ Emitted when a user leaves the client's current page
 Parameters:
  - `uId` [userId]
 
+### `pages/updated`
+Emitted when the page data was upedated.
+
+Parameters: A [page](#pages) object, containing only fields that were updated.
+
 ### `pages/elements/created`
 Emitted when an element is created on the client's current page
 
-Paramers: The newly created [element](#elements).
+Parameters: The newly created [element](#elements).
 
 ### `pages/cursors/moved`
 Emitted when another user in the client's page moves their cursor.

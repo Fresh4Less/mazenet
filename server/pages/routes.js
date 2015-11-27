@@ -67,7 +67,7 @@ function resetAllPages() {
 			  "title": "mazenet",
 			  "background" : { "bType" : "color", "data" : { "color" : "#ffffff" } }
 			};
-			return pagesService.createPage(initialPage);
+			return pagesService.createPage(initialPage, true);
 		})
 		.then(function(page) {
 			mainPage = page;

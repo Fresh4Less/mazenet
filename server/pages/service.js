@@ -33,19 +33,49 @@ function getPage(pageIdStr) {
 	});
 }
 
-function createPage(pageParams) {
+// isRoot marks this page as the root page. Be careful! There should only be one,
+// and it should only be enabled for extremely privliaged connections (probably not externally at all)
+function createPage(pageParams, isRoot) {
 	return BPromise.try(function() {
 		validator.is(pageParams, 'pageParams').required().object()
 			.property('creator').required().objectId().back()
 			.property('permissions').required().elementOf(permissionsValues).back()
 			.property('title').required().string().back()
 			.property('background').required().object()
-			.property('bType').elementOf(backgroundTypes).back();
+				.property('bType').required().elementOf(backgroundTypes).back();
 		validator.throwErrors();
 		validator.whitelist({ creator: true, background: { data: true } });
 		var sanitizedPageParams = validator.transformationOutput();
 		sanitizedPageParams.owners = [sanitizedPageParams.creator];
+		if(isRoot) {
+			sanitizedPageParams.isRoot = true;
+		}
 		return pagesDataAccess.createPage(sanitizedPageParams);
+	})
+	.then(function(page) {
+		return page;
+	});
+}
+
+function getRootPageId() {
+	return pagesDataAccess.getRootPageId();
+}
+
+function updatePage(pageIdStr, pageParams) {
+	return BPromise.try(function() {
+		validator.is(pageIdStr, 'pageId').required().objectId();
+		var pageId = validator.transformationOutput();
+		validator.is(pageParams, 'pageParams').required().object()
+			.property('permissions').not.required().elementOf(permissionsValues).back()
+			.property('title').not.required().string().back()
+			.property('background').not.required().object()
+				.property('bType').not.required().elementOf(backgroundTypes).back()
+			.back()
+			.property('owners').not.required().array();
+		validator.throwErrors();
+		validator.whitelist({background: { data: true } });
+		var sanitizedPageParams = validator.transformationOutput();
+		return pagesDataAccess.updatePage(pageId, sanitizedPageParams);
 	})
 	.then(function(page) {
 		return page;
@@ -55,4 +85,6 @@ function createPage(pageParams) {
 module.exports = {
 	getPage: getPage,
 	createPage: createPage,
+	getRootPageId: getRootPageId,
+	updatePage: updatePage
 };
