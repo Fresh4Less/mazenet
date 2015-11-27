@@ -11,11 +11,14 @@
 .buildmenu {
 	width: 25rem;
 	height: 20rem;
-	
+	overflow-y: scroll;
 }
 .buildmenuitem {
 	padding-left: 1.5rem;
     padding-right: 1.5rem;
+}
+.buildmenu-footer {
+	vertical-align: bottom;
 }
 .inputoption {
 	padding-bottom: 0.5rem;

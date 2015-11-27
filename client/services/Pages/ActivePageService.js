@@ -9,7 +9,7 @@ var activePageService = function($q) {
 		isRoot: false,
 		creator: "0",
 		cursors: null,
-		title: 'Welcome to Mazenet',
+		title: 'loading...',
 		background : {
 			bType : 'color',
 			data : {
@@ -102,7 +102,7 @@ var activePageService = function($q) {
 		}
 	}
 	return {
-		pageData : pageData,
+		PageData : pageData,
 		RootPages : rootPages,
 		styles : styles,
 		UpdatePage : updatePage,

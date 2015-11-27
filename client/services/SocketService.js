@@ -22,10 +22,10 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	var userMovedCursor = function(cursor) {
 		UserService.UpdatePosition(cursor);
 	}
-	var userEnterPage = function(pageData) {
-		ActivePageService.UpdatePage(pageData.page);
-		UserService.SetUsers(pageData.users);
-		pageEnterPromise.resolve(pageData);
+	var userEnterPage = function(PageData) {
+		ActivePageService.UpdatePage(PageData.page);
+		UserService.SetUsers(PageData.users);
+		pageEnterPromise.resolve(PageData);
 	}
 	var userEnterPageFailure = function(error) {
 		pageEnterPromise.reject(error);
@@ -76,6 +76,10 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		return pageEnterPromise.promise;	
 	}
 	
+	function updatePage(pageData) {
+		socket.emit('pages/update', pageData);
+	}
+	
 	function createElement(element) {
 		elementCreatePromise = $q.defer();
 		
@@ -113,6 +117,7 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	return {
 		Init : init,
 		EnterPage : enterPage,
+		UpdatePage : updatePage,
 		CreateElement : createElement,
 		CursorMove: cursorMove
 	}

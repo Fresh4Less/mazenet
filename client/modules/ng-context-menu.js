@@ -13,6 +13,7 @@ angular
       element: null,
       menuElement: null,
       forceClose: false,
+      openCallback: null,
       closeCallback: null,
       position : {
         x: 0,
@@ -65,6 +66,8 @@ angular
 
             menuElement.bind('mouseenter', mouseEnterEvent);
             menuElement.bind('mouseleave', mouseLeaveEvent);
+            
+            ContextMenuService.openCallback();
             
             opened = true;
           }

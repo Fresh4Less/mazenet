@@ -20,15 +20,15 @@
 			</a>
 		</li>
 		<hr>
-		<li>
+		<div class="buildmenu-footer">
 			<a href="https://github.com/Fresh4Less/mazenet"
 				target="_blank"
 				role="menuitem"
 				tabindex="-1"
 				ng-click="closeContextMenu()">
-				<b>Mazenet on GitHub</b> <span class="glyphicon glyphicon-share-alt"></span>
-			</a>
-		</li>
+			<b>Mazenet on GitHub</b> <span class="glyphicon glyphicon-share-alt"></span>
+		</a>
+		</div>
 	</ul>
 	<!-- NEW ROOM -->
 	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='newRoom'">
@@ -66,20 +66,20 @@
 		</li>
 		<hr class="smallhr">
 		<li class="buildmenuitem">
-			<div class="pageoptionsheader">Background:</div>
-			<div class="input-group input-group-sm inputoption">
-				<span class="input-group-addon">Color</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
-			</div>
 			<div class="pageoptionsheader">Title:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Title</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
+				<input class="form-control" role="menuitem"type="text" ng-model="pageSettings.title"/>
+			</div>
+			<div class="pageoptionsheader">Background:</div>
+			<div class="input-group input-group-sm inputoption">
+				<span class="input-group-addon">Color</span>
+				<input class="form-control" role="menuitem"type="text" ng-model="pageSettings.background.data.color"/>
 			</div>
 			<div class="pageoptionsheader">Permissions:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Permissions</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
+				<input class="form-control" role="menuitem"type="text" ng-model="pageSettings.permissions"/>
 			</div>
 		</li>
 		<hr class="smallhr">

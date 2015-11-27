@@ -2,25 +2,27 @@ function mazenetController($scope, $window, SocketService, ActivePageService, Us
 	var cursorTimeout = true;
 	var networkTiming = 30;
 	//Scope Variables
-	$scope.page = ActivePageService.pageData;
+	$scope.page = ActivePageService.PageData;
 	
 	$scope.CursorMove = function($event) {
-		if(cursorTimeout) {
-			cursorTimeout = false;
-			
-			var cursorMove = {
-				pos: {
-					x: $event.clientX / $window.innerWidth,
-					y: $event.clientY / $window.innerHeight
-				},
-				t: frameDifference(ActivePageService.pageData.enterTime, new Date().getTime())
-			}			
-			
-			SocketService.CursorMove(cursorMove);
-			
-			window.setTimeout(function() {
-				cursorTimeout = true;
-			}, (1000/networkTiming));	
+		if(ActivePageService.PageData) {
+			if(cursorTimeout) {
+				cursorTimeout = false;
+				
+				var cursorMove = {
+					pos: {
+						x: $event.clientX / $window.innerWidth,
+						y: $event.clientY / $window.innerHeight
+					},
+					t: frameDifference(ActivePageService.PageData.enterTime, new Date().getTime())
+				}			
+				
+				SocketService.CursorMove(cursorMove);
+				
+				window.setTimeout(function() {
+					cursorTimeout = true;
+				}, (1000/networkTiming));	
+			}	
 		}
 	}
 	UserService.RedrawCallback = function() {
