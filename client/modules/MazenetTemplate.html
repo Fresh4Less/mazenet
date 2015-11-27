@@ -21,8 +21,8 @@
 	<div ng-repeat="element in page.elements" style="position: absolute; left: {{(element.pos.x*100)}}%;  top: {{(element.pos.y*100)}}%">
 		<a class="linkelement" ng-click="EnterPage($event, element.data.pId)">{{element.data.text}}</a>
 	</div>
-	Users: {{OtherUsers}}
-	<div ng-repeat="user in OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%; background: orange;">
-		<img src="http://cdn.akamai.steamstatic.com/steamcommunity/public/images/avatars/b3/b30a96f300be73b607c57d1297bb28148e3d879e_full.jpg" alt="{{user.uId}}">
+	<div ng-repeat="user in OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%;">
+		<img src="http://doc.qt.io/qt-5/images/cursor-arrow.png" alt="{{user.uId}}">
+		<div style="font-size: 60%;">{{user.uId}}</div>
 	</div>
 </section>

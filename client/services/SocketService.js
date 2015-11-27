@@ -4,20 +4,20 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	var pageEnterPromise = null;
 	var elementCreatePromise = null;
 	/* Event Handlers */
-	var connected = function(userId) {
-		console.log("Connected", userId);
-		UserService.UserData.uId = userId.uId;
+	var connected = function(user) {
+		console.log('Connected', user);
+		UserService.UserData.uId = user.uId;
+		ActivePageService.RootPages.root = user.rootPageId;
+		ActivePageService.RootPages.homepage = user.homepageId;
+		loadInitialPage();
 	}
 	var userEntered = function(user) {
-		console.log("User Entered", user);
 		UserService.AddUser(user);
 	}
 	var userLeft = function(user) {
-		console.log("User Left", user);
 		UserService.RemoveUser(user);
 	}
 	var userMovedCursor = function(cursor) {
-		console.log("User Moved Cursor", cursor);
 		UserService.UpdatePosition(cursor);
 	}
 	var userEnterPage = function(pageData) {
@@ -29,6 +29,7 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		pageEnterPromise.reject(error);
 	}
 	var elementCreated = function(element) {
+		ActivePageService.AddElement(element);
 		elementCreatePromise.resolve(element);
 	}
 	var elementCreateFailure = function(error) {
@@ -73,6 +74,27 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 	
 	function cursorMove(cursor) {
 		socket.emit('pages/cursors/moved', cursor);
+	}
+	
+	function loadInitialPage() {
+		var successCallback = function(page) {
+			ActivePageService.UpdatePage(page.page);
+		}
+		var failureCallback = function(error) {
+			console.error('Could not enter page defaulting to root.');
+			enterPage(error.rootPageId).then(successCallback, function(error) {
+				console.error('Error loading root page. The Mazenet is dead');
+			})
+		}
+		if(ActivePageService.RootPages.url) {
+			enterPage(ActivePageService.RootPages.url, {x: 0, y: 0}).then(successCallback, failureCallback);
+		} else if(ActivePageService.RootPages.homepage) {
+			enterPage(ActivePageService.RootPages.homepage, {x: 0, y: 0}).then(successCallback, failureCallback);
+		} else if(ActivePageService.RootPages.root) {
+			enterPage(ActivePageService.RootPages.root, {x: 0, y: 0}).then(successCallback, failureCallback);
+		} else {
+			console.error('No root page, homepage, or url page defined.');
+		}
 	}
 	
 	return {

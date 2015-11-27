@@ -34,7 +34,7 @@ module.exports = function(grunt) {
 				livereload: true	
 			},
 			js: {
-				files: ['client/**/*.js'],
+				files: ['client/**/*.js', 'server/**/*.js'],
 				tasks: ['concat', 'express:dev']
 			}
 		}
@@ -50,5 +50,5 @@ module.exports = function(grunt) {
 	
 //	grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'sass', 'cssmin']);
 	grunt.registerTask('default', ['concat']);
-	grunt.registerTask('dev', ['express:dev', 'watch:js']);
+	grunt.registerTask('dev', ['concat', 'express:dev', 'watch:js']);
 };

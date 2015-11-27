@@ -1,4 +1,9 @@
 var activePageService = function($q) { 
+	var rootPages = {
+		root: '',
+		homepage: '',
+		url: '',
+	}
 	var pageData = {
 		_id : '563ff6d5ed248da731bcfae6',
 		creator: "0",
@@ -97,6 +102,7 @@ var activePageService = function($q) {
 	}
 	return {
 		pageData : pageData,
+		RootPages : rootPages,
 		styles : styles,
 		UpdatePage : UpdatePage,
 		AddElement : addElement 

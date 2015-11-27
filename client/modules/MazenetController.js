@@ -1,11 +1,11 @@
-function mazenetController($scope, SocketService, ActivePageService, UserService) {
+function mazenetController($scope, $window, SocketService, ActivePageService, UserService) {
 	var cursorTimeout = true;
 	var networkTiming = 30;
 	//Scope Variables
 	$scope.pageId = '563ff6d5ed248da731bcfae6';
 	$scope.page = ActivePageService.pageData;
 	
-	//Scope Functions
+	/* Scope Functions */
 	$scope.EnterPage = function($event, pId) { 
 		var id = pId;
 		if(!pId) {
@@ -30,8 +30,8 @@ function mazenetController($scope, SocketService, ActivePageService, UserService
 			
 			var cursorMove = {
 				pos: {
-					x: $event.clientX / $event.target.clientWidth,
-					y: $event.clientY / $event.target.clientHeight
+					x: $event.clientX / $window.innerWidth,
+					y: $event.clientY / $window.innerHeight
 				},
 				t: frameDifference(ActivePageService.pageData.enterTime, new Date().getTime())
 			}			
@@ -56,4 +56,4 @@ function mazenetController($scope, SocketService, ActivePageService, UserService
 	}
 };
 
-angular.module('mazenet').controller('MazenetController', ['$scope', 'SocketService','ActivePageService','UserService', mazenetController]);
+angular.module('mazenet').controller('MazenetController', ['$scope', '$window', 'SocketService','ActivePageService','UserService', mazenetController]);

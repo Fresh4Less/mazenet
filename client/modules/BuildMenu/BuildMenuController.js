@@ -30,7 +30,7 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		$scope.closeContextMenu();
 		SocketService.CreateElement($scope.newLink)
 		.then(function(element) {
-			ActivePageService.AddElement(element);
+			/* Element Created */
 		}, function(error) {
 			console.error("Error Creating Page:" , error);
 		});

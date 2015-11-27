@@ -1,5 +1,7 @@
 .mainbody {
 	position:absolute;
+	overflow-x: hidden;
+	overflow-y: hidden;
 	width: 100%;
 	height: 100%;
 }
