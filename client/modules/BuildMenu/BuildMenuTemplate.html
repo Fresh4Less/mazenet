@@ -16,11 +16,17 @@
 		<li>
 			<a class="pointer" role="menuitem" tabindex="3"
 			ng-click="newImageSelected()">
-				<span class="glyphicon glyphicon-camera"></span> <b>Insert Image</b>
+				<span class="glyphicon glyphicon-camera"></span> <b>Insert Image (coming soon)</b>
+			</a>
+		</li>
+		<li>
+			<a class="pointer" role="menuitem" tabindex="4"
+			ng-click="toggleCursors()">
+				<span class="glyphicon glyphicon-refresh"></span> <b>Cursor Draw Style: {{PageData.cursorDrawMode}}</b>
 			</a>
 		</li>
 		<hr>
-		<div class="buildmenu-footer">
+		<li>
 			<a href="https://github.com/Fresh4Less/mazenet"
 				target="_blank"
 				role="menuitem"
@@ -28,7 +34,7 @@
 				ng-click="closeContextMenu()">
 			<b>Mazenet on GitHub</b> <span class="glyphicon glyphicon-share-alt"></span>
 		</a>
-		</div>
+		</li>
 	</ul>
 	<!-- NEW ROOM -->
 	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='newRoom'">

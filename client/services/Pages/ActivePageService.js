@@ -19,7 +19,8 @@ var activePageService = function($q) {
 		owners : [],
 		permissions : 'all',
 		elements : [],
-		enterTime: 0
+		enterTime: 0,
+		cursorDrawMode: 0
 	}
 	
 	var styles = {
@@ -73,6 +74,7 @@ var activePageService = function($q) {
 			}
 			/* TODO: Add other fields */
 			pageData.enterTime = (new Date()).getTime();
+			console.log('time update', pageData.enterTime);
 			updateStyles();	
 		} else {
 			pageUpdateErrors += 'Page is undefined.\n';

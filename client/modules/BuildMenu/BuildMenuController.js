@@ -30,6 +30,17 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		SocketService.UpdatePage($scope.pageSettings);
 	}
 	
+	/*TEMP CURSOR CRAP*/
+	$scope.PageData = ActivePageService.PageData;
+	
+	$scope.toggleCursors = function() {
+		var currentMode = ActivePageService.PageData.cursorDrawMode;
+		currentMode++;
+		ActivePageService.PageData.cursorDrawMode = currentMode % 6;
+	}
+	
+	/*END TEMP CURSOR CRAP*/
+	
 	$scope.closeContextMenu = function() {
 		ContextMenuService.forceClose = true;
 	}

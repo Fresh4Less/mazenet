@@ -10,6 +10,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	};
 	
 	var timer = 0;
+	var cursorDrawMode = 0;
 	var activeRoomTime = 0;
 	defaultCursor.image.src = "images/cursors/default.png";	
 	defaultCursor.image.onload = function() {defaultCursor.loaded = true};
@@ -68,43 +69,139 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 					canvas.setAttribute('height', height);	
 				}
 				
-				if(ActivePageService.PageData.enterTime != activeRoomTime) {
-					activeRoomTime = ActivePageService.PageData.enterTime;
-					timer = 0;
-					ctx.clearRect(0, 0, canvas.width, canvas.height);
+				if(activeRoomTime != ActivePageService.PageData.enterTime || cursorDrawMode != ActivePageService.PageData.cursorDrawMode) {
+					resetCanvas();
 				}
 				
-				// Cursors -- TODO: ADD DIFFERENT DRAWING ALGORITHMS
-				if(defaultCursor.loaded){ 
-					var cursorSprite = sprite({
-						context: ctx,
-						width: 25,
-						height: 25,
-						image: defaultCursor.image
-					});
-					ctx.strokeStyle = "rgba(255, 50, 50, 0.01)"
-					if(ActivePageService.PageData.cursors) {
-						_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
-							var start = false;
-							ctx.beginPath();
-							cursor.frames.some(function(cursorInstant) {
-								if(cursorInstant.pos.x != 0 && cursorInstant.pos.y != 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
-									if(!start) {
-										ctx.moveTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
-										start = true;
-									} else {
-										ctx.lineTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
-									}	
-								}
-								//ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
-							});
-							ctx.stroke();
-						});	
+				// Cursors
+				if(ActivePageService.PageData.cursors) {
+					switch(cursorDrawMode){
+						case 0:
+							cursorsAsSquaresRT();
+							break;
+						case 1:
+							cursorsAsLinesRT();
+							break;
+						case 2:
+							cursorsAsSquaresI();
+							break;
+						case 3:
+							cursorsAsLinesI();
+							break;
+						case 4:
+							cursorsAsIconsRT();
+							break;
 					}
 				}		
 			}
-			timer++;
 		}, 1000/fps);
+	}
+	
+	function cursorsAsLinesI() {
+		ctx.strokeStyle = "rgba(255, 50, 50, 0.01)"
+		ctx.lineWidth = 1;
+		if(timer < 100) {
+			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
+				var start = false;
+				ctx.beginPath();
+				cursor.frames.some(function(cursorInstant) {
+					if(cursorInstant.pos.x != 0 && cursorInstant.pos.y != 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
+						if(!start) {
+							ctx.moveTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
+							start = true;
+						} else {
+							ctx.lineTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
+						}	
+					}
+				});
+				ctx.stroke();
+			});		
+		}
+		timer++;
+	}
+	function cursorsAsLinesRT() {
+		ctx.strokeStyle = "rgba(50, 50, 50, 0.2)"
+		ctx.lineWidth = 6;
+		ctx.clearRect(0,0,width,height);
+		_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
+			var start = false;
+			ctx.beginPath();
+			cursor.frames.some(function(cursorInstant) {
+				if(cursorInstant.pos.x != 0 && cursorInstant.pos.y != 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
+					if(!start) {
+						ctx.moveTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
+						start = true;
+					} else if(cursorInstant.t <= timer){
+						ctx.lineTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
+					} else {
+						return true;
+					}
+				}
+			});
+			ctx.stroke();
+		});
+		timer++;	
+	}
+	
+	function cursorsAsSquaresI() {
+		ctx.fillStyle = "rgba(255, 50, 50, 0.1)"
+		if(timer == 0) {
+			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
+				cursor.frames.some(function(cursorInstant) {
+					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
+				});
+			});	
+		}
+		timer++;
+	}
+	function cursorsAsSquaresRT() {
+		ctx.fillStyle = "rgba(255, 50, 50, 0.1)"
+		_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
+			cursor.frames.some(function(cursorInstant) {
+				if(cursorInstant.t == timer){
+					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
+					return true;	
+				} else if(cursorInstant.t > timer) {
+					return true;
+				}
+			});
+		});	
+		timer++;
+	}
+	
+	function cursorsAsIconsRT() { //Terrible and needs more work.
+		if(defaultCursor.loaded){
+			ctx.clearRect(0,0,width,height); 
+			var cursorSprite = sprite({
+				context: ctx,
+				width: 25,
+				height: 25,
+				image: defaultCursor.image
+			});
+			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
+				var prevX = 0;
+				var prevY = 0;
+				cursor.frames.some(function(cursorInstant) {
+					if(cursorInstant.pos.x == 0 || cursorInstant.pos.y == 0) {
+						cursorSprite.render(prevX * width, prevY * height);
+						return true;
+					} else if(cursorInstant.t >= timer){
+						prevX = cursorInstant.pos.x;
+						prevY = cursorInstant.pos.y;
+						cursorSprite.render(cursorInstant.pos.x * width, cursorInstant.pos.y * height);
+						return true;	
+					}
+				});
+			});	
+			timer++;
+		}
+	}
+	
+	function resetCanvas() {
+		activeRoomTime = ActivePageService.PageData.enterTime;
+		cursorDrawMode = ActivePageService.PageData.cursorDrawMode;
+		timer = 0;
+		ctx.clearRect(0, 0, width, height);
 	}
 
 }
