@@ -49,11 +49,11 @@ console.log('Listening on port ' + appPort);
 
 app.use(compress());
 app.use(bodyParser.json());
-app.use('/static', express.static(__dirname + '/../client'));
-//app.use(express.static("app"));
-//app.use(express.static("."));
-
 app.use(routes);
+app.use(express.static(__dirname + "/../client"));
+app.use(express.static(__dirname + "/../dist"));
+app.use('/bower_components',express.static(__dirname + "/../bower_components"));
+
 
 //var io = require('./sockets')(server);
 /*

@@ -1,0 +1,1 @@
+Firefox - Context menu float:right arrow drawing on separate line.

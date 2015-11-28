@@ -1,6 +1,5 @@
 # mazenet
 social web spelunking
-
  - [General API Reference](#general-api-reference)
     - [Pages](#pages)
     - [Elements](#elements)
