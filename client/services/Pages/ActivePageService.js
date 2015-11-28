@@ -8,12 +8,12 @@ var activePageService = function($q) {
 		_id : '563ff6d5ed248da731bcfae6',
 		isRoot: false,
 		creator: "0",
-		cursors: null,
-		title: 'loading...',
+		cursors: [],
+		title: '',
 		background : {
 			bType : 'color',
 			data : {
-				color : '#cccccc'
+				color : '#000000'
 			}
 		},
 		owners : [],
@@ -26,11 +26,11 @@ var activePageService = function($q) {
 		background: {
 			bType : 'color',
 			data : {
-				color : '#cccccc'
+				color : '#000000'
 			}
 		},
 		stringified: '',
-		canvasStringified: 'background : #cccccc'
+		canvasStringified: 'background : #000000'
 	};
 
 	
@@ -57,6 +57,9 @@ var activePageService = function($q) {
 			}
 			if(newPage.elements) {
 				pageData.elements = newPage.elements;
+			}
+			if(newPage.cursors) {
+				pageData.cursors = newPage.cursors;
 			}
 			//Background
 			if(newPage.background){

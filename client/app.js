@@ -19,11 +19,11 @@ app.config(['$routeProvider', '$locationProvider',
 	function($routeProvider, $locationProvider) {
 		
 		$routeProvider
-			.when('/', {
+			.when('/room/:pageId', {
 				templateUrl: 'index.html',
 				controller: 'RootController'
 			})
-			.when('/room/:pageId', {
+			.when('/room', {
 				templateUrl: 'index.html',
 				controller: 'RootController'
 			})

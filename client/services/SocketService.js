@@ -11,7 +11,7 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		loadInitialPage();
 	}
 	var connectError = function(error) {
-		console.error("Connecting error.", error);
+		console.error("Could not connect to the Mazenet.", error);
 	}
 	var userEntered = function(user) {
 		UserService.AddUser(user);
@@ -23,6 +23,7 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		UserService.UpdatePosition(cursor);
 	}
 	var userEnterPage = function(PageData) {
+		$location.path('room/'+PageData.page._id);
 		ActivePageService.UpdatePage(PageData.page);
 		UserService.SetUsers(PageData.users);
 		pageEnterPromise.resolve(PageData);
@@ -38,8 +39,7 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		elementCreatePromise.reject(error);	
 	}
 	var pageUpdated = function(pageChanges) {
-		console.log('Page updated', pageChanges);
-		ActivePageService.UpdatePage(pageChanges)
+		ActivePageService.UpdatePage(pageChanges);
 	}
 	var pageUpdateFailure = function(error) {
 		console.error('Error updating page.', error);
