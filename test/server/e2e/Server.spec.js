@@ -204,6 +204,97 @@ describe('pages', function() {
 			});
 		});
 	});
+	it('should update live cursor positions', function() {
+		//enter 1 -> move 1 -> enter 2 -> move 1 -> move 2
+		var socket1 = null;
+		var socket1Uid = null;
+		var socket1EnterPos = {x: 60, y: 60};
+		var socket1Move1 = { pos: {x: 80, y: 80}, t: 10 };
+		var socket1Move2 = { pos: {x: 90, y: 90}, t: 20 };
+
+		var socket2 = null;
+		var socket2Uid = null;
+		var socket2EnterPos = {x: 50, y: 50};
+		var socket2Move1 = { pos: {x: 30, y: 30}, t: 10};
+
+		return BPromise.try(function() {
+			// connect 1
+			socket1 = socketClient(connectUrl, socketOptions);
+		}).then(function() {
+			// 1 connected, enter 1
+			return new BPromise(function(resolve, reject) {
+				socket1.on('users/connected', function(userData) {
+					socket1Uid = userData.uId;
+					socket1.emit('pages/enter', { pId: userData.rootPageId, pos: socket1EnterPos});
+					resolve();
+				});
+			});
+		}).then(function() {
+			// 1 entered
+			return new BPromise(function(resolve, reject) {
+				socket1.on('pages/enter:success', function(page) {
+					expect(page.users).to.have.length(0);
+					resolve();
+				});
+			});
+		}).then(function() {
+			// move 1-1
+			socket1.emit('pages/cursors/moved', socket1Move1);
+		}).then(function() {
+			// connect 2
+			socket2 = socketClient(connectUrl, socketOptions);
+		}).then(function() {
+			// 2 connected, enter 2
+			return new BPromise(function(resolve, reject) {
+				socket2.on('users/connected', function(userData) {
+					socket2Uid = userData.uId;
+					socket2.emit('pages/enter', { pId: userData.rootPageId, pos: socket2EnterPos});
+					resolve();
+				});
+			});
+		}).then(function() {
+			// 2 entered
+			return BPromise.all([
+				new BPromise(function(resolve, reject) {
+					socket2.on('pages/enter:success', function(page) {
+						expect(page.users).to.have.length(1);
+						expect(page.users).to.contain({ uId: socket1Uid, pos: socket1Move1.pos });
+						resolve();
+					});
+				}),
+				new BPromise(function(resolve, reject) {
+					socket1.on('pages/userEntered', function(userData) {
+						expect(userData).deep.equals({ uId: socket2Uid, pos: socket2EnterPos });
+						socket1.removeAllListeners('pages/userEntered');
+						resolve();
+					});
+				})]);
+		}).then(function() {
+			// move 1-2
+			socket1.emit('pages/cursors/moved', socket1Move2);
+		}).then(function() {
+			// 1 moved 2
+			return new BPromise(function(resolve, reject) {
+				socket2.on('pages/cursors/moved', function(cursor) {
+					expect(cursor).deep.equals({ uId: socket1Uid, pos: socket1Move2.pos });
+					socket2.removeAllListeners('pages/cursors/moved');
+					resolve();
+				});
+			});
+		}).then(function() {
+			// move 2-1
+			socket2.emit('pages/cursors/moved', socket2Move1);
+		}).then(function() {
+			// 2 moved 1
+			return new BPromise(function(resolve, reject) {
+				socket1.on('pages/cursors/moved', function(cursor) {
+					expect(cursor).deep.equals({ uId: socket2Uid, pos: socket2Move1.pos });
+					socket1.removeAllListeners('pages/cursors/moved');
+					resolve();
+				});
+			});
+		});
+	});
 });
 //socket.on('users/connected', function(userData) {
 		//console.log('connected');
