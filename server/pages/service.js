@@ -5,6 +5,10 @@ var CustomErrors = require('../util/custom-errors');
 var pagesDataAccess = require('./dataAccess');
 var Validator = require('fresh-validation').Validator;
 
+//for resetAllPages
+var db = require('../util/db');
+var elementsService = require('../elements/service');
+
 // initialze validator
 var validator = new Validator();
 
@@ -82,9 +86,42 @@ function updatePage(pageIdStr, pageParams) {
 	});
 }
 
+// debugging service. be very careful
+function resetAllPages() {
+	var mainPage;
+	return db.getMazenetDb()
+		.then(function(db) {
+			return db.collection('pages')
+				.deleteManyAsync({});
+		})
+		.then(function() {
+			var initialPage = {
+			  "creator": "101010101010101010101010",
+			  "permissions": "all",
+			  "title": "mazenet",
+			  "background" : { "bType" : "color", "data" : { "color" : "#ffffff" } }
+			};
+			return createPage(initialPage, true);
+		})
+		.then(function(page) {
+			mainPage = page;
+			var initialLink = {
+				"eType": "link",
+				"creator": "101010101010101010101010",
+				"pos": {"x": 50, "y": 50},
+				"data": { "text": "enter mazenet" }
+			};
+			return elementsService.createElement(page._id, initialLink);
+		})
+		.then(function() {
+			return getPage(mainPage._id);
+		});
+}
+
 module.exports = {
 	getPage: getPage,
 	createPage: createPage,
 	getRootPageId: getRootPageId,
-	updatePage: updatePage
+	updatePage: updatePage,
+	resetAllPages: resetAllPages
 };

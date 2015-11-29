@@ -122,7 +122,7 @@ function flattenObject(obj) {
 		}
 	}
 	return retObj;
-};
+}
 
 module.exports = {
 	getPage: getPage,

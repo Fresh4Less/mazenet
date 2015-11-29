@@ -8,9 +8,10 @@ BPromise.promisifyAll(MongoClient);
 
 var dbConfig = config.get('dbConfig');
 
+var selectedDb = 'dev';
 var mazenetDb = null;
 
-function connect() {
+function connect(dbName) {
 	if(mazenetDb) {
 		console.warn('Already connected to mazenetDb');
 		mazenetDb.close();
@@ -23,7 +24,7 @@ function connect() {
 }
 function getMazenetDb() {
 	if(!mazenetDb) {
-		return connect();
+		return connect(selectedDb);
 	}
 	else {
 		return BPromise.resolve(mazenetDb);
