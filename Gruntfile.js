@@ -19,7 +19,7 @@ module.exports = function(grunt) {
 			options: {
 			},
 			test: {
-				src: ['server/**/*.js', 'client/**/*.js']
+				src: ['server/**/*.js', 'client/**/*.js'].concat(serverTestFiles)
 			}
 		},
 		concat : {

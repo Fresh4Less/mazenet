@@ -1,6 +1,8 @@
 var expect = require('chai').expect;
 var sinon = require('sinon');
 
+var BPromise = require('bluebird');
+
 var socketClient = require('socket.io-client');
 
 var socketOptions ={
@@ -69,6 +71,136 @@ describe('pages', function() {
 			});
 			socket.on('pages/enter:failure', function(error) {
 				done(error);
+			});
+		});
+	});
+
+	it('should notify all clients in the room when users enter and leave', function() {
+		//enter 1 -> enter 2 -> enter 3 -> leave 3 -> leave 2
+		var socket1 = null;
+		var socket1Uid = null;
+		var socket1EnterPos = {x: 60, y: 60};
+
+		var socket2 = null;
+		var socket2Uid = null;
+		var socket2EnterPos = {x: 50, y: 50};
+
+		var socket3 = null;
+		var socket3Uid = null;
+		var socket3EnterPos = {x: 40, y: 40};
+
+		return BPromise.try(function() {
+			// connect 1
+			socket1 = socketClient(connectUrl, socketOptions);
+		}).then(function() {
+			// 1 connected, enter 1
+			return new BPromise(function(resolve, reject) {
+				socket1.on('users/connected', function(userData) {
+					socket1Uid = userData.uId;
+					socket1.emit('pages/enter', { pId: userData.rootPageId, pos: socket1EnterPos});
+					resolve();
+				});
+			});
+		}).then(function() {
+			// 1 entered
+			return new BPromise(function(resolve, reject) {
+				socket1.on('pages/enter:success', function(page) {
+					expect(page.users).to.have.length(0);
+					resolve();
+				});
+			});
+		}).then(function() {
+			// connect 2
+			socket2 = socketClient(connectUrl, socketOptions);
+		}).then(function() {
+			// 2 connected, enter 2
+			return new BPromise(function(resolve, reject) {
+				socket2.on('users/connected', function(userData) {
+					socket2Uid = userData.uId;
+					socket2.emit('pages/enter', { pId: userData.rootPageId, pos: socket2EnterPos});
+					resolve();
+				});
+			});
+		}).then(function() {
+			// 2 entered
+			return BPromise.all([
+				new BPromise(function(resolve, reject) {
+					socket2.on('pages/enter:success', function(page) {
+						expect(page.users).to.have.length(1);
+						expect(page.users).to.contain({ uId: socket1Uid, pos: socket1EnterPos });
+						resolve();
+					});
+				}),
+				new BPromise(function(resolve, reject) {
+					socket1.on('pages/userEntered', function(userData) {
+						expect(userData).deep.equals({ uId: socket2Uid, pos: socket2EnterPos });
+						socket1.removeAllListeners('pages/userEntered');
+						resolve();
+					});
+				})]);
+		}).then(function() {
+			// connect 3
+			socket3 = socketClient(connectUrl, socketOptions);
+		}).then(function() {
+			// 3 connected, enter 3
+			return new BPromise(function(resolve, reject) {
+				socket3.on('users/connected', function(userData) {
+					socket3Uid = userData.uId;
+					socket3.emit('pages/enter', { pId: userData.rootPageId, pos: socket3EnterPos});
+					resolve();
+				});
+			});
+		}).then(function() {
+			// 3 entered
+				return BPromise.all([
+					new BPromise(function(resolve, reject) {
+						socket1.on('pages/userEntered', function(userData) {
+							expect(userData).deep.equals({ uId: socket3Uid, pos: socket3EnterPos});
+							resolve();
+						});
+					}),
+					new BPromise(function(resolve, reject) {
+						socket2.on('pages/userEntered', function(userData) {
+							expect(userData).deep.equals({ uId: socket3Uid, pos: socket3EnterPos});
+							resolve();
+						});
+					}),
+					new BPromise(function(resolve, reject) {
+						socket3.on('pages/enter:success', function(page) {
+							expect(page.users).to.have.length(2);
+							expect(page.users).to.contain({ uId: socket1Uid, pos: socket1EnterPos });
+							expect(page.users).to.contain({ uId: socket2Uid, pos: socket2EnterPos });
+							resolve();
+						});
+					})]);
+		}).then(function() {
+			// disconnect 3
+			socket3.disconnect();
+		}).then(function() {
+			// 3 left
+			return BPromise.all([
+				new BPromise(function(resolve, reject) {
+					socket1.on('pages/userLeft', function(userData) {
+						expect(userData).deep.equals({ uId: socket3Uid });
+						socket1.removeAllListeners('pages/userLeft');
+						resolve();
+					});
+				}),
+				new BPromise(function(resolve, reject) {
+					socket2.on('pages/userLeft', function(userData) {
+						expect(userData).deep.equals({ uId: socket3Uid });
+						resolve();
+					});
+				})]);
+		}).then(function() {
+			// disconnect 2
+			socket2.disconnect();
+		}).then(function() {
+			return new Promise(function(resolve, reject) {
+				socket1.on('pages/userLeft', function(userData) {
+					expect(userData).deep.equals({ uId: socket2Uid });
+					resolve();
+				});
 			});
 		});
 	});
