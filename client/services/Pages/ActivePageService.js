@@ -74,7 +74,6 @@ var activePageService = function($q) {
 			}
 			/* TODO: Add other fields */
 			pageData.enterTime = (new Date()).getTime();
-			console.log('time update', pageData.enterTime);
 			updateStyles();	
 		} else {
 			pageUpdateErrors += 'Page is undefined.\n';
