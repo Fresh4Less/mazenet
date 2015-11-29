@@ -6,5 +6,5 @@ angular.module('mazenet').directive('mzLinkElement', function() {
 		},
 		templateUrl: '/modules/Elements/Link/LinkElementTemplate.html',
 		controller: 'LinkElementController'
-	}
+	};
 });

@@ -15,7 +15,7 @@ function linkElementController($scope, ActivePageService, SocketService) {
 			console.error('Error entering page:', id, error);
 			alert("Unable To Enter Page.\n" + error.message);
 		});
-	}
+	};
 	
 }
 angular.module('mazenet').controller('LinkElementController',['$scope', 'ActivePageService', 'SocketService', linkElementController]);

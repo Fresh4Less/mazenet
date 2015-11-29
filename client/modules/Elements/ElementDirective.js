@@ -5,5 +5,5 @@ angular.module('mazenet').directive('mzElement', function() {
 			element: '='
 		},
 		templateUrl: '/modules/Elements/ElementTemplate.html',
-	}
+	};
 });

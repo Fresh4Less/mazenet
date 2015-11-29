@@ -7,5 +7,5 @@ angular.module('mazenet').directive('mzCanvas', function() {
 		},
 		controller: 'CanvasController',
 		replace: true
-	}
+	};
 });

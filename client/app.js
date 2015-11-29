@@ -4,7 +4,7 @@ var rootController = function($scope, $route, $routeParams, ActivePageService, S
 	$scope.globalPageStyles = ActivePageService.styles;
 	$scope.$on('$routeChangeSuccess', function() {
 		if($routeParams.pageId) {
-			ActivePageService.RootPages.url = $routeParams.pageId
+			ActivePageService.RootPages.url = $routeParams.pageId;
 		} else {
 			ActivePageService.RootPages.url = '';
 		}

@@ -15,7 +15,7 @@ function mazenetController($scope, $window, SocketService, ActivePageService, Us
 						y: $event.clientY / $window.innerHeight
 					},
 					t: frameDifference(ActivePageService.PageData.enterTime, new Date().getTime())
-				}			
+				};			
 				
 				SocketService.CursorMove(cursorMove);
 				
@@ -24,10 +24,10 @@ function mazenetController($scope, $window, SocketService, ActivePageService, Us
 				}, (1000/networkTiming));	
 			}	
 		}
-	}
+	};
 	UserService.RedrawCallback = function() {
 		$scope.$apply();
-	}
+	};
 	$scope.OtherUsers = UserService.OtherUsers;
 	//End Scope
 	
@@ -36,6 +36,6 @@ function mazenetController($scope, $window, SocketService, ActivePageService, Us
 		return Math.ceil((difference / 1000) * networkTiming);
 		
 	}
-};
+}
 
 angular.module('mazenet').controller('MazenetController', ['$scope', '$window', 'SocketService','ActivePageService','UserService', mazenetController]);

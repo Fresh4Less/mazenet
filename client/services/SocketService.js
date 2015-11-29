@@ -9,41 +9,41 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		ActivePageService.RootPages.root = user.rootPageId;
 		ActivePageService.RootPages.homepage = user.homepageId;
 		loadInitialPage();
-	}
+	};
 	var connectError = function(error) {
 		console.error("Could not connect to the Mazenet.", error);
-	}
+	};
 	var userEntered = function(user) {
 		UserService.AddUser(user);
-	}
+	};
 	var userLeft = function(user) {
 		UserService.RemoveUser(user);
-	}
+	};
 	var userMovedCursor = function(cursor) {
 		UserService.UpdatePosition(cursor);
-	}
+	};
 	var userEnterPage = function(PageData) {
 		$location.path('room/'+PageData.page._id);
 		ActivePageService.UpdatePage(PageData.page);
 		UserService.SetUsers(PageData.users);
 		pageEnterPromise.resolve(PageData);
-	}
+	};
 	var userEnterPageFailure = function(error) {
 		pageEnterPromise.reject(error);
-	}
+	};
 	var elementCreated = function(element) {
 		ActivePageService.AddElement(element);
 		elementCreatePromise.resolve(element);
-	}
+	};
 	var elementCreateFailure = function(error) {
 		elementCreatePromise.reject(error);	
-	}
+	};
 	var pageUpdated = function(pageChanges) {
 		ActivePageService.UpdatePage(pageChanges);
-	}
+	};
 	var pageUpdateFailure = function(error) {
 		console.error('Error updating page.', error);
-	}
+	};
 	
 	/* External Functions */
 	function init() {
@@ -96,13 +96,13 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 
 		var successCallback = function(page) {
 			console.log('Welcome to Mazenet.', UserService.UserData);
-		}
+		};
 		var failureCallback = function(error) {
 			console.error('Could not enter page... redirecting to root.');
 			enterPage(error.rootPageId).then(successCallback, function(error) {
 				console.error('Error loading root page. The Mazenet is dead.');
-			})
-		}
+			});
+		};
 		if(ActivePageService.RootPages.url) {
 			enterPage(ActivePageService.RootPages.url, {x: 0, y: 0}).then(successCallback, failureCallback);
 		} else if(ActivePageService.RootPages.homepage) {
@@ -120,7 +120,7 @@ var socketService = function ($q, $http, $location, UserService, ActivePageServi
 		UpdatePage : updatePage,
 		CreateElement : createElement,
 		CursorMove: cursorMove
-	}
+	};
 };
 
 angular.module('mazenet').factory ('SocketService', ['$q', '$http','$location', 'UserService', 'ActivePageService', socketService]);

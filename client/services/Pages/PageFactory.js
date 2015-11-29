@@ -23,7 +23,7 @@ var pageFactoryService = function() {
 				console.error('PageFactoryService.setBackground: Warning(s) / Error(s):\n' + errors, $type, data);
 			}
 			
-		}
+		};
 		
 		return {
 			title: 'Untitled',
@@ -34,12 +34,12 @@ var pageFactoryService = function() {
 				}
 			},
 			SetBackground : setBackground
-		}
-	}
+		};
+	};
 	
 	return {
 		GetPageTemplate : getPageTemplate
-	}
+	};
 };
 
 angular.module('mazenet').factory('PageFactory', pageFactoryService);

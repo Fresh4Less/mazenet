@@ -3,7 +3,7 @@ var activePageService = function($q) {
 		root: '',
 		homepage: '',
 		url: '',
-	}
+	};
 	var pageData = {
 		_id : '563ff6d5ed248da731bcfae6',
 		isRoot: false,
@@ -21,7 +21,7 @@ var activePageService = function($q) {
 		elements : [],
 		enterTime: 0,
 		cursorDrawMode: 0
-	}
+	};
 	
 	var styles = {
 		background: {
@@ -42,7 +42,7 @@ var activePageService = function($q) {
 			if(newPage._id) {
 				pageData._id = newPage._id;
 			} else {
-				pageUpdateErrors += 'Page contains no "_id".\n'
+				pageUpdateErrors += 'Page contains no "_id".\n';
 			}
 			if(newPage.title) {
 				pageData.title = newPage.title;

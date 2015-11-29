@@ -49,6 +49,6 @@ module.exports = function(grunt) {
 //	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	
 //	grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'sass', 'cssmin']);
-	grunt.registerTask('default', ['concat']);
+	grunt.registerTask('default', ['jshint', 'concat']);
 	grunt.registerTask('dev', ['concat', 'express:dev', 'watch:js']);
 };

@@ -3,5 +3,5 @@ angular.module('mazenet').directive('mzMazenet', function() {
 		restrict: 'E',
 		templateUrl: '/modules/MazenetTemplate.html',
 		controller: 'MazenetController'
-	}
+	};
 });

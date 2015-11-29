@@ -13,7 +13,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	var cursorDrawMode = 0;
 	var activeRoomTime = 0;
 	defaultCursor.image.src = "images/cursors/default.png";	
-	defaultCursor.image.onload = function() {defaultCursor.loaded = true};
+	defaultCursor.image.onload = function() {defaultCursor.loaded = true;};
 	
 	$scope.id = 0;
 	$scope.target = null;
@@ -31,7 +31,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 			canvas.setAttribute('height', window.innerHeight);
 			ctx = canvas.getContext('2d');
 			rootRenderLoop();
-		})
+		});
 	});
 	
 	function sprite (options) {
@@ -98,14 +98,14 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	}
 	
 	function cursorsAsLinesI() {
-		ctx.strokeStyle = "rgba(255, 50, 50, 0.01)"
+		ctx.strokeStyle = "rgba(255, 50, 50, 0.01)";
 		ctx.lineWidth = 1;
 		if(timer < 100) {
 			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
 				var start = false;
 				ctx.beginPath();
 				cursor.frames.some(function(cursorInstant) {
-					if(cursorInstant.pos.x != 0 && cursorInstant.pos.y != 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
+					if(cursorInstant.pos.x !== 0 && cursorInstant.pos.y !== 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
 						if(!start) {
 							ctx.moveTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
 							start = true;
@@ -120,14 +120,14 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 		timer++;
 	}
 	function cursorsAsLinesRT() {
-		ctx.strokeStyle = "rgba(50, 50, 50, 0.2)"
+		ctx.strokeStyle = "rgba(50, 50, 50, 0.2)";
 		ctx.lineWidth = 6;
 		ctx.clearRect(0,0,width,height);
 		_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
 			var start = false;
 			ctx.beginPath();
 			cursor.frames.some(function(cursorInstant) {
-				if(cursorInstant.pos.x != 0 && cursorInstant.pos.y != 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
+				if(cursorInstant.pos.x !== 0 && cursorInstant.pos.y !== 0 && cursorInstant.pos.x < 1 && cursorInstant.pos.y < 1){
 					if(!start) {
 						ctx.moveTo(cursorInstant.pos.x * width,cursorInstant.pos.y * height);
 						start = true;
@@ -144,8 +144,8 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	}
 	
 	function cursorsAsSquaresI() {
-		ctx.fillStyle = "rgba(255, 50, 50, 0.1)"
-		if(timer == 0) {
+		ctx.fillStyle = "rgba(255, 50, 50, 0.1)";
+		if(timer === 0) {
 			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
 				cursor.frames.some(function(cursorInstant) {
 					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
@@ -155,10 +155,10 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 		timer++;
 	}
 	function cursorsAsSquaresRT() {
-		ctx.fillStyle = "rgba(255, 50, 50, 0.1)"
+		ctx.fillStyle = "rgba(255, 50, 50, 0.1)";
 		_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
 			cursor.frames.some(function(cursorInstant) {
-				if(cursorInstant.t == timer){
+				if(cursorInstant.t === timer){
 					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
 					return true;	
 				} else if(cursorInstant.t > timer) {
@@ -182,7 +182,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 				var prevX = 0;
 				var prevY = 0;
 				cursor.frames.some(function(cursorInstant) {
-					if(cursorInstant.pos.x == 0 || cursorInstant.pos.y == 0) {
+					if(cursorInstant.pos.x === 0 || cursorInstant.pos.y === 0) {
 						cursorSprite.render(prevX * width, prevY * height);
 						return true;
 					} else if(cursorInstant.t >= timer){
@@ -204,5 +204,5 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 		ctx.clearRect(0, 0, width, height);
 	}
 
-}
+};
 angular.module('mazenet').controller('CanvasController', ['$scope', '$timeout', 'BackgroundCanvasService', 'ActivePageService', canvasController]);

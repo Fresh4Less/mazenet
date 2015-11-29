@@ -6,16 +6,16 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 	
 	$scope.backToRoot = function() {
 		$scope.state = "root";
-	}
+	};
 	$scope.newRoomSelected = function() {
-		$scope.state = "newRoom"
-	}
+		$scope.state = "newRoom";
+	};
 	$scope.pageSettingsSelected = function() {
-		$scope.state = "pageSettings"
-	}
+		$scope.state = "pageSettings";
+	};
 	$scope.newImageSelected = function() {
 		$scope.state = "root";
-	}
+	};
 	$scope.createPage = function() {
 		
 		$scope.newLink.pos.x = ContextMenuService.position.x;
@@ -24,11 +24,11 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		
 		$scope.closeContextMenu();
 		SocketService.CreateElement($scope.newLink);
-	}
+	};
 	
 	$scope.updatePage = function() {
 		SocketService.UpdatePage($scope.pageSettings);
-	}
+	};
 	
 	/*TEMP CURSOR CRAP*/
 	$scope.PageData = ActivePageService.PageData;
@@ -37,31 +37,31 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		var currentMode = ActivePageService.PageData.cursorDrawMode;
 		currentMode++;
 		ActivePageService.PageData.cursorDrawMode = currentMode % 6;
-	}
+	};
 	
 	/*END TEMP CURSOR CRAP*/
 	
 	$scope.closeContextMenu = function() {
 		ContextMenuService.forceClose = true;
-	}
+	};
 	ContextMenuService.openCallback = function() {
 		resetLocalData();
-	}
+	};
 	ContextMenuService.closeCallback = function() {
 		$scope.state = 'root';
-	}
+	};
 	
 	var resetLocalData = function() {
 		$scope.newLink = {
-		eType: "link",
-		creator: "unset",
-		pos: {
-			x: 0,
-			y: 0
-		},
-		data: {
-			text: "new room"
-		}
+			eType: "link",
+			creator: "unset",
+			pos: {
+				x: 0,
+				y: 0
+			},
+			data: {
+				text: "new room"
+			}
 		};
 		$scope.pageSettings = {
 			title: ActivePageService.PageData.title,
@@ -72,8 +72,8 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 					color : ActivePageService.PageData.background.data.color
 				}
 			}
-		}
+		};
 	};
 	
-}
+};
 angular.module('mazenet').controller('BuildMenuController', ['$scope', 'SocketService','ActivePageService', 'ContextMenuService', 'UserService', buildMenuController]);
