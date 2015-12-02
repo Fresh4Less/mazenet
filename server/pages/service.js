@@ -51,6 +51,7 @@ function createPage(pageParams, isRoot) {
 		validator.whitelist({ creator: true, background: { data: true } });
 		var sanitizedPageParams = validator.transformationOutput();
 		sanitizedPageParams.owners = [sanitizedPageParams.creator];
+		sanitizedPageParams.cursors = [];
 		if(isRoot) {
 			sanitizedPageParams.isRoot = true;
 		}

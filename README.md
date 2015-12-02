@@ -22,6 +22,7 @@ Response parameters:
     - `data`: Type-specific background data
  - `owners` [array of userId]: an array of users who are owners of this page
  - `elements` [array of [elements](#elements)]: an array of elements on the page
+ - `cursors` [array of [cursors](#cursors)]: an array of cursors on this page
 
 ## Elements
 
@@ -33,6 +34,7 @@ Create parameters:
  - `data` [object]: Data specific to the element type. See [Element Types](#element-types).
 
 Response parameters:
+ - `_id` [elementId]: element id
  - `eType` [string]: element type
  - `creator` [userId]: id of the user who created the element
  - `pos` [object]: position of element on the page, in percent
@@ -49,6 +51,16 @@ Request fields:
 Response fields:
  - `text` [string]: hyperlink text
  - `pId` [pageId]: the page this link points to
+
+## Cursors
+
+ - `uId` [userId]: id of the user this cursor belongs to
+ - `frames [array of frames]: each frame is an object with the following properties:
+    - `pos` [object]: position of cursor on the page, in percent
+       - `x` [number]
+       - `y` [number]
+    - `t` [number]: time step this frame occurred on
+
 
 # REST API Reference
 
