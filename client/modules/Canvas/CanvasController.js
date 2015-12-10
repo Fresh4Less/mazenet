@@ -155,11 +155,16 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 		timer++;
 	}
 	function cursorsAsSquaresRT() {
-		ctx.fillStyle = "rgba(255, 50, 50, 0.1)";
+	
 		_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
 			cursor.frames.some(function(cursorInstant) {
 				if(cursorInstant.t === timer){
-					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
+					var radius = 20;
+					var gradient = ctx.createRadialGradient(cursorInstant.pos.x * width + radius, cursorInstant.pos.y * height + radius,radius,cursorInstant.pos.x * width+radius,cursorInstant.pos.y * height+radius,radius*0.95);
+					gradient.addColorStop(1,"rgba(255, 50, 50, 0.1)");
+					gradient.addColorStop(0,"rgba(255, 50, 50, 0)");
+					ctx.fillStyle = gradient;
+					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, radius*2, radius*2);
 					return true;	
 				} else if(cursorInstant.t > timer) {
 					return true;
@@ -171,7 +176,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	
 	function cursorsAsIconsRT() { //Terrible and needs more work.
 		if(defaultCursor.loaded){
-			ctx.clearRect(0,0,width,height); 
+			//ctx.clearRect(0,0,width,height); 
 			var cursorSprite = sprite({
 				context: ctx,
 				width: 25,
