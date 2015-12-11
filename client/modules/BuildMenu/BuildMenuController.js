@@ -36,7 +36,7 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 	$scope.toggleCursors = function() {
 		var currentMode = ActivePageService.PageData.cursorDrawMode;
 		currentMode++;
-		ActivePageService.PageData.cursorDrawMode = currentMode % 6;
+		ActivePageService.PageData.cursorDrawMode = currentMode % 8;
 	};
 	
 	/*END TEMP CURSOR CRAP*/

@@ -4,16 +4,28 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	var width = window.innerWidth;
 	var height = window.innerHeight;
 	var ctx = null;
+		var compiledCursors = [];
+	var timer = 0;
+	var cursorDrawMode = 0;
+	var activeRoomTime = 0;
 	var defaultCursor = {
 		image: new Image(),
 		loaded: false
 	};
-	
-	var timer = 0;
-	var cursorDrawMode = 0;
-	var activeRoomTime = 0;
 	defaultCursor.image.src = "images/cursors/default.png";	
 	defaultCursor.image.onload = function() {defaultCursor.loaded = true;};
+	var mFlattCursor = {
+		image: new Image(),
+		loaded: false
+	};
+	mFlattCursor.image.src = "images/cursors/matt_flatt.jpg";	
+	mFlattCursor.image.onload = function() {mFlattCursor.loaded = true;};
+	var mHallCursor = {
+		image: new Image(),
+		loaded: false
+	};
+	mHallCursor.image.src = "images/cursors/mary_hall.jpg";	
+	mHallCursor.image.onload = function() {mHallCursor.loaded = true;};
 	
 	$scope.id = 0;
 	$scope.target = null;
@@ -70,6 +82,9 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 				}
 				
 				if(activeRoomTime != ActivePageService.PageData.enterTime || cursorDrawMode != ActivePageService.PageData.cursorDrawMode) {
+					if(activeRoomTime != ActivePageService.PageData.enterTime) {
+						compileCursorsIntoFrames(ActivePageService.PageData.cursors);
+					}
 					resetCanvas();
 				}
 				
@@ -90,6 +105,12 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 							break;
 						case 4:
 							cursorsAsIconsRT();
+							break;
+						case 5:
+							cursorsAsMattFlattRT();
+							break;
+						case 6:
+							cursorsAsMaryHallRT();
 							break;
 					}
 				}		
@@ -176,29 +197,81 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	
 	function cursorsAsIconsRT() { //Terrible and needs more work.
 		if(defaultCursor.loaded){
-			//ctx.clearRect(0,0,width,height); 
+			ctx.clearRect(0,0,width,height); 
 			var cursorSprite = sprite({
 				context: ctx,
 				width: 25,
 				height: 25,
 				image: defaultCursor.image
 			});
-			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
-				var prevX = 0;
-				var prevY = 0;
-				cursor.frames.some(function(cursorInstant) {
-					if(cursorInstant.pos.x === 0 || cursorInstant.pos.y === 0) {
-						cursorSprite.render(prevX * width, prevY * height);
-						return true;
-					} else if(cursorInstant.t >= timer){
-						prevX = cursorInstant.pos.x;
-						prevY = cursorInstant.pos.y;
-						cursorSprite.render(cursorInstant.pos.x * width, cursorInstant.pos.y * height);
-						return true;	
-					}
-				});
-			});	
+			for(var i = 0; i < compiledCursors.length; i++) {
+				var index = Math.min(timer, compiledCursors[i].length - 1);
+				cursorSprite.render(compiledCursors[i][index].pos.x * width, compiledCursors[i][index].pos.y * height);
+			}	
 			timer++;
+		}
+	}
+	function cursorsAsMattFlattRT() { //Terrible and needs more work.
+		if(mFlattCursor.loaded){
+			ctx.clearRect(0,0,width,height); 
+			var cursorSprite = sprite({
+				context: ctx,
+				width: 100,
+				height: 148,
+				image: mFlattCursor.image
+			});
+			for(var i = 0; i < compiledCursors.length; i++) {
+				var index = Math.min(timer, compiledCursors[i].length - 1);
+				cursorSprite.render(compiledCursors[i][index].pos.x * width, compiledCursors[i][index].pos.y * height);
+			}	
+			timer++;
+		}
+	}
+	function cursorsAsMaryHallRT() { //Terrible and needs more work.
+		if(defaultCursor.loaded){
+			ctx.clearRect(0,0,width,height); 
+			var cursorSprite = sprite({
+				context: ctx,
+				width: 268,
+				height: 300,
+				image: mHallCursor.image
+			});
+			for(var i = 0; i < compiledCursors.length; i++) {
+				var index = Math.min(timer, compiledCursors[i].length - 1);
+				cursorSprite.render(compiledCursors[i][index].pos.x * width, compiledCursors[i][index].pos.y * height);
+			}	
+			timer++;
+		}
+	}
+	function compileCursorsIntoFrames(cursors) { //TODO fix so that it doesn't interpolate hours worth of stuff.
+		compiledCursors = [];
+		cursors.forEach(function() {
+			compiledCursors.push([]);
+			
+		});
+
+		for(var i = 0; i < cursors.length; i++) {
+			for(var j = 0; j < cursors[i].frames.length; j++) {
+				if(j == 0) {
+					compiledCursors[i].push(cursors[i].frames[j]);
+				} else {
+					var prevCursor = compiledCursors[compiledCursors.length - 1];
+					var currentCursor = cursors[i].frames[j];
+					var framesToGenerate = currentCursor.t - prevCursor.t - 1;
+					for(var k = 0; k < framesToGenerate; k++) {
+						var interpolationPercent = (k+1)/(framesToGenerate+1);
+						var interpedCursor = {
+							pos: {
+								x: (prevCursor.pos.x + ((currentCursor.pos.x - prevCursor.pos.x) * interpolationPercent)),
+								y: (prevCursor.pos.y + ((currentCursor.pos.y - prevCursor.pos.y) * interpolationPercent))
+								},
+							t: prevCursor.t + 1 + k
+						};
+						compiledCursors[i].push(interpedCursor);
+					}
+					compiledCursors[i].push(currentCursor);
+				}
+			}	
 		}
 	}
 	
