@@ -50,6 +50,11 @@
 	cursor: pointer;
 	position: absolute;
 }
+.newlinkelement {
+	text-align: center;
+	color: gray;
+	position: absolute;
+}
 .buildmenu-corner {
 	position: absolute;
 	font-size: 3rem;

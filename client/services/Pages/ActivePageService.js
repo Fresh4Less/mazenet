@@ -33,6 +33,10 @@ var activePageService = function($q) {
 		stringified: '',
 		canvasStringified: 'background : #000000'
 	};
+	
+	var Callbacks = {
+		cbAddElement: []
+	}
 
 	
 	function updatePage ( newPage ) {
@@ -103,6 +107,14 @@ var activePageService = function($q) {
 	function addElement(element) {
 		if(element) {
 			pageData.elements.push(element);	
+			Callbacks.cbAddElement.forEach(function(cbFunc){
+				cbFunc(element);
+			});
+		}
+	}
+	function onAddElement(func) {
+		if(_.isFunction(func)) {
+			Callbacks.cbAddElement.push(func);
 		}
 	}
 	return {
@@ -110,7 +122,8 @@ var activePageService = function($q) {
 		RootPages : rootPages,
 		styles : styles,
 		UpdatePage : updatePage,
-		AddElement : addElement 
+		AddElement : addElement,
+		OnAddElement: onAddElement
 	};
 };
 

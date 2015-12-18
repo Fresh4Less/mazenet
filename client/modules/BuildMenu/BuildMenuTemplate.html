@@ -3,7 +3,7 @@
 		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="1"
-				ng-click="newRoomSelected()">
+				ng-click="newRoomSelected()" ng-disabled="tunnelingInfo.isTunneling">
 				<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b> <span class="glyphicon glyphicon-chevron-right rightarrow"></span>
 			</a>
 		</li>
@@ -96,4 +96,10 @@
 		</li>
 		
 	</ul>
+</div>
+<div ng-if="tunnelingInfo.isTunneling" class="newlinkelement" style="left: {{(tunnelingInfo.pos.x*100)}}%;  top: {{(tunnelingInfo.pos.y*100)}}%">
+	{{tunnelingInfo.text}}
+</div>
+<div ng-if="!tunnelingInfo.isTunneling && isOpen" class="newlinkelement" style="left: {{(newLink.pos.x*100)}}%;  top: {{(newLink.pos.y*100)}}%">
+	{{newLink.data.text}}
 </div>
