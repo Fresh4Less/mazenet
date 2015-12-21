@@ -1,32 +1,15 @@
-var canvasController = function ($scope, $timeout, BackgroundCanvasService, ActivePageService) {
+var canvasController = function ($scope, $timeout, BackgroundCanvasService, ActivePageService, CursorService) {
 	var fps = 30;
 	var canvas = null;
 	var width = window.innerWidth;
 	var height = window.innerHeight;
 	var ctx = null;
-		var compiledCursors = [];
+    var compiledCursors = [];
 	var timer = 0;
-	var cursorDrawMode = 0;
 	var activeRoomTime = 0;
-	var defaultCursor = {
-		image: new Image(),
-		loaded: false
-	};
-	defaultCursor.image.src = "images/cursors/default.png";	
-	defaultCursor.image.onload = function() {defaultCursor.loaded = true;};
-	var mFlattCursor = {
-		image: new Image(),
-		loaded: false
-	};
-	mFlattCursor.image.src = "images/cursors/matt_flatt.jpg";	
-	mFlattCursor.image.onload = function() {mFlattCursor.loaded = true;};
-	var mHallCursor = {
-		image: new Image(),
-		loaded: false
-	};
-	mHallCursor.image.src = "images/cursors/mary_hall.jpg";	
-	mHallCursor.image.onload = function() {mHallCursor.loaded = true;};
 	
+    CursorService.OnCycleDrawMode(resetCanvas);
+    
 	$scope.id = 0;
 	$scope.target = null;
 	$scope.globalPageStyles = ActivePageService.styles;
@@ -81,43 +64,60 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 					canvas.setAttribute('height', height);	
 				}
 				
-				if(activeRoomTime != ActivePageService.PageData.enterTime || cursorDrawMode != ActivePageService.PageData.cursorDrawMode) {
-					if(activeRoomTime != ActivePageService.PageData.enterTime) {
-						compileCursorsIntoFrames(ActivePageService.PageData.cursors);
-					}
+				if(activeRoomTime != ActivePageService.PageData.enterTime) { //Page has switched
+                    compileCursorsIntoFrames(ActivePageService.PageData.cursors);
 					resetCanvas();
 				}
 				
 				// Cursors
 				if(ActivePageService.PageData.cursors) {
-					switch(cursorDrawMode){
-						case 0:
-							cursorsAsSquaresRT();
-							break;
-						case 1:
-							cursorsAsLinesRT();
-							break;
-						case 2:
-							cursorsAsSquaresI();
-							break;
-						case 3:
-							cursorsAsLinesI();
-							break;
-						case 4:
-							cursorsAsIconsRT();
-							break;
-						case 5:
-							cursorsAsMattFlattRT();
-							break;
-						case 6:
-							cursorsAsMaryHallRT();
-							break;
-					}
+                    if(CursorService.DrawMode.mode === 'sprite') {
+                        if(CursorService.DrawMode.playback === 'live') {
+                            LiveSpriteNextFrame();
+                        }   
+                    } else if(CursorService.DrawMode.mode === 'shape') {
+                        if(CursorService.DrawMode.playback === 'live') {
+                            LiveShapeNextFrame();
+                        }
+                    }
+                    
 				}		
 			}
 		}, 1000/fps);
 	}
-	
+	function LiveSpriteNextFrame() {
+        if(CursorService.DrawMode.data.ready){
+            if(!CursorService.DrawMode.cumulative) {
+                ctx.clearRect(0,0,width,height);    
+            }
+			var cursorSprite = sprite({
+				context: ctx,
+				width: CursorService.DrawMode.data.width,
+				height: CursorService.DrawMode.data.height,
+				image: CursorService.DrawMode.data.sprite
+			});
+			for(var i = 0; i < compiledCursors.length; i++) {
+				var index = Math.min(timer, compiledCursors[i].length - 1);
+				cursorSprite.render(compiledCursors[i][index].pos.x * width, compiledCursors[i][index].pos.y * height);
+			}	
+			timer++;
+		}
+    }
+    function LiveShapeNextFrame() {
+		ctx.fillStyle = "rgba(" + CursorService.DrawMode.data.color.red 
+        + ", " + CursorService.DrawMode.data.color.green  
+        + ", " + CursorService.DrawMode.data.color.blue  
+        + ", " + CursorService.DrawMode.data.color.alpha  + ")";
+        ctx.lineWidth = CursorService.DrawMode.data.size; 
+		if(timer === 0) {
+			_.each(ActivePageService.PageData.cursors, function (cursor) { //SPEED UP THIS CODE
+				cursor.frames.some(function(cursorInstant) {
+					ctx.fillRect(cursorInstant.pos.x * width, cursorInstant.pos.y * height, 30, 30);
+				});
+			});	
+		}
+		timer++;
+    }
 	function cursorsAsLinesI() {
 		ctx.strokeStyle = "rgba(255, 50, 50, 0.01)";
 		ctx.lineWidth = 1;
@@ -211,38 +211,6 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 			timer++;
 		}
 	}
-	function cursorsAsMattFlattRT() { //Terrible and needs more work.
-		if(mFlattCursor.loaded){
-			ctx.clearRect(0,0,width,height); 
-			var cursorSprite = sprite({
-				context: ctx,
-				width: 100,
-				height: 148,
-				image: mFlattCursor.image
-			});
-			for(var i = 0; i < compiledCursors.length; i++) {
-				var index = Math.min(timer, compiledCursors[i].length - 1);
-				cursorSprite.render(compiledCursors[i][index].pos.x * width, compiledCursors[i][index].pos.y * height);
-			}	
-			timer++;
-		}
-	}
-	function cursorsAsMaryHallRT() { //Terrible and needs more work.
-		if(defaultCursor.loaded){
-			ctx.clearRect(0,0,width,height); 
-			var cursorSprite = sprite({
-				context: ctx,
-				width: 268,
-				height: 300,
-				image: mHallCursor.image
-			});
-			for(var i = 0; i < compiledCursors.length; i++) {
-				var index = Math.min(timer, compiledCursors[i].length - 1);
-				cursorSprite.render(compiledCursors[i][index].pos.x * width, compiledCursors[i][index].pos.y * height);
-			}	
-			timer++;
-		}
-	}
 	function compileCursorsIntoFrames(cursors) { //TODO fix so that it doesn't interpolate hours worth of stuff.
 		compiledCursors = [];
 		cursors.forEach(function() {
@@ -283,4 +251,4 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
 	}
 
 };
-angular.module('mazenet').controller('CanvasController', ['$scope', '$timeout', 'BackgroundCanvasService', 'ActivePageService', canvasController]);
+angular.module('mazenet').controller('CanvasController', ['$scope', '$timeout', 'BackgroundCanvasService', 'ActivePageService', 'CursorService', canvasController]);

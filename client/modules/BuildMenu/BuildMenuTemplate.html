@@ -21,8 +21,8 @@
 		</li>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="4"
-			ng-click="toggleCursors()">
-				<span class="glyphicon glyphicon-refresh"></span> <b>Cursor Draw Style: {{PageData.cursorDrawMode}}</b>
+			ng-click="cursorService.CycleDrawMode()">
+				<span class="glyphicon glyphicon-refresh"></span> <b>Cursors: {{cursorService.DrawMode.name}}</b>
 			</a>
 		</li>
 		<hr>
@@ -50,7 +50,7 @@
 			<div class="pageoptionsheader">Room Details:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Title</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="newLink.data.text"/>
+				<input class="form-control" role="menuitem"type="text" placeholder="Room Name" ng-model="newLink.data.text"/>
 			</div>
 		</li>
 		<hr class="smallhr">
@@ -100,6 +100,6 @@
 <div ng-if="tunnelingInfo.isTunneling" class="newlinkelement" style="left: {{(tunnelingInfo.pos.x*100)}}%;  top: {{(tunnelingInfo.pos.y*100)}}%">
 	{{tunnelingInfo.text}}
 </div>
-<div ng-if="!tunnelingInfo.isTunneling && isOpen" class="newlinkelement" style="left: {{(newLink.pos.x*100)}}%;  top: {{(newLink.pos.y*100)}}%">
+<div ng-if="!tunnelingInfo.isTunneling && isOpen && (state=='newRoom')" class="newlinkelement" style="left: {{(newLink.pos.x*100)}}%;  top: {{(newLink.pos.y*100)}}%">
 	{{newLink.data.text}}
 </div>

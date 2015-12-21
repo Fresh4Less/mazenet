@@ -1,6 +1,7 @@
-var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService, UserService) {
+var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService, UserService, CursorService) {
 	
 	$scope.isOpen = false;
+    $scope.cursorService = CursorService;
 	$scope.tunnelingInfo = {
 		isTunneling : false,
 		text: 'NEW_LINK',
@@ -17,7 +18,7 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 			y: 0
 		},
 		data: {
-			text: "new room"
+			text: ""
 		}
 	};
 	$scope.pageSettings = null;
@@ -53,18 +54,6 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 		SocketService.UpdatePage($scope.pageSettings);
 	};
 	
-	/*TEMP CURSOR DRAWING CRAP*/
-	
-	$scope.PageData = ActivePageService.PageData;
-	
-	$scope.toggleCursors = function() {
-		var currentMode = ActivePageService.PageData.cursorDrawMode;
-		currentMode++;
-		ActivePageService.PageData.cursorDrawMode = currentMode % 8;
-	};
-	
-	/*END TEMP CURSOR CRAP*/
-	
 	$scope.closeContextMenu = function() {
 		ContextMenuService.forceClose = true;
 	};
@@ -93,7 +82,7 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 				y: ContextMenuService.position.y
 			},
 			data: {
-				text: "new room"
+				text: ""
 			}
 		};
 		$scope.pageSettings = {
@@ -109,4 +98,4 @@ var buildMenuController = function ($scope, SocketService, ActivePageService, Co
 	};
 	
 };
-angular.module('mazenet').controller('BuildMenuController', ['$scope', 'SocketService','ActivePageService', 'ContextMenuService', 'UserService', buildMenuController]);
+angular.module('mazenet').controller('BuildMenuController', ['$scope', 'SocketService','ActivePageService', 'ContextMenuService', 'UserService', 'CursorService', buildMenuController]);

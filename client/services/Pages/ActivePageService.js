@@ -1,27 +1,10 @@
-var activePageService = function($q) { 
+var activePageService = function($q, PageFactory) { 
 	var rootPages = {
 		root: '',
 		homepage: '',
 		url: '',
 	};
-	var pageData = {
-		_id : '563ff6d5ed248da731bcfae6',
-		isRoot: false,
-		creator: "0",
-		cursors: [],
-		title: '',
-		background : {
-			bType : 'color',
-			data : {
-				color : '#000000'
-			}
-		},
-		owners : [],
-		permissions : 'all',
-		elements : [],
-		enterTime: 0,
-		cursorDrawMode: 0
-	};
+	var pageData = PageFactory.GetEmptyPage();
 	
 	var styles = {
 		background: {
@@ -36,9 +19,9 @@ var activePageService = function($q) {
 	
 	var Callbacks = {
 		cbAddElement: []
-	}
+	};
 
-	
+	/* Replaces data on current page with all the truthy data on input page. */
 	function updatePage ( newPage ) {
 		var pageUpdateErrors = "";
 		if(newPage) {
@@ -48,26 +31,16 @@ var activePageService = function($q) {
 			} else {
 				pageUpdateErrors += 'Page contains no "_id".\n';
 			}
+            if(newPage.creator) {
+				pageData.creator = newPage.creator;
+			}
+            if(newPage.permissions) {
+				pageData.permissions = newPage.permissions;
+			}
 			if(newPage.title) {
 				pageData.title = newPage.title;
 			}
-			if(newPage.creator) {
-				pageData.creator = newPage.creator;
-			}
-			if(newPage.owners) {
-				pageData.owners = newPage.owners;
-			}
-			if(newPage.permissions) {
-				pageData.permissions = newPage.permissions;
-			}
-			if(newPage.elements) {
-				pageData.elements = newPage.elements;
-			}
-			if(newPage.cursors) {
-				pageData.cursors = newPage.cursors;
-			}
-			//Background
-			if(newPage.background){
+            if(newPage.background){
 				newPage.background.bType = newPage.background.bType;
 			
 				if(newPage.background.bType && newPage.background.data) {
@@ -76,8 +49,18 @@ var activePageService = function($q) {
 					pageUpdateErrors += 'Page contains invalid background.\n';
 				}
 			}
-			/* TODO: Add other fields */
-			pageData.enterTime = (new Date()).getTime();
+			if(newPage.owners) {
+				pageData.owners = newPage.owners;
+			}
+			if(newPage.elements) {
+				pageData.elements = newPage.elements;
+			}
+			if(newPage.cursors) {
+				pageData.cursors = newPage.cursors;
+			}
+			
+            /* Clientside parameters */
+            pageData.enterTime = (new Date()).getTime();
 			updateStyles();	
 		} else {
 			pageUpdateErrors += 'Page is undefined.\n';
@@ -86,8 +69,11 @@ var activePageService = function($q) {
 		if(pageUpdateErrors.length > 0) {
 			console.error('"ActivePageService.UpdatePage" Warning(s) / Error(s):\n' + pageUpdateErrors, newPage);
 		}
-	}
-	
+	};
+	function loadPage(page) {
+        pageData = PageFactory.GetEmptyPage();
+        updatePage(page);
+    };
 	function updateStyles() {
 		//Background
 		if(pageData.background.bType == 'color' && pageData.background.data) {
@@ -122,9 +108,11 @@ var activePageService = function($q) {
 		RootPages : rootPages,
 		styles : styles,
 		UpdatePage : updatePage,
+        LoadPage : loadPage,
 		AddElement : addElement,
 		OnAddElement: onAddElement
 	};
+    
 };
 
-angular.module('mazenet').factory('ActivePageService', ['$q', activePageService]);
+angular.module('mazenet').factory('ActivePageService', ['$q', 'PageFactory', activePageService]);

@@ -38,7 +38,6 @@ angular
 
           function open(event, menuElement) {
             menuElement.addClass('open');
-
             var doc = $document[0].documentElement;
             var docLeft = (window.pageXOffset || doc.scrollLeft) -
                           (doc.clientLeft || 0),
@@ -51,7 +50,7 @@ angular
               totalWidth = elementWidth + event.pageX,
               totalHeight = elementHeight + event.pageY,
               left = Math.max(event.pageX - docLeft, 0),
-              top = Math.max(event.pageY - docTop, 0);
+              top = Math.max(event.pageY - docTop, 0) + 15;
 
             if (totalWidth > docWidth) {
               left = left - (totalWidth - docWidth);
