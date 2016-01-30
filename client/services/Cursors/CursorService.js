@@ -20,7 +20,7 @@ var cursorService = function() {
             width: 25,
             height: 25,
         }   
-    }
+    };
     cursorMode.data.sprite.src = "images/cursors/cursor.png";	
     cursorMode.data.sprite.onload = function() {cursorMode.data.ready = true;};
     
@@ -56,7 +56,7 @@ var cursorService = function() {
                 alpha: 0.2
             }
         } 
-    }
+    };
     
     var staticRedLinesMode = {
         name: 'static red lines',
@@ -73,7 +73,7 @@ var cursorService = function() {
                 alpha: 0.1
             }
         } 
-    }
+    };
     
     var jensenMode = {
         name: 'Peter Jensen',
@@ -86,7 +86,7 @@ var cursorService = function() {
             width: 37,
             height: 50,
         }   
-    }
+    };
     jensenMode.data.sprite.src = "images/cursors/peter_jensen.png";	
     jensenMode.data.sprite.onload = function() {jensenMode.data.ready = true;};
     
@@ -101,7 +101,7 @@ var cursorService = function() {
             width: 40,
             height: 54,
         }   
-    }
+    };
     mattFlattMode.data.sprite.src = "images/cursors/matt_flatt.png";	
     mattFlattMode.data.sprite.onload = function() {mattFlattMode.data.ready = true;};
     
@@ -134,6 +134,6 @@ var cursorService = function() {
         DrawMode: drawMode,
         CycleDrawMode: cycleDrawMode,
         OnCycleDrawMode: onCycleDrawMode
-    }
-}
+    };
+};
 angular.module('mazenet').factory('CursorService', cursorService);

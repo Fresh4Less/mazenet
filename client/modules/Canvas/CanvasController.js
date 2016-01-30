@@ -123,7 +123,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
      * If the DrawMode is set to cumulative all cursors frames are rendered together. */
     function StaticSpriteNextFrame() {
         if(CursorService.DrawMode.data.ready){
-            if(timer == 0) {
+            if(timer === 0) {
                 var cursorSprite = sprite({
                     context: ctx,
                     width: CursorService.DrawMode.data.width,
@@ -133,11 +133,12 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
                 
                 var cursorsToRender;
                 if(CursorService.DrawMode.cumulative) {
+                    var renderSprite = function(cursorData) {
+                        cursorSprite.render(cursorData.pos.x * width, cursorData.pos.y * height);
+                    };
                     for (var i = 0; i < cursorMaxTime.length; i++) {
                         cursorsToRender = GetNextCursors();
-                        _.forEach(cursorsToRender, function(cursorData) {
-                            cursorSprite.render(cursorData.pos.x * width, cursorData.pos.y * height);
-                        });   
+                        _.forEach(cursorsToRender, renderSprite);   
                     }
                 }
                 cursorsToRender = GetLastCursors();
@@ -174,19 +175,20 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
             var previousCursors;
             var cursorsToRender;
             if(CursorService.DrawMode.cumulative) {
+                var drawShape = function(cursorData) {
+                    DrawShapeFrame(CursorService.DrawMode.data, cursorData);
+                };
                 for (var i = 0; i < cursorMaxTime.length; i++) {
                     previousCursors = GetCurrentCursors();
                     cursorsToRender = GetNextCursors();
-                    _.forEach(cursorsToRender, function(cursorData) {
-                        DrawShapeFrame(CursorService.DrawMode.data, cursorData);
-                    });   
+                    _.forEach(cursorsToRender, drawShape);   
                 }
             }
             
             previousCursors = GetCurrentCursors();
             cursorsToRender = GetNextCursors();
             for (var i = 0; i < cursorsToRender.length; i++) {
-            DrawShapeFrame(CursorService.DrawMode.data, cursorsToRender[i],previousCursors[i]); 
+                DrawShapeFrame(CursorService.DrawMode.data, cursorsToRender[i],previousCursors[i]); 
             }   
             
             timer++;
@@ -264,7 +266,7 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
                                 x: (currentCursor.pos.x + ((nextCursor.pos.x - currentCursor.pos.x) * interpPercent)),
                                 y: (currentCursor.pos.y + ((nextCursor.pos.y - currentCursor.pos.y) * interpPercent))
                             }
-                        }
+                        };
                         outArr.push(interpolatedCursor);   
                     }
                 } else {
@@ -309,9 +311,9 @@ var canvasController = function ($scope, $timeout, BackgroundCanvasService, Acti
             var oldestTime = cursor.frames[cursor.frames.length-1].t;
             if(oldestTime > cursorMaxTime) {
                 cursorMaxTime = oldestTime;
-            };
+            }
             cursorTimeMarkers.push(0);
         });   
 	}
-}
+};
 angular.module('mazenet').controller('CanvasController', ['$scope', '$timeout', 'BackgroundCanvasService', 'ActivePageService', 'CursorService', canvasController]);

@@ -17,11 +17,11 @@ var pageFactoryService = function() {
             cursors: [],
             enterTime: (new Date()).getTime()
         };
-	};
+	}
     
     return {
         GetEmptyPage: getEmptyPage
-    }
+    };
 };
 
 angular.module('mazenet').factory('PageFactory', pageFactoryService);

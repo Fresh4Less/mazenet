@@ -30,3 +30,8 @@ bower_components
 
 # Users Environment Variables
 .lock-wscript
+
+# Webstorm folder
+.idea
+# VS Code folder
+.vscode

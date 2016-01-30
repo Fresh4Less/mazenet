@@ -69,11 +69,11 @@ var activePageService = function($q, PageFactory) {
 		if(pageUpdateErrors.length > 0) {
 			console.error('"ActivePageService.UpdatePage" Warning(s) / Error(s):\n' + pageUpdateErrors, newPage);
 		}
-	};
+	}
 	function loadPage(page) {
         pageData = PageFactory.GetEmptyPage();
         updatePage(page);
-    };
+    }
 	function updateStyles() {
 		//Background
 		if(pageData.background.bType == 'color' && pageData.background.data) {
