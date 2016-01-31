@@ -35,3 +35,6 @@ bower_components
 .idea
 # VS Code folder
 .vscode
+
+# Typescript Files
+client/**/*.map
