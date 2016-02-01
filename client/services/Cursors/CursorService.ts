@@ -8,36 +8,49 @@ import GrayLinesMode = require('../../models/DrawModes/GrayLinesMode');
 import RedCircleMode = require('../../models/DrawModes/RedCircleMode');
 import StaticRedLinesMode = require('../../models/DrawModes/StaticRedLinesMode');
 import JensenMode = require('../../models/DrawModes/JensenMode');
+import CursorFrame = require("../../models/Cursors/CursorFrame");
+import IActivePageService = require("../Pages/Interfaces/IActivePageService");
+import ISocketService = require("../Interfaces/ISocketService");
 
 export = CursorService;
 
 class CursorService implements ICursorService {
     static name:string = 'CursorService';
 
-    private callbacks = {
-        cbDrawModeCycle: []
-    };
-
-    private drawModes:IDrawMode[] = [
-        new CursorDrawMode(),
-        new RedCircleMode(),
-        new GrayLinesMode(),
-        new StaticRedLinesMode(),
-        new JensenMode()
-    ];
-    private drawModeIndex:number = _.size(this.drawModes)-1;
     public DrawMode:IDrawMode;
+    private callbacks;
+    private drawModes:IDrawMode[];
+    private drawModeIndex:number;
+    private cursorTimeout:boolean = true;
+    private networkTiming:number = 30;
 
-    $inject = [];
-    constructor() {
-
+    static $inject = [
+        '$window',
+        'ActivePageService',
+        'SocketService',
+    ];
+    constructor(private $window:ng.IWindowService,
+                private ActivePageService:IActivePageService,
+                private SocketService:ISocketService) {
+        this.callbacks = {
+            cbDrawModeCycle: []
+        };
+        this.drawModes = [
+            new CursorDrawMode(),
+            new RedCircleMode(),
+            new GrayLinesMode(),
+            new StaticRedLinesMode(),
+            new JensenMode()
+        ];
+        this.drawModeIndex = _.size(this.drawModes)-1;
     }
 
-    OnCycleDrawMode(funct:()=>{}) {
+    OnCycleDrawMode(funct:()=>void) {
         if(_.isFunction(funct)) {
             this.callbacks.cbDrawModeCycle.push(funct);
         }
     }
+
     CycleDrawMode() {
 
         this.drawModeIndex = (this.drawModeIndex + 1) % _.size(this.drawModes);
@@ -50,6 +63,33 @@ class CursorService implements ICursorService {
         this.callbacks.cbDrawModeCycle.forEach(function(cbFunc){
             cbFunc();
         });
+    }
+
+    UserMovedCursor($event:MouseEvent) {
+        if(this.cursorTimeout) {
+            this.cursorTimeout = false;
+
+            var cursorMove:CursorFrame = {
+                pos: {
+                    x: $event.clientX / this.$window.innerWidth,
+                    y: $event.clientY / this.$window.innerHeight
+                },
+                t: this.frameDifference(this.ActivePageService.PageData.enterTime, new Date().getTime())
+            };
+
+            this.SocketService.CursorMove(cursorMove);
+
+            /* Limits the cursor rate to (networkTiming)FPS */
+            window.setTimeout(function() {
+                this.cursorTimeout = true;
+            }, (1000/this.networkTiming));
+        }
+    }
+
+    private frameDifference(oldTime:number, newTime:number):number {
+        var difference = newTime - oldTime;
+        return Math.ceil((difference / 1000) * this.networkTiming);
+
     }
 
 }

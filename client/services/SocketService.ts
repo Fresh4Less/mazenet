@@ -1,13 +1,15 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/tsd.d.ts" />
-
+import CursorFrame = require("../models/Cursors/CursorFrame");
 declare var io:(string)=>SocketIO.Socket;
+
 import IElement = require('./../models/Interfaces/IElement');
 import ISocketService = require("./Interfaces/ISocketService");
-import Position = require('./../models/Position');
-import Cursor = require('./../models/Cursor');
-import Page = require('./../models/Page');
-import UserService = require('./UserService');
+import MzPosition = require('./../models/MzPosition');
+import Cursor = require('./../models/Cursors/Cursor');
+import Page = require('./../models/Pages/Page');
+import IUserService = require('./Interfaces/IUserService');
+import IActivePageService = require("./Pages/Interfaces/IActivePageService");
 
 export = SocketService;
 
@@ -17,7 +19,7 @@ class SocketService implements ISocketService {
     private pageEnterPromise:angular.IDeferred<Page> = null;
     private elementCreatePromise:angular.IDeferred<IElement> = null;
 
-    $inject = [
+    static $inject = [
         '$q',
         '$http',
         '$location',
@@ -27,8 +29,8 @@ class SocketService implements ISocketService {
     constructor(private $q:angular.IQService,
                 private $http:angular.IHttpService,
                 private $location:angular.ILocationService,
-                private UserService:UserService,
-                private ActivePageService:any){
+                private UserService:IUserService,
+                private ActivePageService:IActivePageService){
     }
     public Init() {
         if(!this.socket || !this.socket.connected) {
@@ -46,7 +48,7 @@ class SocketService implements ISocketService {
             this.socket.on('pages/update:failure', this.pageUpdateFailure);
         }
     }
-    public EnterPage(pageId:string, pos:Position) {
+    public EnterPage(pageId:string, pos:MzPosition) {
         this.pageEnterPromise = this.$q.defer();
         var startPage = { //TODO Consider Refactoring
             pId: pageId,
@@ -71,7 +73,7 @@ class SocketService implements ISocketService {
         return this.elementCreatePromise.promise;
     }
 
-    public CursorMove(cursor:Cursor) {
+    public CursorMove(cursor:CursorFrame) {
         this.socket.emit('pages/cursors/moved', cursor);
     }
 

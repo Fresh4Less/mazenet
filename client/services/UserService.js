@@ -1,7 +1,6 @@
 define(["require", "exports", "./../models/UserData"], function (require, exports, UserData) {
     var UserService = (function () {
         function UserService() {
-            this.$inject = [];
             this.redraw = function () {
                 if (this.RedrawCallback) {
                     this.RedrawCallback();
@@ -41,6 +40,7 @@ define(["require", "exports", "./../models/UserData"], function (require, export
         };
         ;
         UserService.name = "UserService";
+        UserService.$inject = [];
         return UserService;
     })();
     return UserService;

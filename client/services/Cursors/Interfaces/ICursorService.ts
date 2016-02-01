@@ -7,5 +7,6 @@ export = ICursorService;
 interface ICursorService {
     DrawMode:IDrawMode;
     CycleDrawMode();
-    OnCycleDrawMode(funct:()=>{});
+    OnCycleDrawMode(funct:()=>void);
+    UserMovedCursor($event:MouseEvent);
 }

@@ -1,16 +1,16 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/tsd.d.ts" />
-import Position = require('./../../models/Position');
-import Cursor = require('./../../models/Cursor');
-import Page = require('./../../models/Page');
+import MzPosition = require('./../../models/MzPosition');
+import Page = require('./../../models/Pages/Page');
 import IElement = require('./../../models/Interfaces/IElement');
+import CursorFrame = require("../../models/Cursors/CursorFrame");
 
 export = ISocketService;
 
 interface ISocketService {
     Init();
-    EnterPage(pageId:string, pos:Position);
+    EnterPage(pageId:string, pos:MzPosition):angular.IPromise<Page>;
     UpdatePage(pageData:Page);
     CreateElement(element:IElement);
-    CursorMove(cursor:Cursor);
+    CursorMove(cursor:CursorFrame);
 }

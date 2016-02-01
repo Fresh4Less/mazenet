@@ -2,7 +2,12 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 define(["require", "exports", '../../models/DrawModes/CursorDrawMode', '../../models/DrawModes/GrayLinesMode', '../../models/DrawModes/RedCircleMode', '../../models/DrawModes/StaticRedLinesMode', '../../models/DrawModes/JensenMode'], function (require, exports, CursorDrawMode, GrayLinesMode, RedCircleMode, StaticRedLinesMode, JensenMode) {
     var CursorService = (function () {
-        function CursorService() {
+        function CursorService($window, ActivePageService, SocketService) {
+            this.$window = $window;
+            this.ActivePageService = ActivePageService;
+            this.SocketService = SocketService;
+            this.cursorTimeout = true;
+            this.networkTiming = 30;
             this.callbacks = {
                 cbDrawModeCycle: []
             };
@@ -14,7 +19,6 @@ define(["require", "exports", '../../models/DrawModes/CursorDrawMode', '../../mo
                 new JensenMode()
             ];
             this.drawModeIndex = _.size(this.drawModes) - 1;
-            this.$inject = [];
         }
         CursorService.prototype.OnCycleDrawMode = function (funct) {
             if (_.isFunction(funct)) {
@@ -32,7 +36,33 @@ define(["require", "exports", '../../models/DrawModes/CursorDrawMode', '../../mo
                 cbFunc();
             });
         };
+        CursorService.prototype.UserMovedCursor = function ($event) {
+            if (this.cursorTimeout) {
+                this.cursorTimeout = false;
+                var cursorMove = {
+                    pos: {
+                        x: $event.clientX / this.$window.innerWidth,
+                        y: $event.clientY / this.$window.innerHeight
+                    },
+                    t: this.frameDifference(this.ActivePageService.PageData.enterTime, new Date().getTime())
+                };
+                this.SocketService.CursorMove(cursorMove);
+                /* Limits the cursor rate to (networkTiming)FPS */
+                window.setTimeout(function () {
+                    this.cursorTimeout = true;
+                }, (1000 / this.networkTiming));
+            }
+        };
+        CursorService.prototype.frameDifference = function (oldTime, newTime) {
+            var difference = newTime - oldTime;
+            return Math.ceil((difference / 1000) * this.networkTiming);
+        };
         CursorService.name = 'CursorService';
+        CursorService.$inject = [
+            '$window',
+            'ActivePageService',
+            'SocketService',
+        ];
         return CursorService;
     })();
     return CursorService;

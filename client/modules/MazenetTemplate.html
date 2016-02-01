@@ -1,17 +1,17 @@
-<section  	class="mainbody"
-			style="{{ globalPageStyles.stringified }}"
-			context-menu
-			data-target="rootContextMenu"
-			ng-mousemove="CursorMove($event)">
-	<label popover-placement="right" uib-popover="_id: {{page._id}}" popover-animation="false">
-		<h3><b>{{page.title}}<b></h3>
+<section class="mainbody"
+		 style="{{ globalPageStyles.stringified }}"
+		 context-menu
+		 data-target="rootContextMenu"
+		 ng-mousemove="mzCtrl.CursorMove($event)">
+	<label popover-placement="right" uib-popover="_id: {{mzCtrl.Page._id}}" popover-animation="false">
+		<h3><b>{{mzCtrl.Page.title}}</b></h3>
 	</label>
 	
-	<div ng-repeat="element in page.elements">
+	<div ng-repeat="element in mzCtrl.Page.elements">
 		<mz-element element="element"></mz-element>
 	</div>
 	
-	<div ng-repeat="user in OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%;">
+	<div ng-repeat="user in mzCtrl.OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%;">
 		<img src="http://doc.qt.io/qt-5/images/cursor-arrow.png" alt="{{user.uId}}">
 		<div style="font-size: 60%;">{{user.uId}}</div>
 	</div>

@@ -1,11 +1,11 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/tsd.d.ts" />
 define(["require", "exports"], function (require, exports) {
-    var Position = (function () {
-        function Position() {
+    var MzPosition = (function () {
+        function MzPosition() {
         }
-        return Position;
+        return MzPosition;
     })();
-    return Position;
+    return MzPosition;
 });
-//# sourceMappingURL=Position.js.map
+//# sourceMappingURL=MzPosition.js.map

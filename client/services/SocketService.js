@@ -1,5 +1,3 @@
-/* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
 define(["require", "exports"], function (require, exports) {
     var SocketService = (function () {
         function SocketService($q, $http, $location, UserService, ActivePageService) {
@@ -10,13 +8,6 @@ define(["require", "exports"], function (require, exports) {
             this.ActivePageService = ActivePageService;
             this.pageEnterPromise = null;
             this.elementCreatePromise = null;
-            this.$inject = [
-                '$q',
-                '$http',
-                '$location',
-                'UserService',
-                'ActivePageService'
-            ];
             /* Event Handlers */
             this.connected = function (user) {
                 this.UserService.UserData.uId = user.uId;
@@ -99,6 +90,13 @@ define(["require", "exports"], function (require, exports) {
             this.socket.emit('pages/cursors/moved', cursor);
         };
         SocketService.name = "SocketService";
+        SocketService.$inject = [
+            '$q',
+            '$http',
+            '$location',
+            'UserService',
+            'ActivePageService'
+        ];
         return SocketService;
     })();
     return SocketService;

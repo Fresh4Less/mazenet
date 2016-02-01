@@ -1,101 +1,123 @@
-var buildMenuController = function ($scope, SocketService, ActivePageService, ContextMenuService, UserService, CursorService) {
-	
-	$scope.isOpen = false;
-    $scope.cursorService = CursorService;
-	$scope.tunnelingInfo = {
-		isTunneling : false,
-		text: 'NEW_LINK',
-		pos: {
-			x: -1,
-			y: -1
-		}
-	};
-	$scope.newLink = {
-		eType: "link",
-		creator: "unset",
-		pos: {
-			x: 0,
-			y: 0
-		},
-		data: {
-			text: ""
-		}
-	};
-	$scope.pageSettings = null;
-	$scope.state = "root";
-	
-	$scope.backToRoot = function() {
-		$scope.state = "root";
-	};
-	$scope.newRoomSelected = function() {
-		$scope.state = "newRoom";
-	};
-	$scope.pageSettingsSelected = function() {
-		$scope.state = "pageSettings";
-	};
-	$scope.newImageSelected = function() {
-		$scope.state = "root";
-	};
-	$scope.createPage = function() {
-		
-		$scope.newLink.pos.x = ContextMenuService.position.x;
-		$scope.newLink.pos.y = ContextMenuService.position.y;
-		$scope.newLink.creator = UserService.UserData.uId;
-		
-		$scope.closeContextMenu();
-		$scope.tunnelingInfo.isTunneling = true;
-		$scope.tunnelingInfo.pos.x = ContextMenuService.position.x;
-		$scope.tunnelingInfo.pos.y = ContextMenuService.position.y;
-		$scope.tunnelingInfo.text = $scope.newLink.data.text;
-		SocketService.CreateElement($scope.newLink);
-	};
-	
-	$scope.updatePage = function() {
-		SocketService.UpdatePage($scope.pageSettings);
-	};
-	
-	$scope.closeContextMenu = function() {
-		ContextMenuService.forceClose = true;
-	};
-	ContextMenuService.openCallback = function() {
-		resetLocalData();
-		$scope.isOpen = true;
-	};
-	ContextMenuService.closeCallback = function() {
-		$scope.state = 'root';
-		$scope.isOpen = false;
-	};
-	
-	ActivePageService.OnAddElement(function(element) {
-		if($scope.tunnelingInfo.pos.x == element.pos.x && $scope.tunnelingInfo.pos.y == element.pos.y) {
-			$scope.tunnelingInfo.isTunneling = false;
-			$scope.tunnelingInfo.pos.x = -1;
-			$scope.tunnelingInfo.pos.y = -1;
-		}
-	});
-	var resetLocalData = function() {
-		$scope.newLink = {
-			eType: "link",
-			creator: "unset",
-			pos: {
-				x: ContextMenuService.position.x,
-				y: ContextMenuService.position.y
-			},
-			data: {
-				text: ""
-			}
-		};
-		$scope.pageSettings = {
-			title: ActivePageService.PageData.title,
-			permissions: ActivePageService.PageData.permissions,
-			background: {
-				bType : ActivePageService.PageData.background.bType,
-				data : {
-					color : ActivePageService.PageData.background.data.color
-				}
-			}
-		};
-	};
-	
-};
-angular.module('mazenet').controller('BuildMenuController', ['$scope', 'SocketService','ActivePageService', 'ContextMenuService', 'UserService', 'CursorService', buildMenuController]);
+/* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
+/// <reference path="../../../typings/tsd.d.ts" />
+define(["require", "exports"], function (require, exports) {
+    var BuildMenuController = (function () {
+        function BuildMenuController($scope, SocketService, ActivePageService, ContextMenuService, UserService, CursorService) {
+            this.$scope = $scope;
+            this.SocketService = SocketService;
+            this.ActivePageService = ActivePageService;
+            this.ContextMenuService = ContextMenuService;
+            this.UserService = UserService;
+            this.CursorService = CursorService;
+            this.resetLocalData = function () {
+                this.newLink = {
+                    eType: "link",
+                    creator: "unset",
+                    pos: {
+                        x: this.ContextMenuService.position.x,
+                        y: this.ContextMenuService.position.y
+                    },
+                    data: {
+                        text: ""
+                    }
+                };
+                this.pageSettings = {
+                    title: this.ActivePageService.PageData.title,
+                    permissions: this.ActivePageService.PageData.permissions,
+                    background: {
+                        bType: this.ActivePageService.PageData.background.bType,
+                        data: {
+                            color: this.ActivePageService.PageData.background.data.color
+                        }
+                    }
+                };
+            };
+            this.isOpen = false;
+            this.cursorService = CursorService;
+            this.tunnelingInfo = {
+                isTunneling: false,
+                text: 'NEW_LINK',
+                pos: {
+                    x: -1,
+                    y: -1
+                }
+            };
+            this.newLink = {
+                eType: "link",
+                creator: "unset",
+                pos: {
+                    x: 0,
+                    y: 0
+                },
+                data: {
+                    text: ""
+                }
+            };
+            this.pageSettings = null;
+            this.state = 'root';
+            var self = this;
+            ContextMenuService.openCallback = function () {
+                self.resetLocalData();
+                self.isOpen = true;
+            };
+            ContextMenuService.closeCallback = function () {
+                self.state = 'root';
+                self.isOpen = false;
+            };
+            ActivePageService.OnAddElement(function (element) {
+                if (self.tunnelingInfo.pos.x == element.pos.x && self.tunnelingInfo.pos.y == element.pos.y) {
+                    self.tunnelingInfo.isTunneling = false;
+                    self.tunnelingInfo.pos.x = -1;
+                    self.tunnelingInfo.pos.y = -1;
+                }
+            });
+        }
+        BuildMenuController.prototype.backToRoot = function () {
+            this.state = "root";
+        };
+        ;
+        BuildMenuController.prototype.newRoomSelected = function () {
+            this.state = "newRoom";
+        };
+        ;
+        BuildMenuController.prototype.pageSettingsSelected = function () {
+            this.state = "pageSettings";
+        };
+        ;
+        BuildMenuController.prototype.newImageSelected = function () {
+            this.state = "root";
+        };
+        ;
+        BuildMenuController.prototype.createPage = function () {
+            this.newLink.pos.x = this.ContextMenuService.position.x;
+            this.newLink.pos.y = this.ContextMenuService.position.y;
+            this.newLink.creator = this.UserService.UserData.uId;
+            this.closeContextMenu();
+            this.tunnelingInfo.isTunneling = true;
+            this.tunnelingInfo.pos.x = this.ContextMenuService.position.x;
+            this.tunnelingInfo.pos.y = this.ContextMenuService.position.y;
+            this.tunnelingInfo.text = this.newLink.data.text;
+            this.SocketService.CreateElement(this.newLink);
+        };
+        ;
+        BuildMenuController.prototype.updatePage = function () {
+            this.SocketService.UpdatePage(this.pageSettings);
+        };
+        ;
+        BuildMenuController.prototype.closeContextMenu = function () {
+            this.ContextMenuService.forceClose = true;
+        };
+        ;
+        BuildMenuController.$inject = [
+            '$scope',
+            'SocketService',
+            'ActivePageService',
+            'ContextMenuService',
+            'UserService',
+            'CursorService'
+        ];
+        return BuildMenuController;
+    })();
+    return BuildMenuController;
+});
+//# sourceMappingURL=BuildMenuController.js.map

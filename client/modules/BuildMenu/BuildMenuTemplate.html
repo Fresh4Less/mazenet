@@ -1,28 +1,28 @@
 <div class="dropdown position-fixed" id="rootContextMenu">
-	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='root'">
+	<ul class="dropdown-menu buildmenu" role="menu" ng-if="bmCtrl.state=='root'">
 		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="1"
-				ng-click="newRoomSelected()" ng-disabled="tunnelingInfo.isTunneling">
+				ng-click="bmCtrl.newRoomSelected()" ng-disabled="bmCtrl.tunnelingInfo.isTunneling">
 				<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b> <span class="glyphicon glyphicon-chevron-right rightarrow"></span>
 			</a>
 		</li>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="2"
-				ng-click="pageSettingsSelected()">
+				ng-click="bmCtrl.pageSettingsSelected()">
 				<span class="glyphicon glyphicon-cog"></span> <b>Page Settings</b> <span class="glyphicon glyphicon-chevron-right rightarrow"></span>
 			</a>
 		</li>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="3"
-			ng-click="newImageSelected()">
+			ng-click="bmCtrl.newImageSelected()">
 				<span class="glyphicon glyphicon-camera"></span> <b>Insert Image (coming soon)</b>
 			</a>
 		</li>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="4"
-			ng-click="cursorService.CycleDrawMode()">
-				<span class="glyphicon glyphicon-refresh"></span> <b>Cursors: {{cursorService.DrawMode.name}}</b>
+			ng-click="bmCtrl.cursorService.CycleDrawMode()">
+				<span class="glyphicon glyphicon-refresh"></span> <b>Cursors: {{bmCtrl.cursorService.DrawMode.name}}</b>
 			</a>
 		</li>
 		<hr>
@@ -31,17 +31,17 @@
 				target="_blank"
 				role="menuitem"
 				tabindex="-1"
-				ng-click="closeContextMenu()">
+				ng-click="bmCtrl.closeContextMenu()">
 			<b>Mazenet on GitHub</b> <span class="glyphicon glyphicon-share-alt"></span>
 		</a>
 		</li>
 	</ul>
 	<!-- NEW ROOM -->
-	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='newRoom'">
+	<ul class="dropdown-menu buildmenu" role="menu" ng-if="bmCtrl.state=='newRoom'">
 		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="1"
-				ng-click="backToRoot()">
+				ng-click="bmCtrl.backToRoot()">
 				<span class="glyphicon glyphicon-chevron-left"></span> <b>Back</b> <b><span class="glyphicon glyphicon-edit rightarrow"></span></b>
 			</a>
 		</li>
@@ -50,23 +50,23 @@
 			<div class="pageoptionsheader">Room Details:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Title</span>
-				<input class="form-control" role="menuitem"type="text" placeholder="Room Name" ng-model="newLink.data.text"/>
+				<input class="form-control" role="menuitem"type="text" placeholder="Room Name" ng-model="bmCtrl.newLink.data.text"/>
 			</div>
 		</li>
 		<hr class="smallhr">
 		<li>
-			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="createPage()">
+			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="bmCtrl.createPage()">
 				<span class="glyphicon glyphicon-edit"></span> <b>Tunnel Room</b>
 			</a>
 		</li>
 		
 	</ul>
 	<!-- PAGE SETTINGS -->
-	<ul class="dropdown-menu buildmenu" role="menu" ng-if="state=='pageSettings'">
+	<ul class="dropdown-menu buildmenu" role="menu" ng-if="bmCtrl.state=='pageSettings'">
 		<span class="glyphicon glyphicon-map-marker buildmenu-corner"></span>
 		<li>
 			<a class="pointer" role="menuitem" tabindex="1"
-				ng-click="backToRoot()">
+				ng-click="bmCtrl.backToRoot()">
 				<span class="glyphicon glyphicon-chevron-left"></span> <b>Back</b> <b><span class="glyphicon glyphicon-edit rightarrow"></span></b>
 			</a>
 		</li>
@@ -75,31 +75,31 @@
 			<div class="pageoptionsheader">Title:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Title</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="pageSettings.title"/>
+				<input class="form-control" role="menuitem"type="text" ng-model="bmCtrl.pageSettings.title"/>
 			</div>
 			<div class="pageoptionsheader">Background:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Color</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="pageSettings.background.data.color"/>
+				<input class="form-control" role="menuitem"type="text" ng-model="bmCtrl.pageSettings.background.data.color"/>
 			</div>
 			<div class="pageoptionsheader">Permissions:</div>
 			<div class="input-group input-group-sm inputoption">
 				<span class="input-group-addon">Permissions</span>
-				<input class="form-control" role="menuitem"type="text" ng-model="pageSettings.permissions"/>
+				<input class="form-control" role="menuitem"type="text" ng-model="bmCtrl.pageSettings.permissions"/>
 			</div>
 		</li>
 		<hr class="smallhr">
 		<li>
-			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="updatePage()">
+			<a class="pointer pageoptionssubmit" role="menuitem" tabindex="-1" closemenu ng-click="bmCtrl.updatePage()">
 				<span class="glyphicon glyphicon-cog"></span> <b>Apply Settings</b>
 			</a>
 		</li>
 		
 	</ul>
 </div>
-<div ng-if="tunnelingInfo.isTunneling" class="newlinkelement" style="left: {{(tunnelingInfo.pos.x*100)}}%;  top: {{(tunnelingInfo.pos.y*100)}}%">
-	{{tunnelingInfo.text}}
+<div ng-if="bmCtrl.tunnelingInfo.isTunneling" class="newlinkelement" style="left: {{(tunnelingInfo.pos.x*100)}}%;  top: {{(tunnelingInfo.pos.y*100)}}%">
+	{{bmCtrl.tunnelingInfo.text}}
 </div>
-<div ng-if="!tunnelingInfo.isTunneling && isOpen && (state=='newRoom')" class="newlinkelement" style="left: {{(newLink.pos.x*100)}}%;  top: {{(newLink.pos.y*100)}}%">
-	{{newLink.data.text}}
+<div ng-if="!bmCtrl.tunnelingInfo.isTunneling && bmCtrl.isOpen && (bmCtrl.state=='newRoom')" class="newlinkelement" style="left: {{(newLink.pos.x*100)}}%;  top: {{(newLink.pos.y*100)}}%">
+	{{bmCtrl.newLink.data.text}}
 </div>

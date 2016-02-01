@@ -1,12 +1,13 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/tsd.d.ts" />
 
-import Position = require('./../Position');
+import MzPosition = require('./../MzPosition');
 
 export = IElement;
 
 interface IElement {
     eType:string;
-    pos:Position;
+    creator:string;
+    pos:MzPosition;
     data:any;
 }
