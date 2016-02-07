@@ -12,7 +12,7 @@ class UserService implements IUserService {
     public OtherUsers: { [id: string] : UserData; };
     public RedrawCallback:()=>void;
 
-    static $inject = [];
+    static FactoryDefinition = [()=>{return new UserService()}];
 
     constructor() {
         this.UserData = new UserData;
@@ -20,6 +20,7 @@ class UserService implements IUserService {
     }
     public AddUser(user:UserData) {
         this.OtherUsers[user.uId] = user;
+        console.log('adduser', this, user);
         this.redraw();
     };
     public RemoveUser(user:UserData){
@@ -28,9 +29,10 @@ class UserService implements IUserService {
     };
     public SetUsers(users:UserData[]){
         this.OtherUsers = {};
+        var self = this;
         users.forEach(function(user) {
-            this.serviceObject.OtherUsers[user.uId] = user;
-        }, this);
+            self.OtherUsers[user.uId] = user;
+        });
         this.redraw();
     };
     public GetUserById(id:string):UserData {
@@ -45,9 +47,9 @@ class UserService implements IUserService {
     };
 
 
-    private redraw = function() {
-    if(this.RedrawCallback) {
-        this.RedrawCallback();
-    }
-};
+    private redraw() {
+        if(this.RedrawCallback) {
+            this.RedrawCallback();
+        }
+    };
 }

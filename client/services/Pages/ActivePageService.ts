@@ -20,7 +20,7 @@ class ActivePageService implements IActivePageService{
         cbAddElement: []
     };
 
-    static $inject = [];
+    static FactoryDefinition = [()=>{return new ActivePageService()}];
 
     constructor() {
         this.PageData = new Page();

@@ -3,11 +3,15 @@
 
 import RootController = require("./RootController");
 import Services = require('./services/module');
+import Modules = require('./modules/module');
 
-var app = angular.module('mazenet', ['ui.bootstrap', 'ngRoute', 'ng-context-menu', Services.name]);
-app.controller(RootController.name, RootController);
+export = mazenet;
 
-app.config(['$routeProvider', '$locationProvider',
+var mazenet = angular.module('mazenet', ['ui.bootstrap', 'ngRoute', Services.name, Modules.name]);
+
+mazenet.controller(RootController.name, RootController);
+
+mazenet.config(['$routeProvider', '$locationProvider',
     function($routeProvider, $locationProvider) {
 
         $routeProvider

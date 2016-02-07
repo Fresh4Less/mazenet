@@ -13,9 +13,10 @@ define(["require", "exports"], function (require, exports) {
                 width: 37,
                 height: 50,
             };
+            var self = this;
             this.data.sprite.src = "images/cursors/peter_jensen.png";
             this.data.sprite.onload = function () {
-                this.data.ready = true;
+                self.data.ready = true;
             };
         }
         return JensenMode;

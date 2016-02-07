@@ -13,13 +13,14 @@ class CursorDrawMode implements IDrawMode {
     public data:any = {
         ready: false,
         sprite: new Image(),
-        width: 25,
-        height: 25,
+        width: 12,
+        height: 21,
     };
     constructor() {
+        var self = this;
         this.data.sprite.src = "images/cursors/cursor.png";
         this.data.sprite.onload = function() {
-            this.data.ready = true;
+            self.data.ready = true;
         };
     }
 

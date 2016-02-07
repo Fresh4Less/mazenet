@@ -18,7 +18,6 @@ class BuildMenuController {
     public state:string;
 
     static $inject = [
-        '$scope',
         'SocketService',
         'ActivePageService',
         'ContextMenuService',
@@ -26,8 +25,7 @@ class BuildMenuController {
         'CursorService'
     ];
 
-    constructor(private $scope:ng.IScope,
-                private SocketService:ISocketService,
+    constructor(private SocketService:ISocketService,
                 private ActivePageService:IActivePageService,
                 private ContextMenuService:any,
                 private UserService:IUserService,

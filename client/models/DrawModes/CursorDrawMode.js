@@ -10,12 +10,13 @@ define(["require", "exports"], function (require, exports) {
             this.data = {
                 ready: false,
                 sprite: new Image(),
-                width: 25,
-                height: 25,
+                width: 12,
+                height: 21,
             };
+            var self = this;
             this.data.sprite.src = "images/cursors/cursor.png";
             this.data.sprite.onload = function () {
-                this.data.ready = true;
+                self.data.ready = true;
             };
         }
         return CursorDrawMode;

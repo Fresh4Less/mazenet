@@ -10,7 +10,7 @@ define(["require", "exports"], function (require, exports) {
             this.UserService = UserService;
             this.Page = ActivePageService.PageData;
             this.OtherUsers = UserService.OtherUsers;
-            UserService.RedrawCallback = $scope.$apply;
+            UserService.RedrawCallback = function () { $scope.$apply(); };
         }
         MazenetController.prototype.CursorMove = function ($event) {
             this.CursorService.UserMovedCursor($event);

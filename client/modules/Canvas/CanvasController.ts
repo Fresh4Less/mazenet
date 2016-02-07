@@ -23,7 +23,7 @@ class CanvasController {
     private height:number;
     private canvas:HTMLCanvasElement;
     private ctx:CanvasRenderingContext2D;
-    private cursorTimeMarkers:number[];
+    //TODO Consider this remnant of an older time: private cursorTimeMarkers:number[];
     private cursorMaxTime:number;
     private timer:number;
     private activeRoomTime:number;
@@ -48,75 +48,76 @@ class CanvasController {
         this.height = window.innerHeight;
         this.canvas = null;
         this.ctx = null;
-        this.cursorTimeMarkers = [];
+        //TODO this.cursorTimeMarkers = [];
         this.cursorMaxTime = 0;
         this.timer = 0;
         this.activeRoomTime = 0;
 
-        CursorService.OnCycleDrawMode(this.resetCanvas);
 
-        var unbindWatch = $scope.$watch('target', function(newValue, oldValue) {
-            if(newValue) {
-                $timeout(function() {
-                    this.canvas = document.getElementById('canvas-'+this.id);
 
-                    if(!this.canvas) {
-                        console.error("Error loading canvas.", newValue);
-                        return;
-                    }
+        var self = this;
 
-                    this.canvas.setAttribute('width', window.innerWidth);
-                    this.canvas.setAttribute('height', window.innerHeight);
-                    this.ctx = this.canvas.getContext('2d');
-                    this.rootRenderLoop();
+        CursorService.OnCycleDrawMode(()=>{self.resetCanvas()});
+        $timeout(function() {
+            self.canvas = <HTMLCanvasElement>document.getElementById('canvas-'+self.id);
 
-                    unbindWatch();
-                });
+            if(!self.canvas) {
+                console.error("Error loading canvas.", self);
+                return;
             }
+
+            self.canvas.setAttribute('width', window.innerWidth.toString());
+            self.canvas.setAttribute('height', window.innerHeight.toString());
+            self.ctx = self.canvas.getContext('2d');
+            self.rootRenderLoop();
         });
     }
 
     /* Run once every animation frame. Chooses the draw style  and renders it.
      * Resets the canvas if that page has changed. */
     private rootRenderLoop () {
-        setTimeout(function() {
-            window.requestAnimationFrame(this.rootRenderLoop);
-            if(this.ctx) {
+        var self = this;
+        var loopCallback = () => {
+            setTimeout(function() {
+                window.requestAnimationFrame(loopCallback);
+                if(self.ctx) {
 
-                /* Check if the user has resized the window */
-                if(this.width != window.innerWidth) {
-                    this.width = window.innerWidth;
-                    this.canvas.setAttribute('width', this.width);
-                }
-                if(this.height != window.innerHeight) {
-                    this.height = window.innerHeight;
-                    this.canvas.setAttribute('height', this.height);
-                }
-
-                /* Enter time mismatch means the room changed. */
-                if(this.activeRoomTime != this.ActivePageService.PageData.enterTime) {
-                    this.resetCanvas();
-                }
-
-                /* Draw the next frame depending on the DrawMode */
-                if(this.ActivePageService.PageData.cursors) {
-                    if(this.CursorService.DrawMode.mode === 'sprite') {
-                        if(this.CursorService.DrawMode.playback === 'live') {
-                            this.LiveSpriteNextFrame();
-                        } else if(this.CursorService.DrawMode.playback === 'static') {
-                            this.StaticSpriteNextFrame();
-                        }
-                    } else if(this.CursorService.DrawMode.mode === 'shape') {
-                        if(this.CursorService.DrawMode.playback === 'live') {
-                            this.LiveShapeNextFrame();
-                        } else if(this.CursorService.DrawMode.playback === 'static') {
-                            this.StaticShapeNextFrame();
-                        }
+                    /* Check if the user has resized the window */
+                    if(self.width != window.innerWidth) {
+                        self.width = window.innerWidth;
+                        self.canvas.setAttribute('width', self.width.toString());
+                    }
+                    if(self.height != window.innerHeight) {
+                        self.height = window.innerHeight;
+                        self.canvas.setAttribute('height', self.height.toString());
                     }
 
+                    /* Enter time mismatch means the room changed. */
+                    if(self.activeRoomTime != self.ActivePageService.PageData.enterTime) {
+                        self.resetCanvas();
+                    }
+
+                    /* Draw the next frame depending on the DrawMode */
+                    if(self.ActivePageService.PageData.cursors) {
+                        if(self.CursorService.DrawMode.mode === 'sprite') {
+                            if(self.CursorService.DrawMode.playback === 'live') {
+                                self.LiveSpriteNextFrame();
+                            } else if(self.CursorService.DrawMode.playback === 'static') {
+                                self.StaticSpriteNextFrame();
+                            }
+                        } else if(self.CursorService.DrawMode.mode === 'shape') {
+                            if(self.CursorService.DrawMode.playback === 'live') {
+                                self.LiveShapeNextFrame();
+                            } else if(self.CursorService.DrawMode.playback === 'static') {
+                                self.StaticShapeNextFrame();
+                            }
+                        }
+
+                    }
                 }
-            }
-        }, 1000/this.fps);
+            }, 1000/self.fps);
+        };
+        loopCallback();
     }
 
 
@@ -136,9 +137,10 @@ class CanvasController {
             };
             var cursorSprite = new Sprite(options);
 
-            var cursorsToRender = this.GetNextCursors();
+            var cursorsToRender = this.getLatestCursors();
+            var self = this;
             _.forEach(cursorsToRender, function(cursorData:CursorFrame) {
-                cursorSprite.Render(cursorData.pos.x * this.width, cursorData.pos.y * this.height);
+                cursorSprite.Render(cursorData.pos.x * self.width, cursorData.pos.y * self.height);
             });
             this.timer++;
         }
@@ -148,89 +150,89 @@ class CanvasController {
      * The sprite info is defined within the CursorService.
      * If the DrawMode is set to cumulative all cursors frames are rendered together. */
     private StaticSpriteNextFrame() {
-        if(this.CursorService.DrawMode.data.ready){
-            if(this.timer === 0) {
+        var self = this;
+        if(self.CursorService.DrawMode.data.ready){
+            if(self.timer === 0) {
                 var options = <SpriteOptions> {
-                    context: this.ctx,
-                    width: this.CursorService.DrawMode.data.width,
-                    height: this.CursorService.DrawMode.data.height,
-                    image: this.CursorService.DrawMode.data.sprite
+                    context: self.ctx,
+                    width: self.CursorService.DrawMode.data.width,
+                    height: self.CursorService.DrawMode.data.height,
+                    image: self.CursorService.DrawMode.data.sprite
                 };
 
                 var cursorSprite = new Sprite(options);
-                var cursorsToRender;
 
                 if(this.CursorService.DrawMode.cumulative) {
-                    var renderSprite = function(cursorData:CursorFrame) {
-                        cursorSprite.Render(cursorData.pos.x * this.width, cursorData.pos.y * this.height);
-                    };
-                    for (var i = 0; i < this.cursorMaxTime; i++) {
-                        cursorsToRender = this.GetNextCursors();
-                        _.forEach(cursorsToRender, renderSprite);
+                    for (var i = 0; i < self.ActivePageService.PageData.cursors.length; i++) {
+                        _.forEach(self.ActivePageService.PageData.cursors[i].frames, (cursorData:CursorFrame) => {
+                            cursorSprite.Render(cursorData.pos.x * self.width, cursorData.pos.y * self.height);
+                        });
                     }
+                } else {
+                    var cursorsToRender = self.getFinalCursorFrames();
+                    _.forEach(cursorsToRender, function(cursorData:CursorFrame) {
+                        cursorSprite.Render(cursorData.pos.x * self.width, cursorData.pos.y * self.height);
+                    });
                 }
-                cursorsToRender = this.GetLastCursors();
-                _.forEach(cursorsToRender, function(cursorData:CursorFrame) {
-                    cursorSprite.Render(cursorData.pos.x * this.width, cursorData.pos.y * this.height);
-                });
-                this.timer++;
             }
         }
+        this.timer++;
     }
 
     /* Draws the next frame of the cursors in the form of a shape.
      * The shape info is defined within the CursorService.
      * If the DrawMode is set to cumulative, the canvas does not clear between frames. */
     private LiveShapeNextFrame() {
-        this.ConfigureContextByShapeData(this.CursorService.DrawMode.data);
+        var self = this;
 
-        if(!this.CursorService.DrawMode.cumulative) {
-            this.ctx.clearRect(0,0,this.width,this.height);
+        self.ConfigureContextByShapeData(self.CursorService.DrawMode.data);
+
+        if(!self.CursorService.DrawMode.cumulative) {
+            self.ctx.clearRect(0,0,self.width,self.height);
         }
-        var previousCursors = this.GetCurrentCursors();
-        var cursorsToRender = this.GetNextCursors();
+
+        var cursorsToRender = self.getCursorsAtCurrentTime();
+        var previousCursors = self.getCursorsAtCurrentTimeBackAFrame();
         for (var i = 0; i < cursorsToRender.length; i++) {
-            this.DrawShapeFrame(this.CursorService.DrawMode.data, cursorsToRender[i],previousCursors[i]);
+            self.DrawShapeFrame(self.CursorService.DrawMode.data, cursorsToRender[i],previousCursors[i]);
         }
 
-        this.timer++;
+        self.timer++;
     }
 
     /* Draws a static form of the cursor data in the form of shapes.
      * The shape info is defined within the CursorService.
      * If the DrawMode is set to cumulative all cursors frames are rendered together. */
     private StaticShapeNextFrame() {
-        if(this.timer < 30) {
-            this.ConfigureContextByShapeData(this.CursorService.DrawMode.data);
+        var self = this;
+        if(self.timer < 30) {
+            self.ConfigureContextByShapeData(self.CursorService.DrawMode.data);
             var previousCursors;
             var cursorsToRender;
-            if(this.CursorService.DrawMode.cumulative) {
-                var drawShape = function(cursorData) {
-                    this.DrawShapeFrame(this.CursorService.DrawMode.data, cursorData);
-                };
-                for (var i = 0; i < this.cursorMaxTime; i++) {
-                    previousCursors = this.GetCurrentCursors();
-                    cursorsToRender = this.GetNextCursors();
-                    _.forEach(cursorsToRender, drawShape);
+            if(self.CursorService.DrawMode.cumulative) {
+                for (var i = 0; i < self.ActivePageService.PageData.cursors.length; i++) {
+                    for (var j = 0; j < self.ActivePageService.PageData.cursors[i].frames.length; j++) {
+                        var cursorToRender = self.ActivePageService.PageData.cursors[i].frames[j];
+                        var prevCursorToRender = self.ActivePageService.PageData.cursors[i].frames[Math.max(j-1,0)];
+                        self.DrawShapeFrame(self.CursorService.DrawMode.data, cursorToRender,prevCursorToRender);
+                    }
                 }
             }
 
-            previousCursors = this.GetCurrentCursors();
-            cursorsToRender = this.GetNextCursors();
-            for (var i = 0; i < cursorsToRender.length; i++) {
-                this.DrawShapeFrame(this.CursorService.DrawMode.data, cursorsToRender[i],previousCursors[i]);
-            }
 
-            this.timer++;
+            cursorsToRender = self.getLatestCursors();
+            previousCursors = self.getLatestCursorsBackAFrame();
+            for (var i = 0; i < cursorsToRender.length; i++) {
+                self.DrawShapeFrame(self.CursorService.DrawMode.data, cursorsToRender[i],previousCursors[i]);
+            }
         }
+        this.timer++;
     }
 
     private ConfigureContextByShapeData(shapeData) {
         var colorString = "rgba(10, 10, 10, 0.01)";
         if(shapeData.color) {
             colorString = "rgba(" + shapeData.color.red + ", " + shapeData.color.green + ", " + shapeData.color.blue + ", " + shapeData.color.alpha  + ")";
-        } else {
-            console.error("ConfigureContextByShapeData: shapeData does not contain color info.", shapeData);
         }
         if(shapeData.shape === 'line') {
             this.ctx.strokeStyle = colorString;
@@ -245,17 +247,18 @@ class CanvasController {
     }
 
     private DrawShapeFrame(shapeData, cursor, prevCursor) {
+        var self = this;
         if(shapeData.shape === 'line') {
             if(!prevCursor) {
                 console.error("DrawShapeFrame: prevCursor required to draw a line.");
                 return;
             }
-            this.ctx.beginPath();
-            this.ctx.moveTo(prevCursor.pos.x * this.width, prevCursor.pos.x * this.height);
-            this.ctx.moveTo(cursor.pos.x * this.width, cursor.pos.x * this.height);
-            this.ctx.stroke();
+            self.ctx.beginPath();
+            self.ctx.moveTo(prevCursor.pos.x * self.width, prevCursor.pos.x * self.height);
+            self.ctx.moveTo(cursor.pos.x * self.width, cursor.pos.x * self.height);
+            self.ctx.stroke();
         } else if(shapeData.shape === 'rect') {
-            this.ctx.fillRect(cursor.pos.x * this.width, cursor.pos.y * this.height, shapeData.size, shapeData.size);
+            self.ctx.fillRect(cursor.pos.x * self.width, cursor.pos.y * self.height, shapeData.size, shapeData.size);
         } else if(shapeData.shape === 'circle') {
             var colorString = "rgba(10, 10, 10, 0.01)";
             var colorStringTransparent = "rgba(10, 10, 10, 0.0)";
@@ -266,33 +269,104 @@ class CanvasController {
                 console.error("ConfigureContextByShapeData: shapeData does not contain color info.", shapeData);
             }
             var radius = 20;
-            var gradient = this.ctx.createRadialGradient(cursor.pos.x * this.width + radius, cursor.pos.y * this.height + radius, radius, cursor.pos.x * this.width+radius, cursor.pos.y * this.height+radius,radius*0.95);
+            var gradient = this.ctx.createRadialGradient(cursor.pos.x * self.width + radius, cursor.pos.y * self.height + radius, radius, cursor.pos.x * self.width+radius, cursor.pos.y * self.height+radius,radius*0.95);
             gradient.addColorStop(1, colorString);
             gradient.addColorStop(0, colorStringTransparent);
-            this.ctx.fillStyle = gradient;
-            this.ctx.fillRect(cursor.pos.x * this.width, cursor.pos.y * this.height, radius*2, radius*2);
+            self.ctx.fillStyle = gradient;
+            self.ctx.fillRect(cursor.pos.x * self.width, cursor.pos.y * self.height, radius*2, radius*2);
         } else {
             console.error("DrawShapeFrame: shapeData.shape unsupported.", shapeData);
         }
     }
+    private getLatestCursors() {
+        var outArr:CursorFrame[] = [];
+        var self = this;
+        _.forEach(self.ActivePageService.PageData.cursors, (cursors:AnimatedCursor) => {
+            var latestCursor:CursorFrame = cursors.frames[0];
+            for(var i = 1; i < cursors.frames.length; i++) {
+                if(cursors.frames[i].t > self.timer) {
+                    break;
+                }
+                latestCursor = cursors.frames[i];
+            }
+            if(latestCursor){
+                outArr.push(latestCursor);
+            }
+        });
+        return outArr;
+    }
+    private getLatestCursorsBackAFrame() {
+        var outArr:CursorFrame[] = [];
+        var self = this;
+        _.forEach(self.ActivePageService.PageData.cursors, (cursors:AnimatedCursor) => {
+            var latestCursorBackAFrame:CursorFrame = cursors.frames[0];
+            var latestCursor:CursorFrame = cursors.frames[0];
+            for(var i = 1; i < cursors.frames.length; i++) {
+                if(cursors.frames[i].t > self.timer) {
+                    break;
+                }
+                latestCursorBackAFrame = latestCursor;
+                latestCursor = cursors.frames[i];
+            }
+            if(latestCursorBackAFrame) {
+                outArr.push(latestCursorBackAFrame);
+            }
+        });
+        return outArr;
+    }
 
-    /* Gets the next cursor for the timer.
+    private getFinalCursorFrames() {
+        var outArr:CursorFrame[] = [];
+        var self = this;
+        _.forEach(self.ActivePageService.PageData.cursors, (cursors:AnimatedCursor) => {
+            outArr.push(cursors.frames[cursors.frames.length - 1]);
+        });
+        return outArr;
+    }
+    /*TODO Implement binary search when the cursors are sorted.*/
+    private getCursorsAtCurrentTime() {
+        var outArr:CursorFrame[] = [];
+        var self = this;
+        _.forEach(self.ActivePageService.PageData.cursors, (cursors:AnimatedCursor) => {
+            for(var i = 0; i < cursors.frames.length; i++) {
+                if(cursors.frames[i].t == self.timer) {
+                    outArr.push(cursors.frames[i]);
+                }
+            }
+        });
+        return outArr;
+    }
+    private getCursorsAtCurrentTimeBackAFrame() {
+        var outArr:CursorFrame[] = [];
+        var self = this;
+        _.forEach(self.ActivePageService.PageData.cursors, (cursors:AnimatedCursor) => {
+            for(var i = 0; i < cursors.frames.length; i++) {
+                if(cursors.frames[i].t == self.timer) {
+                    outArr.push(cursors.frames[Math.max(i-1,0)]);
+                }
+            }
+        });
+        return outArr;
+    }
+    /** REMOVED INTERPOLATION BULLSHIT
+     * Gets the next cursor for the timer.
      * If the next cursor is on a timestamp far ahead of the timer,
      * it interpolates a cursor postion for the timer.
-     * GetCurrentCursors will return whatever the most recent call to GetNextCursors returned.*/
+     * GetCurrentCursors will return whatever the most recent call to GetNextCursors returned.*
     private GetNextCursors() {
+        var self = this;
         var outArr = [];
-        for(var i = 0; i < this.ActivePageService.PageData.cursors.length; i++) {
-            var currentCursor = this.ActivePageService.PageData.cursors[i].frames[this.cursorTimeMarkers[i]];
-            if((this.ActivePageService.PageData.cursors[i].frames.length - 1) > this.cursorTimeMarkers[i]) { //There are more cursors
-                var nextCursor = this.ActivePageService.PageData.cursors[i].frames[this.cursorTimeMarkers[i] + 1];
-                if(nextCursor.t > this.timer) {
+        for(var i = 0; i < self.ActivePageService.PageData.cursors.length; i++) {
+            var currentCursor = self.ActivePageService.PageData.cursors[i].frames[self.cursorTimeMarkers[i]];
+            if((this.ActivePageService.PageData.cursors[i].frames.length - 1) > self.cursorTimeMarkers[i]) { //There are more cursors
+                var nextCursor = self.ActivePageService.PageData.cursors[i].frames[self.cursorTimeMarkers[i] + 1];
+                if(nextCursor.t > self.timer) {
                     if(currentCursor.pos.x === 0 || currentCursor.pos.y === 0) {
                         outArr.push(currentCursor);
                     } else {
-                        var interpPercent = (this.timer - currentCursor.t)/(nextCursor.t - currentCursor.t);
+                        var interpPercent = (self.timer - currentCursor.t)/(nextCursor.t - currentCursor.t);
                         var interpolatedCursor = {
-                            t: this.timer,
+                            t: self.timer,
                             pos: {
                                 x: (currentCursor.pos.x + ((nextCursor.pos.x - currentCursor.pos.x) * interpPercent)),
                                 y: (currentCursor.pos.y + ((nextCursor.pos.y - currentCursor.pos.y) * interpPercent))
@@ -302,7 +376,7 @@ class CanvasController {
                     }
                 } else {
                     outArr.push(nextCursor);
-                    this.cursorTimeMarkers[i]++;
+                    self.cursorTimeMarkers[i]++;
                 }
             } else {
                 outArr.push(currentCursor);
@@ -310,18 +384,19 @@ class CanvasController {
         }
         return outArr;
     }
-    /* Get the current cursors as specified by the cursorTimeMarkers array.
-     * Returns whatever the most recent call to GetNextCursors returned. */
+    * Get the current cursors as specified by the cursorTimeMarkers array.
+     * Returns whatever the most recent call to GetNextCursors returned. *
     private GetCurrentCursors() {
+        var self = this;
         var outArr = [];
-        for(var i = 0; i < this.ActivePageService.PageData.cursors.length; i++) {
-            var currentCursor = this.ActivePageService.PageData.cursors[i].frames[this.cursorTimeMarkers[i]];
+        for(var i = 0; i < self.ActivePageService.PageData.cursors.length; i++) {
+            var currentCursor = self.ActivePageService.PageData.cursors[i].frames[self.cursorTimeMarkers[i]];
             outArr.push(currentCursor);
         }
         return outArr;
     }
 
-    /* Gets the final cursor frame for every page's cursors. */
+    /* Gets the final cursor frame for every page's cursors. *
     private GetLastCursors() {
         var outArr = [];
         for(var i = 0; i < this.ActivePageService.PageData.cursors.length; i++) {
@@ -330,6 +405,7 @@ class CanvasController {
         }
         return outArr;
     }
+    */
 
     /* Resets the canvas by resetting timers, cursors, and clearing the canvas */
     private resetCanvas() {
@@ -337,14 +413,15 @@ class CanvasController {
         this.timer = 0;
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        this.cursorTimeMarkers = [];
+        //this.cursorTimeMarkers = [];
         this.cursorMaxTime = 0;
+        var self = this;
         _.forEach(this.ActivePageService.PageData.cursors, function(cursor:AnimatedCursor) {
             var oldestTime = cursor.frames[cursor.frames.length-1].t;
-            if(oldestTime > this.cursorMaxTime) {
-                this.cursorMaxTime = oldestTime;
+            if(oldestTime > self.cursorMaxTime) {
+                self.cursorMaxTime = oldestTime;
             }
-            this.cursorTimeMarkers.push(0);
+            //self.cursorTimeMarkers.push(0);
         });
     }
 }

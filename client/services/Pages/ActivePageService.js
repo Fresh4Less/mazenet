@@ -57,7 +57,7 @@ define(["require", "exports", "../../models/Pages/Page", "../../models/Pages/Roo
             }
         };
         ActivePageService.name = 'ActivePageService';
-        ActivePageService.$inject = [];
+        ActivePageService.FactoryDefinition = [function () { return new ActivePageService(); }];
         return ActivePageService;
     })();
     return ActivePageService;

@@ -3,4 +3,4 @@
 import ActivePageService = require('./ActivePageService');
 
 export = angular.module('pages',[])
-    .factory(ActivePageService.name, ActivePageService);
+    .factory(ActivePageService.name, ActivePageService.FactoryDefinition);

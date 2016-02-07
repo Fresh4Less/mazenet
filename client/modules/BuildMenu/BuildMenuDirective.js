@@ -11,6 +11,6 @@ define(["require", "exports", './BuildMenuController'], function (require, expor
         };
         return directive;
     }
-    return BuildMenuController;
+    return BuildMenuDirective;
 });
 //# sourceMappingURL=BuildMenuDirective.js.map

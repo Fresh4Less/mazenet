@@ -24,14 +24,18 @@ class CursorService implements ICursorService {
     private cursorTimeout:boolean = true;
     private networkTiming:number = 30;
 
-    static $inject = [
+    static FactoryDefinition = [
         '$window',
         'ActivePageService',
         'SocketService',
+        ($window:ng.IWindowService,
+         ActivePageService:IActivePageService,
+         SocketService:ISocketService) => {return new CursorService($window, ActivePageService, SocketService);}
     ];
     constructor(private $window:ng.IWindowService,
                 private ActivePageService:IActivePageService,
                 private SocketService:ISocketService) {
+        this.DrawMode = {name:'', mode:'', playback:'', cumulative:false, data:''};
         this.callbacks = {
             cbDrawModeCycle: []
         };
@@ -43,46 +47,49 @@ class CursorService implements ICursorService {
             new JensenMode()
         ];
         this.drawModeIndex = _.size(this.drawModes)-1;
+        this.CycleDrawMode();
     }
 
-    OnCycleDrawMode(funct:()=>void) {
-        if(_.isFunction(funct)) {
-            this.callbacks.cbDrawModeCycle.push(funct);
+    public OnCycleDrawMode(func:()=>void) {
+        if(_.isFunction(func)) {
+            this.callbacks.cbDrawModeCycle.push(func);
         }
     }
 
-    CycleDrawMode() {
+    public CycleDrawMode() {
 
         this.drawModeIndex = (this.drawModeIndex + 1) % _.size(this.drawModes);
-        this.DrawMode.name = this.drawModes[this.drawModeIndex].name;
-        this.DrawMode.mode = this.drawModes[this.drawModeIndex].mode;
-        this.DrawMode.playback = this.drawModes[this.drawModeIndex].playback;
-        this.DrawMode.cumulative = this.drawModes[this.drawModeIndex].cumulative;
-        this.DrawMode.data = this.drawModes[this.drawModeIndex].data;
+        var nextMode:IDrawMode = this.drawModes[this.drawModeIndex];
+        this.DrawMode.name = nextMode.name;
+        this.DrawMode.mode = nextMode.mode;
+        this.DrawMode.playback = nextMode.playback;
+        this.DrawMode.cumulative = nextMode.cumulative;
+        this.DrawMode.data = nextMode.data;
 
-        this.callbacks.cbDrawModeCycle.forEach(function(cbFunc){
-            cbFunc();
+        _.forEach(this.callbacks.cbDrawModeCycle, (func: ()=>void) => {
+            func();
         });
     }
 
-    UserMovedCursor($event:MouseEvent) {
-        if(this.cursorTimeout) {
-            this.cursorTimeout = false;
+    public UserMovedCursor($event:MouseEvent) {
+        var self = this;
+        if(self.cursorTimeout) {
+            self.cursorTimeout = false;
 
             var cursorMove:CursorFrame = {
                 pos: {
                     x: $event.clientX / this.$window.innerWidth,
                     y: $event.clientY / this.$window.innerHeight
                 },
-                t: this.frameDifference(this.ActivePageService.PageData.enterTime, new Date().getTime())
+                t: self.frameDifference(self.ActivePageService.PageData.enterTime, new Date().getTime())
             };
 
-            this.SocketService.CursorMove(cursorMove);
+            self.SocketService.CursorMove(cursorMove);
 
             /* Limits the cursor rate to (networkTiming)FPS */
             window.setTimeout(function() {
-                this.cursorTimeout = true;
-            }, (1000/this.networkTiming));
+                self.cursorTimeout = true;
+            }, (1000/self.networkTiming));
         }
     }
 

@@ -11,7 +11,7 @@
 		<mz-element element="element"></mz-element>
 	</div>
 	
-	<div ng-repeat="user in mzCtrl.OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%;">
+	<div ng-repeat="user in mzCtrl.UserService.OtherUsers" style="position: absolute; left: {{(user.pos.x*100)}}%; top: {{(user.pos.y*100)}}%;">
 		<img src="http://doc.qt.io/qt-5/images/cursor-arrow.png" alt="{{user.uId}}">
 		<div style="font-size: 60%;">{{user.uId}}</div>
 	</div>

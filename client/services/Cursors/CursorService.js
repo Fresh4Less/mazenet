@@ -8,6 +8,7 @@ define(["require", "exports", '../../models/DrawModes/CursorDrawMode', '../../mo
             this.SocketService = SocketService;
             this.cursorTimeout = true;
             this.networkTiming = 30;
+            this.DrawMode = { name: '', mode: '', playback: '', cumulative: false, data: '' };
             this.callbacks = {
                 cbDrawModeCycle: []
             };
@@ -19,38 +20,41 @@ define(["require", "exports", '../../models/DrawModes/CursorDrawMode', '../../mo
                 new JensenMode()
             ];
             this.drawModeIndex = _.size(this.drawModes) - 1;
+            this.CycleDrawMode();
         }
-        CursorService.prototype.OnCycleDrawMode = function (funct) {
-            if (_.isFunction(funct)) {
-                this.callbacks.cbDrawModeCycle.push(funct);
+        CursorService.prototype.OnCycleDrawMode = function (func) {
+            if (_.isFunction(func)) {
+                this.callbacks.cbDrawModeCycle.push(func);
             }
         };
         CursorService.prototype.CycleDrawMode = function () {
             this.drawModeIndex = (this.drawModeIndex + 1) % _.size(this.drawModes);
-            this.DrawMode.name = this.drawModes[this.drawModeIndex].name;
-            this.DrawMode.mode = this.drawModes[this.drawModeIndex].mode;
-            this.DrawMode.playback = this.drawModes[this.drawModeIndex].playback;
-            this.DrawMode.cumulative = this.drawModes[this.drawModeIndex].cumulative;
-            this.DrawMode.data = this.drawModes[this.drawModeIndex].data;
-            this.callbacks.cbDrawModeCycle.forEach(function (cbFunc) {
-                cbFunc();
+            var nextMode = this.drawModes[this.drawModeIndex];
+            this.DrawMode.name = nextMode.name;
+            this.DrawMode.mode = nextMode.mode;
+            this.DrawMode.playback = nextMode.playback;
+            this.DrawMode.cumulative = nextMode.cumulative;
+            this.DrawMode.data = nextMode.data;
+            _.forEach(this.callbacks.cbDrawModeCycle, function (func) {
+                func();
             });
         };
         CursorService.prototype.UserMovedCursor = function ($event) {
-            if (this.cursorTimeout) {
-                this.cursorTimeout = false;
+            var self = this;
+            if (self.cursorTimeout) {
+                self.cursorTimeout = false;
                 var cursorMove = {
                     pos: {
                         x: $event.clientX / this.$window.innerWidth,
                         y: $event.clientY / this.$window.innerHeight
                     },
-                    t: this.frameDifference(this.ActivePageService.PageData.enterTime, new Date().getTime())
+                    t: self.frameDifference(self.ActivePageService.PageData.enterTime, new Date().getTime())
                 };
-                this.SocketService.CursorMove(cursorMove);
+                self.SocketService.CursorMove(cursorMove);
                 /* Limits the cursor rate to (networkTiming)FPS */
                 window.setTimeout(function () {
-                    this.cursorTimeout = true;
-                }, (1000 / this.networkTiming));
+                    self.cursorTimeout = true;
+                }, (1000 / self.networkTiming));
             }
         };
         CursorService.prototype.frameDifference = function (oldTime, newTime) {
@@ -58,10 +62,11 @@ define(["require", "exports", '../../models/DrawModes/CursorDrawMode', '../../mo
             return Math.ceil((difference / 1000) * this.networkTiming);
         };
         CursorService.name = 'CursorService';
-        CursorService.$inject = [
+        CursorService.FactoryDefinition = [
             '$window',
             'ActivePageService',
             'SocketService',
+            function ($window, ActivePageService, SocketService) { return new CursorService($window, ActivePageService, SocketService); }
         ];
         return CursorService;
     })();

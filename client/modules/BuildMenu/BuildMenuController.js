@@ -2,8 +2,7 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 define(["require", "exports"], function (require, exports) {
     var BuildMenuController = (function () {
-        function BuildMenuController($scope, SocketService, ActivePageService, ContextMenuService, UserService, CursorService) {
-            this.$scope = $scope;
+        function BuildMenuController(SocketService, ActivePageService, ContextMenuService, UserService, CursorService) {
             this.SocketService = SocketService;
             this.ActivePageService = ActivePageService;
             this.ContextMenuService = ContextMenuService;
@@ -109,7 +108,6 @@ define(["require", "exports"], function (require, exports) {
         };
         ;
         BuildMenuController.$inject = [
-            '$scope',
             'SocketService',
             'ActivePageService',
             'ContextMenuService',

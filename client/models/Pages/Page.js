@@ -60,7 +60,7 @@ define(["require", "exports"], function (require, exports) {
             this.background = {
                 bType: 'color',
                 data: {
-                    color: '#000000'
+                    color: '#333333'
                 }
             };
             this.owners = [];

@@ -4,4 +4,4 @@
 import BuildMenuDirective = require('./BuildMenuDirective');
 
 export = angular.module('mod.buildmenu', [])
-    .directive('mzBuildMenu')
+    .directive('mzBuildMenu', BuildMenuDirective)

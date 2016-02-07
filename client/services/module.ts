@@ -11,5 +11,5 @@ export = angular.module('services', [
     CursorService.name,
     PagesService.name
 ])
-    .factory(SocketService.name, SocketService)
-    .factory(UserService.name, UserService);
+    .factory(SocketService.name, SocketService.FactoryDefinition)
+    .factory(UserService.name, UserService.FactoryDefinition);

@@ -7,6 +7,7 @@ import Page = require("../models/Pages/Page");
 import CursorFrame = require("../models/Cursors/CursorFrame");
 import UserData = require("../models/UserData");
 import ICursorService = require("../services/Cursors/Interfaces/ICursorService");
+import UserService = require("../services/UserService");
 
 export = MazenetController;
 
@@ -29,7 +30,7 @@ class MazenetController {
                 private UserService:IUserService) {
         this.Page = ActivePageService.PageData;
         this.OtherUsers = UserService.OtherUsers;
-        UserService.RedrawCallback = $scope.$apply;
+        UserService.RedrawCallback = ()=>{$scope.$apply()};
     }
 
     public CursorMove($event:MouseEvent) {

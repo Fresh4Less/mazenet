@@ -1,17 +1,11 @@
-/* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../typings/tsd.d.ts" />
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", './CanvasController'], function (require, exports, CanvasController) {
     function CanvasDirective() {
         var directive = {
             restrict: 'E',
             templateUrl: '/modules/Canvas/CanvasTemplate.html',
-            scope: {
-                target: '@',
-            },
-            controller: 'CanvasController',
+            controller: CanvasController,
             controllerAs: 'cvCtrl',
             bindToController: true,
-            replace: true
         };
         return directive;
     }

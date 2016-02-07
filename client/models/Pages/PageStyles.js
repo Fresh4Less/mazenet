@@ -6,11 +6,11 @@ define(["require", "exports"], function (require, exports) {
             this.background = {
                 bType: 'color',
                 data: {
-                    color: '#000000'
+                    color: '#333333'
                 }
             };
             this.stringified = '';
-            this.canvasStringified = 'background : #000000';
+            this.canvasStringified = 'background : #333333';
         }
         return PageStyles;
     })();

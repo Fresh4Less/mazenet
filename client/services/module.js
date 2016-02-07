@@ -3,7 +3,7 @@ define(["require", "exports", './Cursors/module', './Pages/module', './SocketSer
         CursorService.name,
         PagesService.name
     ])
-        .factory(SocketService.name, SocketService)
-        .factory(UserService.name, UserService);
+        .factory(SocketService.name, SocketService.FactoryDefinition)
+        .factory(UserService.name, UserService.FactoryDefinition);
 });
 //# sourceMappingURL=module.js.map

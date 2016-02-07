@@ -3,7 +3,7 @@
 
 import BuildMenuController = require('./BuildMenuController');
 
-export = BuildMenuController;
+export = BuildMenuDirective;
 
 function BuildMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {

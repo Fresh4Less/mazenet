@@ -3,4 +3,4 @@
 import CursorService = require('./CursorService');
 
 export = angular.module('cursors', [])
-    .factory(CursorService.name, CursorService);
+    .factory(CursorService.name, CursorService.FactoryDefinition);

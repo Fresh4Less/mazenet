@@ -1,16 +1,12 @@
 define(["require", "exports", "./../models/UserData"], function (require, exports, UserData) {
     var UserService = (function () {
         function UserService() {
-            this.redraw = function () {
-                if (this.RedrawCallback) {
-                    this.RedrawCallback();
-                }
-            };
             this.UserData = new UserData;
             this.OtherUsers = {};
         }
         UserService.prototype.AddUser = function (user) {
             this.OtherUsers[user.uId] = user;
+            console.log('adduser', this, user);
             this.redraw();
         };
         ;
@@ -21,9 +17,10 @@ define(["require", "exports", "./../models/UserData"], function (require, export
         ;
         UserService.prototype.SetUsers = function (users) {
             this.OtherUsers = {};
+            var self = this;
             users.forEach(function (user) {
-                this.serviceObject.OtherUsers[user.uId] = user;
-            }, this);
+                self.OtherUsers[user.uId] = user;
+            });
             this.redraw();
         };
         ;
@@ -39,8 +36,14 @@ define(["require", "exports", "./../models/UserData"], function (require, export
             this.redraw();
         };
         ;
+        UserService.prototype.redraw = function () {
+            if (this.RedrawCallback) {
+                this.RedrawCallback();
+            }
+        };
+        ;
         UserService.name = "UserService";
-        UserService.$inject = [];
+        UserService.FactoryDefinition = [function () { return new UserService(); }];
         return UserService;
     })();
     return UserService;

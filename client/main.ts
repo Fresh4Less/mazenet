@@ -2,22 +2,26 @@
 
 requirejs.config({
     paths : {
-        'app':'module',
+        'mazenet':'module',
         'socketio': '/socket.io/socket.io',
-        'angular': 'angular/angular',
-        'angular-route': '/angular-route/angular-route.min',
-        'angular-bootstrap': '/angular-bootstrap/ui-bootstrap-tpls.min',
-        'underscore':'/underscore.min'
+        'angular': '/bower_components/angular/angular',
+        'angular-route': '/bower_components/angular-route/angular-route.min',
+        'angular-bootstrap': '/bower_components/angular-bootstrap/ui-bootstrap-tpls.min',
+        'underscore':'/bower_components/underscore/underscore-min'
     },
     shim: {
-        'app': {
-            deps: ['angular', 'socketio','underscore']
+        'mazenet': {
+            deps: ['angular', 'angular-route', 'angular-bootstrap', 'socketio', 'underscore']
         },
-        'angular': {
-            deps: ['angular-route','angular-bootstrap']
+        'angular-route': {
+            deps: ['angular']
+        },
+        'angular-bootstrap': {
+            deps: ['angular']
         }
     }
 });
-requirejs(['app'], function() {
-    angular.bootstrap(document, ['app']);
+
+requirejs(['mazenet'], function() {
+    var ret = angular.bootstrap(document, ['mazenet']);
 });
