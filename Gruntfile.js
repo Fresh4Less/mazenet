@@ -37,6 +37,19 @@ module.exports = function(grunt) {
 				files: ['client/**/*.js', 'server/**/*.js'],
 				tasks: ['concat', 'express:dev']
 			}
+		},
+		typescript: {
+			base: {
+				src: ['client/**/*.ts'],
+				dest: 'client/',
+				options: {
+					module: 'amd', //or commonjs
+					target: 'es5', //or es3
+					basePath: 'path/to/typescript/files',
+					sourceMap: true,
+					declaration: true
+				}
+			}
 		}
 	});
 	
