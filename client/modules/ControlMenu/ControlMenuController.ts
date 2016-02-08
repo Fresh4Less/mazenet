@@ -6,9 +6,10 @@ import IActivePageService = require("../../services/Pages/Interfaces/IActivePage
 import IUserService = require("../../services/Interfaces/IUserService");
 import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
 import IElement = require("../../models/Interfaces/IElement");
-export = BuildMenuController;
+import Page = require("../../models/Pages/Page");
+export = ControlMenuControll;
 
-class BuildMenuController {
+class ControlMenuControll {
 
     public isOpen:boolean;
     public cursorService:ICursorService;
@@ -16,21 +17,20 @@ class BuildMenuController {
     public newLink:IElement;
     public pageSettings:any; //TODO figure out what model this is
     public state:string;
+    public page:Page;
 
     static $inject = [
         'SocketService',
         'ActivePageService',
-        'ContextMenuService',
         'UserService',
         'CursorService'
     ];
 
     constructor(private SocketService:ISocketService,
                 private ActivePageService:IActivePageService,
-                private ContextMenuService:any,
                 private UserService:IUserService,
                 private CursorService:ICursorService) {
-        this.isOpen = false;
+        this.page = ActivePageService.PageData;
         this.cursorService = CursorService;
         this.tunnelingInfo = {
             isTunneling : false,
@@ -54,14 +54,14 @@ class BuildMenuController {
         this.pageSettings = null;
         this.state = 'root';
         var self = this;
-        ContextMenuService.openCallback = () => {
-            self.resetLocalData();
-            self.isOpen = true;
-        };
-        ContextMenuService.closeCallback = () => {
-            self.state = 'root';
-            self.isOpen = false;
-        };
+        //ContextMenuService.openCallback = () => {
+        //    self.resetLocalData();
+        //    self.isOpen = true;
+        //};
+        //ContextMenuService.closeCallback = () => {
+        //    self.state = 'root';
+        //    self.isOpen = false;
+        //};
         ActivePageService.OnAddElement((element:IElement) => {
             if(self.tunnelingInfo.pos.x == element.pos.x && self.tunnelingInfo.pos.y == element.pos.y) {
                 self.tunnelingInfo.isTunneling = false;
@@ -85,14 +85,14 @@ class BuildMenuController {
     };
     public createPage() {
 
-        this.newLink.pos.x = this.ContextMenuService.position.x;
-        this.newLink.pos.y = this.ContextMenuService.position.y;
+        //this.newLink.pos.x = this.ContextMenuService.position.x;
+        //this.newLink.pos.y = this.ContextMenuService.position.y;
         this.newLink.creator = this.UserService.UserData.uId;
 
         this.closeContextMenu();
         this.tunnelingInfo.isTunneling = true;
-        this.tunnelingInfo.pos.x = this.ContextMenuService.position.x;
-        this.tunnelingInfo.pos.y = this.ContextMenuService.position.y;
+        //this.tunnelingInfo.pos.x = this.ContextMenuService.position.x;
+        //this.tunnelingInfo.pos.y = this.ContextMenuService.position.y;
         this.tunnelingInfo.text = this.newLink.data.text;
         this.SocketService.CreateElement(this.newLink);
     };
@@ -102,7 +102,7 @@ class BuildMenuController {
     };
 
     public closeContextMenu() {
-        this.ContextMenuService.forceClose = true;
+        //this.ContextMenuService.forceClose = true;
     };
      private resetLocalData = function() {
         this.newLink = {

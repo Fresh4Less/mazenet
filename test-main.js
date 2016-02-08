@@ -25,11 +25,13 @@ require.config({
     'angular-route': '/bower_components/angular-route/angular-route',
     'angular-bootstrap': '/bower_components/angular-bootstrap/ui-bootstrap-tpls',
     'angular-mocks': '/bower_components/angular-mocks/angular-mocks',
+    'jquery':'/bower_components/jquery/dist/jquery',
+    'bootstrap':'/bower_components/bootstrap/dist/js/bootstrap',
     'underscore':'/bower_components/underscore/underscore'
   },
   shim: {
     'mazenet': {
-      deps: ['angular', 'angular-route', 'angular-bootstrap', 'angular-mocks', 'socketio', 'underscore']
+      deps: ['angular', 'angular-route', 'angular-bootstrap', 'angular-mocks', 'socketio', 'bootstrap', 'underscore']
     },
     'angular-route': {
       deps: ['angular']
@@ -39,6 +41,9 @@ require.config({
     },
     'angular-mocks': {
       deps: ['angular']
+    },
+    'bootstrap': {
+      deps: ['jquery']
     }
   },
 

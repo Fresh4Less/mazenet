@@ -1,0 +1,25 @@
+<section id='control-menu' >
+   <nav class="navbar navbar-inverse mz-navbar">
+      <div class="container-fluid">
+         <ul class="nav navbar-nav navbar-left">
+            <li class="dropdown">
+               <span class="dropdown-toggle navbar-brand" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  Mazenet: <b>{{cmCtrl.page.title}}</b> <span class="caret"></span>
+               </span>
+               <div class="dropdown-menu">
+                  <form class="form-group">
+                     <label for="usr">Title:</label>
+                     <input type="text" class="form-control" id="usr" ng-model="cmCtrl.page.title">
+                  </form>
+               </div>
+            </li>
+         </ul>
+         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+               <li>Tunnel Room</li>
+               <li><a href="#">Insert Image</a></li>
+            </ul>
+         </div>
+      </div>
+   </nav>
+</section>

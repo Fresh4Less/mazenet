@@ -1,0 +1,10 @@
+.mz-navbar {
+  margin-bottom: 0;
+  border:0;
+
+  @include border-radius(0px);
+
+  &hover {
+    color:gray;
+  }
+}

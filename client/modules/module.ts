@@ -3,12 +3,10 @@
 import MazenetDirective = require('./MazenetDirective');
 import CanvasModule = require('./Canvas/module');
 import ElementsModule = require('./Elements/module');
-import BuildMenuModule = require('./BuildMenu/module');
-import ngContextMenu = require('./ng-context-menu');
+import ControlMenuModule = require('./ControlMenu/module');
 
 export = angular.module('modules', [
     CanvasModule.name,
     ElementsModule.name,
-    BuildMenuModule.name,
-    ngContextMenu.name
+    ControlMenuModule.name
 ]).directive("mzMazenet", MazenetDirective);

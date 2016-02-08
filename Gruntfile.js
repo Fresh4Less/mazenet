@@ -9,18 +9,8 @@ module.exports = function(grunt) {
 			options: {
 			},
 			test: {
-				src: ['server/**/*.js', 'client/**/*.js']
+				src: ['server/**/*.js']
 			}
-		},
-		concat : {
-			options: {
-				separator: ";\n",
-				banner: "/*MAZENET - Fresh4Less [ Elliot Hatch, Samuel Davidson ]*/\n\n"
-			},
-			dist: {
-				src: ['client/**/*.js'],
-				dest: 'dist/mazenet.js',
-			} 
 		},
 		express: {
 			dev: {
@@ -41,28 +31,36 @@ module.exports = function(grunt) {
 		typescript: {
 			base: {
 				src: ['client/**/*.ts'],
-				dest: 'client/',
 				options: {
 					module: 'amd', //or commonjs
 					target: 'es5', //or es3
-					basePath: 'path/to/typescript/files',
 					sourceMap: true,
 					declaration: true
+				}
+			}
+		},
+		sass: {
+			options: {
+				sourceMap: true
+			},
+			dist: {
+				files: {
+					'client/MazenetStyles.css': 'client/styles/mazenet.scss'
 				}
 			}
 		}
 	});
 	
 	grunt.loadNpmTasks('grunt-contrib-jshint');
-	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-express-server');
-	grunt.loadNpmTasks('grunt-typescript');
+	grunt.loadNpmTasks('grunt-sass');
+//	grunt.loadNpmTasks('grunt-typescript');
 //	grunt.loadNpmTasks('grunt-contrib-uglify');
-//	grunt.loadNpmTasks('grunt-contrib-sass');
 //	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	
 //	grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'sass', 'cssmin']);
-	grunt.registerTask('default', ['jshint', 'concat']);
-	grunt.registerTask('dev', ['concat', 'express:dev', 'watch:js']);
+	grunt.registerTask('default', ['jshint']);
+//	grunt.registerTask('client', ['sass']);
+//	grunt.registerTask('dev', ['concat', 'express:dev', 'watch:js']);
 };
