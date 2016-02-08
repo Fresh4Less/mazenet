@@ -9,6 +9,7 @@ import Sprite = require("../../models/Canvas/Sprite");
 import CursorFrame = require("../../models/Cursors/CursorFrame");
 import Cursor = require("../../models/Cursors/Cursor");
 import AnimatedCursor = require("../../models/Cursors/AnimatedCursor");
+import IElement = require("../../models/Interfaces/IElement");
 
 export = CanvasController;
 
@@ -27,13 +28,13 @@ class CanvasController {
     private cursorMaxTime:number;
     private timer:number;
     private activeRoomTime:number;
+    private controlMenu;
 
     static $inject = [
         '$scope',
         '$timeout',
         'ActivePageService',
         'CursorService'
-
     ];
 
     constructor(private $scope:ng.IScope,
@@ -44,16 +45,12 @@ class CanvasController {
         this.target = null;
         this.globalPageStyles = ActivePageService.Styles;
         this.fps = 30;
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
         this.canvas = null;
         this.ctx = null;
         //TODO this.cursorTimeMarkers = [];
         this.cursorMaxTime = 0;
         this.timer = 0;
         this.activeRoomTime = 0;
-
-
 
         var self = this;
 
@@ -65,9 +62,11 @@ class CanvasController {
                 console.error("Error loading canvas.", self);
                 return;
             }
-
+            self.controlMenu = angular.element( document.querySelector( '#control-menu' ) )[0];
+            self.width = window.innerWidth;
+            self.height = window.innerHeight;
             self.canvas.setAttribute('width', window.innerWidth.toString());
-            self.canvas.setAttribute('height', window.innerHeight.toString());
+            self.canvas.setAttribute('height', (window.innerHeight - self.controlMenu.offsetHeight).toString());
             self.ctx = self.canvas.getContext('2d');
             self.rootRenderLoop();
         });
@@ -89,7 +88,7 @@ class CanvasController {
                     }
                     if(self.height != window.innerHeight) {
                         self.height = window.innerHeight;
-                        self.canvas.setAttribute('height', self.height.toString());
+                        self.canvas.setAttribute('height', (self.height - self.controlMenu.offsetHeight).toString());
                     }
 
                     /* Enter time mismatch means the room changed. */

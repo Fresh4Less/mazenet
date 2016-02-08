@@ -74,7 +74,7 @@ class Page {
         this._id = '0';
         this.creator = null;
         this.permissions = 'all';
-        this.title = '';
+        this.title = 'loading...';
         this.background = {
             bType: 'color',
             data: {
