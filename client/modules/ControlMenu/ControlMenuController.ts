@@ -1,130 +1,72 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/tsd.d.ts" />
 
+import $ = require('jquery');
 import ISocketService = require("../../services/Interfaces/ISocketService");
 import IActivePageService = require("../../services/Pages/Interfaces/IActivePageService");
 import IUserService = require("../../services/Interfaces/IUserService");
 import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
 import IElement = require("../../models/Interfaces/IElement");
 import Page = require("../../models/Pages/Page");
-export = ControlMenuControll;
 
-class ControlMenuControll {
+export = ControlMenuController;
 
-    public isOpen:boolean;
-    public cursorService:ICursorService;
-    public tunnelingInfo:any; //TODO Refacor into a model
-    public newLink:IElement;
-    public pageSettings:any; //TODO figure out what model this is
+class ControlMenuController {
+
     public state:string;
     public page:Page;
+    private controlMenu:HTMLElement;
+    private controlPanel:HTMLElement;
 
     static $inject = [
-        'SocketService',
+        '$timeout',
         'ActivePageService',
         'UserService',
         'CursorService'
     ];
 
-    constructor(private SocketService:ISocketService,
+    constructor(private $timeout:ng.ITimeoutService,
                 private ActivePageService:IActivePageService,
                 private UserService:IUserService,
                 private CursorService:ICursorService) {
+        this.state = 'welcome';
         this.page = ActivePageService.PageData;
-        this.cursorService = CursorService;
-        this.tunnelingInfo = {
-            isTunneling : false,
-            text: 'NEW_LINK',
-            pos: {
-                x: -1,
-                y: -1
-            }
-        };
-        this.newLink = <IElement>{
-            eType: "link",
-            creator: "unset",
-            pos: {
-                x: 0,
-                y: 0
-            },
-            data: {
-                text: ""
-            }
-        };
-        this.pageSettings = null;
-        this.state = 'root';
         var self = this;
-        //ContextMenuService.openCallback = () => {
-        //    self.resetLocalData();
-        //    self.isOpen = true;
-        //};
-        //ContextMenuService.closeCallback = () => {
-        //    self.state = 'root';
-        //    self.isOpen = false;
-        //};
-        ActivePageService.OnAddElement((element:IElement) => {
-            if(self.tunnelingInfo.pos.x == element.pos.x && self.tunnelingInfo.pos.y == element.pos.y) {
-                self.tunnelingInfo.isTunneling = false;
-                self.tunnelingInfo.pos.x = -1;
-                self.tunnelingInfo.pos.y = -1;
-            }
+        $timeout(function() {
+            self.controlMenu = angular.element( document.querySelector( '#TheControlMenu' ) )[0];
+            self.controlPanel = angular.element( document.querySelector( '#TheControlPanel' ) )[0];
+            $(window).bind('resize.controlmenu', ()=>{self.updateMaxHeight();});
         });
     }
 
-    public backToRoot() {
-        this.state = "root";
-    };
-    public newRoomSelected() {
-        this.state = "newRoom";
-    };
-    public pageSettingsSelected() {
-        this.state = "pageSettings";
-    };
-    public newImageSelected() {
-        this.state = "root";
-    };
-    public createPage() {
+    public RoomNameClick() {
+        if(this.state === 'welcome') {
+            this.state = 'none'
+        } else {
+            this.state = 'welcome';
+        }
+    }
 
-        //this.newLink.pos.x = this.ContextMenuService.position.x;
-        //this.newLink.pos.y = this.ContextMenuService.position.y;
-        this.newLink.creator = this.UserService.UserData.uId;
+    public TunnelRoomClick() {
+        if(this.state === 'tunnel') {
+            this.state = 'none'
+        } else {
+            this.state = 'tunnel';
+        }
+    }
+    public InsertElementClick() {
+        if(this.state === 'insert') {
+            this.state = 'none'
+        } else {
+            this.state = 'insert';
+        }
+    }
 
-        this.closeContextMenu();
-        this.tunnelingInfo.isTunneling = true;
-        //this.tunnelingInfo.pos.x = this.ContextMenuService.position.x;
-        //this.tunnelingInfo.pos.y = this.ContextMenuService.position.y;
-        this.tunnelingInfo.text = this.newLink.data.text;
-        this.SocketService.CreateElement(this.newLink);
-    };
-
-    public updatePage() {
-        this.SocketService.UpdatePage(this.pageSettings);
-    };
-
-    public closeContextMenu() {
-        //this.ContextMenuService.forceClose = true;
-    };
-     private resetLocalData = function() {
-        this.newLink = {
-            eType: "link",
-            creator: "unset",
-            pos: {
-                x: this.ContextMenuService.position.x,
-                y: this.ContextMenuService.position.y
-            },
-            data: {
-                text: ""
-            }
-        };
-         this.pageSettings = {
-            title: this.ActivePageService.PageData.title,
-            permissions: this.ActivePageService.PageData.permissions,
-            background: {
-                bType : this.ActivePageService.PageData.background.bType,
-                data : {
-                    color : this.ActivePageService.PageData.background.data.color
-                }
-            }
-        };
-    };
+    private updateMaxHeight() {
+        if(this.state === 'none') {
+            this.controlPanel.style.maxHeight = '0px';
+        } else {
+            this.controlPanel.style.maxHeight = (window.innerHeight - this.controlMenu.offsetHeight).toString() + 'px';
+        }
+    }
 }

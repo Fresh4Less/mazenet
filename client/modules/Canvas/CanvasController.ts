@@ -1,6 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/tsd.d.ts" />
 
+import $ = require('jquery');
 import PageStyles = require("../../models/Pages/PageStyles");
 import IActivePageService = require("../../services/Pages/Interfaces/IActivePageService");
 import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
@@ -57,17 +58,17 @@ class CanvasController {
         CursorService.OnCycleDrawMode(()=>{self.resetCanvas()});
         $timeout(function() {
             self.canvas = <HTMLCanvasElement>document.getElementById('canvas-'+self.id);
-
             if(!self.canvas) {
                 console.error("Error loading canvas.", self);
                 return;
             }
-            self.controlMenu = angular.element( document.querySelector( '#control-menu' ) )[0];
-            self.width = window.innerWidth;
-            self.height = window.innerHeight;
-            self.canvas.setAttribute('width', window.innerWidth.toString());
-            self.canvas.setAttribute('height', (window.innerHeight - self.controlMenu.offsetHeight).toString());
+
             self.ctx = self.canvas.getContext('2d');
+            self.controlMenu = angular.element( document.querySelector( '#TheControlMenu' ) )[0];
+
+            self.resizeCanvas();
+            $(window).bind('resize.canvascontroller', ()=>{self.resizeCanvas();});
+
             self.rootRenderLoop();
         });
     }
@@ -80,16 +81,6 @@ class CanvasController {
             setTimeout(function() {
                 window.requestAnimationFrame(loopCallback);
                 if(self.ctx) {
-
-                    /* Check if the user has resized the window */
-                    if(self.width != window.innerWidth) {
-                        self.width = window.innerWidth;
-                        self.canvas.setAttribute('width', self.width.toString());
-                    }
-                    if(self.height != window.innerHeight) {
-                        self.height = window.innerHeight;
-                        self.canvas.setAttribute('height', (self.height - self.controlMenu.offsetHeight).toString());
-                    }
 
                     /* Enter time mismatch means the room changed. */
                     if(self.activeRoomTime != self.ActivePageService.PageData.enterTime) {
@@ -422,5 +413,11 @@ class CanvasController {
             }
             //self.cursorTimeMarkers.push(0);
         });
+    }
+    private resizeCanvas() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.setAttribute('width', window.innerWidth.toString());
+        this.canvas.setAttribute('height', (window.innerHeight - this.controlMenu.offsetHeight).toString());
     }
 }

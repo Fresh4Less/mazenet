@@ -73,17 +73,15 @@ class CursorService implements ICursorService {
 
     public UserMovedCursor($event:MouseEvent) {
         var self = this;
-        if(self.cursorTimeout) {
+        if(self.cursorTimeout && $event.srcElement && $event.srcElement.clientWidth && $event.srcElement.clientHeight) {
             self.cursorTimeout = false;
-
             var cursorMove:CursorFrame = {
                 pos: {
-                    x: $event.clientX / this.$window.innerWidth,
-                    y: $event.clientY / this.$window.innerHeight
+                    x: $event.layerX / $event.srcElement.clientWidth,
+                    y: $event.layerY / $event.srcElement.clientHeight
                 },
                 t: self.frameDifference(self.ActivePageService.PageData.enterTime, new Date().getTime())
             };
-
             self.SocketService.CursorMove(cursorMove);
 
             /* Limits the cursor rate to (networkTiming)FPS */

@@ -26,6 +26,10 @@ module.exports = function(grunt) {
 			js: {
 				files: ['client/**/*.js', 'server/**/*.js'],
 				tasks: ['concat', 'express:dev']
+			},
+			sass: {
+				files: ['client/styles/**/*.scss'],
+				tasks: ['sass']
 			}
 		},
 		typescript: {

@@ -1,25 +1,34 @@
-<section id='control-menu' >
-   <nav class="navbar navbar-inverse mz-navbar">
+<section id='TheControlMenu' >
+   <nav class="navbar navbar-inverse">
       <div class="container-fluid">
          <ul class="nav navbar-nav navbar-left">
-            <li class="dropdown">
-               <span class="dropdown-toggle navbar-brand" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                  Mazenet: <b>{{cmCtrl.page.title}}</b> <span class="caret"></span>
-               </span>
-               <div class="dropdown-menu">
-                  <form class="form-group">
-                     <label for="usr">Title:</label>
-                     <input type="text" class="form-control" id="usr" ng-model="cmCtrl.page.title">
-                  </form>
-               </div>
+            <li class="navbar-brand mz-brand"
+                ng-class="{'mz-top-option-selected': cmCtrl.state == 'welcome'}"
+                ng-click="cmCtrl.RoomNameClick()">
+               <b>{{cmCtrl.page.title}}</b>
             </li>
          </ul>
          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
-               <li>Tunnel Room</li>
-               <li><a href="#">Insert Image</a></li>
+               <li class="mz-top-option mz-brand"
+                   ng-class="{'mz-top-option-selected': cmCtrl.state == 'tunnel'}"
+                   ng-click="cmCtrl.TunnelRoomClick()">
+                  <span class="fa fa-chain"> </span> Tunnel Room
+               </li>
+               <li class="mz-top-option"
+                   ng-class="{'mz-top-option-selected': cmCtrl.state == 'insert'}"
+                   ng-click="cmCtrl.InsertElementClick()">
+                  <span class="fa fa-medkit"> </span> Insert Element
+               </li>
             </ul>
          </div>
       </div>
    </nav>
+   <section id="TheControlPanel">
+
+      <div class="control-panel-content" ng-class="{'content-open': cmCtrl.state != 'none', 'content-closed': cmCtrl.state == 'none'}">
+         <mz-welcome-menu ng-if="cmCtrl.state == 'welcome'"></mz-welcome-menu>
+         <mz-new-room-menu ng-if="cmCtrl.state == 'tunnel'"></mz-new-room-menu>
+      </div>
+   </section>
 </section>

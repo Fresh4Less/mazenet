@@ -31,6 +31,7 @@ bower_components
 
 # Webstorm folder
 .idea
+
 # VS Code folder
 .vscode
 
@@ -38,3 +39,6 @@ bower_components
 client/**/*.map
 client/**/*.js
 typings
+
+# SASS stuff
+client/**/*.css

@@ -4,3 +4,24 @@
   -ms-border-radius: $radius;
   border-radius: $radius;
 }
+
+@mixin mz-ease-out($property, $timing) {
+  -webkit-transition: $property $timing cubic-bezier(0.640, 1.000, 0.665, 1.000);
+  -moz-transition: $property $timing cubic-bezier(0.640, 1.000, 0.665, 1.000);
+  -o-transition: $property $timing cubic-bezier(0.640, 1.000, 0.665, 1.000);
+  transition: $property $timing cubic-bezier(0.640, 1.000, 0.665, 1.000); /* custom */
+
+  -webkit-transition-timing-function: cubic-bezier(0.640, 1.000, 0.665, 1.000);
+  -moz-transition-timing-function: cubic-bezier(0.640, 1.000, 0.665, 1.000);
+  -o-transition-timing-function: cubic-bezier(0.640, 1.000, 0.665, 1.000);
+  transition-timing-function: cubic-bezier(0.640, 1.000, 0.665, 1.000); /* custom */
+}
+
+@mixin flex-direction($direction) {
+  -webkit-flex-direction: $direction;
+  flex-direction: $direction;
+}
+@mixin display-flex() {
+  display: -webkit-flex;
+  display: flex;
+}
