@@ -38,11 +38,22 @@
             <md-tabs md-dynamic-height md-border-bottom>
                 <md-tab label="Color" ng-click="nrCtrl.pageToMake.background.bType = 'color'">
                     <md-content class="md-padding">
-                        <md-input-container class="md-block">
-                            <label>Color Value</label>
-                            <input name="backgroundColor" ng-model="nrCtrl.pageToMake.background.data.color">
+                        <!--<md-input-container class="md-block">-->
+                            <!--<label>Color Value</label>-->
+                            <!--<input name="backgroundColor" ng-model="nrCtrl.pageToMake.background.data.color">-->
+                        <!--</md-input-container>-->
+                        <md-autocomplete flex required
+                                         md-input-name="colorName"
+                                         md-no-cache="true"
+                                         md-search-text="nrCtrl.pageToMake.background.data.color"
+                                         md-items="item in nrCtrl.ColorSearch(nrCtrl.pageToMake.background.data.color)"
+                                         md-item-text="item.display"
+                                         md-floating-label="Color Value">
+                            <md-item-template>
+                                <span md-highlight-text="nrCtrl.pageToMake.background.data.color">{{item}}</span>
+                            </md-item-template>
                             <div class="hint">Color can be either <em>Word</em> or <em>Hex Value</em>.</div>
-                        </md-input-container>
+                        </md-autocomplete>
                     </md-content>
                 </md-tab>
                 <md-tab label="Gradient" ng-disabled="true">

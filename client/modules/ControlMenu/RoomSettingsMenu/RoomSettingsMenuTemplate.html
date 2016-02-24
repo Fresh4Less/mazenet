@@ -1,0 +1,27 @@
+<md-toolbar class="md-theme-indigo">
+    <h1 class="md-toolbar-tools">Room: {{rsCtrl.page.title}}</h1>
+</md-toolbar>
+<md-content flex layout-padding>
+    <p>
+        Id: <i>{{rsCtrl.page._id}}</i>
+    </p>
+    <p>
+        Creator: <i>{{rsCtrl.page.creator}}</i>
+    </p>
+    <p>
+        Owners:
+        <i style="display: block;" ng-repeat="owner in rsCtrl.page.owners">{{owner}}</i>
+    </p>
+    <p>
+        Permissions: {{rsCtrl.page.permissions}}
+    </p>
+    <p>
+        Elements: {{rsCtrl.page.elements.length}}
+    </p>
+    <p>
+        Background: {{rsCtrl.page.background.bType}}
+    </p>
+    <p>
+        Cursor Recordings: {{rsCtrl.page.cursors.length}}
+    </p>
+</md-content>

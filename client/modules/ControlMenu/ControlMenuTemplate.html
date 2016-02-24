@@ -1,33 +1,8 @@
 <section id='TheControlMenu' >
    <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left">
-      <md-toolbar class="md-theme-indigo">
-         <h1 class="md-toolbar-tools">Room: {{cmCtrl.page.title}}</h1>
-      </md-toolbar>
-      <md-content flex layout-padding>
-         <p>
-            Id: <i>{{cmCtrl.page._id}}</i>
-         </p>
-         <p>
-            Creator: <i>{{cmCtrl.page.creator}}</i>
-         </p>
-         <p>
-            Owners:
-            <i style="display: block;" ng-repeat="owner in cmCtrl.page.owners">{{owner}}</i>
-         </p>
-         <p>
-            Permissions: {{cmCtrl.page.permissions}}
-         </p>
-         <p>
-            Elements: {{cmCtrl.page.elements.length}}
-         </p>
-         <p>
-            Background: {{cmCtrl.page.background.bType}}
-         </p>
-         <p>
-            Cursor Recordings: {{cmCtrl.page.cursors.length}}
-         </p>
-      </md-content>
+      <mz-room-settings-menu></mz-room-settings-menu>
    </md-sidenav>
+
    <md-toolbar>
       <div class="md-toolbar-tools">
          <md-button class="md-icon-button" aria-label="Page Settings" ng-click="cmCtrl.RoomNameClick()">
