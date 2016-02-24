@@ -1,34 +1,64 @@
 <section id='TheControlMenu' >
-   <nav class="navbar navbar-inverse">
-      <div class="container-fluid">
-         <ul class="nav navbar-nav navbar-left">
-            <li class="navbar-brand mz-brand"
-                ng-class="{'mz-top-option-selected': cmCtrl.state == 'welcome'}"
-                ng-click="cmCtrl.RoomNameClick()">
-               <b>{{cmCtrl.page.title}}</b>
-            </li>
-         </ul>
-         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-               <li class="mz-top-option mz-brand"
-                   ng-class="{'mz-top-option-selected': cmCtrl.state == 'tunnel'}"
-                   ng-click="cmCtrl.TunnelRoomClick()">
-                  <span class="fa fa-chain"> </span> Tunnel Room
-               </li>
-               <li class="mz-top-option"
-                   ng-class="{'mz-top-option-selected': cmCtrl.state == 'insert'}"
-                   ng-click="cmCtrl.InsertElementClick()">
-                  <span class="fa fa-medkit"> </span> Insert Element
-               </li>
-            </ul>
+   <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left">
+      <md-toolbar class="md-theme-indigo">
+         <h1 class="md-toolbar-tools">Room: {{cmCtrl.page.title}}</h1>
+      </md-toolbar>
+      <md-content flex layout-padding>
+         <p>
+            Id: <i>{{cmCtrl.page._id}}</i>
+         </p>
+         <p>
+            Creator: <i>{{cmCtrl.page.creator}}</i>
+         </p>
+         <p>
+            Owners:
+            <i style="display: block;" ng-repeat="owner in cmCtrl.page.owners">{{owner}}</i>
+         </p>
+         <p>
+            Permissions: {{cmCtrl.page.permissions}}
+         </p>
+         <p>
+            Elements: {{cmCtrl.page.elements.length}}
+         </p>
+         <p>
+            Background: {{cmCtrl.page.background.bType}}
+         </p>
+         <p>
+            Cursor Recordings: {{cmCtrl.page.cursors.length}}
+         </p>
+      </md-content>
+   </md-sidenav>
+   <md-toolbar>
+      <div class="md-toolbar-tools">
+         <md-button class="md-icon-button" aria-label="Page Settings" ng-click="cmCtrl.RoomNameClick()">
+            <i class="fa fa-bars"></i>
+         </md-button>
+         <h2>
+            <span>{{cmCtrl.page.title}}</span>
+         </h2>
+         <span flex></span>
+         <div ng-show="!cmCtrl.ClickNetService.AwaitingClick">
+            <md-button class="md-icon-button" aria-label="New Room" ng-click="cmCtrl.TunnelRoomClick()">
+               <i class="fa fa-link"></i>
+            </md-button>
+            <md-button class="md-icon-button" aria-label="New Element" ng-click="cmCtrl.InsertElementClick()">
+               <i class="fa fa-plus-square"></i>
+            </md-button>
          </div>
-      </div>
-   </nav>
-   <section id="TheControlPanel">
+         <div ng-show="cmCtrl.ClickNetService.AwaitingClick">
+            <md-button class="md-raised md-accent" aria-label="New Room" ng-click="cmCtrl.ClickNetService.CancelClick()">
+               Cancel
+            </md-button>
+         </div>
 
-      <div class="control-panel-content" ng-class="{'content-open': cmCtrl.state != 'none', 'content-closed': cmCtrl.state == 'none'}">
-         <mz-welcome-menu ng-if="cmCtrl.state == 'welcome'"></mz-welcome-menu>
-         <mz-new-room-menu ng-if="cmCtrl.state == 'tunnel'"></mz-new-room-menu>
       </div>
-   </section>
+   </md-toolbar>
+
+   <!-- Transcludes in the rest of Mazenet -->
+   <ng-transclude></ng-transclude>
+
+   <md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="right">
+      <mz-welcome-menu ng-if="cmCtrl.MenuService.MenuState == 'welcome'"></mz-welcome-menu>
+      <mz-new-room-menu ng-if="cmCtrl.MenuService.MenuState == 'tunnel'"></mz-new-room-menu>
+   </md-sidenav>
 </section>

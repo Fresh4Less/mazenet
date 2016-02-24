@@ -7,12 +7,12 @@ import Modules = require('./modules/module');
 
 export = mazenet;
 
-var mazenet = angular.module('mazenet', ['ui.bootstrap', 'ngRoute', Services.name, Modules.name]);
+var mazenet = angular.module('mazenet', ['ngRoute', 'ngMaterial', Services.name, Modules.name]);
 
 mazenet.controller(RootController.name, RootController);
 
-mazenet.config(['$routeProvider', '$locationProvider',
-    function($routeProvider, $locationProvider) {
+mazenet.config(['$routeProvider', '$mdThemingProvider',
+    function($routeProvider, $mdThemingProvider) {
 
         $routeProvider
             .when('/room/:pageId', {
@@ -26,7 +26,8 @@ mazenet.config(['$routeProvider', '$locationProvider',
             .otherwise( {
                 redirectTo:'/room'
             });
-
+        //$mdThemingProvider.theme('default')
+        //    .dark();
         //$locationProvider.html5Mode(true); TODO: make express work.
     }]
 );

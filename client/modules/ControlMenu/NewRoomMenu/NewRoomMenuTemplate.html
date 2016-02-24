@@ -1,3 +1,71 @@
-<section>
-    You are about to make a new room! :0
+<section id="NewRoomMenu">
+    <md-toolbar class="md-theme-light">
+        <h1 class="md-toolbar-tools">Tunnel New Room</h1>
+    </md-toolbar>
+    <md-content layout="column" layout-padding>
+        <form name="newRoomForm" ng-submit="nrCtrl.SelectPositionToTunnel()">
+            <md-button class="md-raised md-accent" type="submit">Select Position to Tunnel <i class="fa fa-crosshairs"></i></md-button>
+            <md-input-container class="md-block">
+                <label>Room Title</label>
+                <input required name="title" ng-model="nrCtrl.pageToMake.title">
+                <div ng-messages="newRoomForm.title.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label>Link Text</label>
+                <input required name="linkText" ng-model="nrCtrl.pageLinkText">
+                <div ng-messages="newRoomForm.linkText.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <h3 class="md-title">Preview</h3>
+            <div class="preview-window md-whiteframe-9dp" style="background-color: {{nrCtrl.pageToMake.background.data.color}};">
+                <md-toolbar class="minature-toolbar">
+                    <md-button class="md-icon-button" aria-label="Page Settings">
+                        <i class="fa fa-bars"></i>
+                    </md-button>
+                    <span>{{(nrCtrl.pageToMake.title ? nrCtrl.pageToMake.title : 'Page Title')}}</span>
+                </md-toolbar>
+                <div class="preview-body">
+                    <a style="position:absolute; top: 65%; left: 23%">{{(nrCtrl.pageLinkText ? nrCtrl.pageLinkText : 'Page Link Text')}}</a>
+                    <a style="position:absolute; top: 44%; left: 76%">Some other room</a>
+                    <a style="position:absolute; top: 30%; left: 10%">I am link to something cool</a>
+                </div>
+            </div>
+            <br>
+            <h4 class="md-title">Background design</h4>
+            <md-tabs md-dynamic-height md-border-bottom>
+                <md-tab label="Color" ng-click="nrCtrl.pageToMake.background.bType = 'color'">
+                    <md-content class="md-padding">
+                        <md-input-container class="md-block">
+                            <label>Color Value</label>
+                            <input name="backgroundColor" ng-model="nrCtrl.pageToMake.background.data.color">
+                            <div class="hint">Color can be either <em>Word</em> or <em>Hex Value</em>.</div>
+                        </md-input-container>
+                    </md-content>
+                </md-tab>
+                <md-tab label="Gradient" ng-disabled="true">
+                </md-tab>
+                <md-tab label="Image" ng-disabled="true">
+                </md-tab>
+            </md-tabs>
+            <md-content>
+                <h4 class="md-title">Global permissions</h4>
+                <p>Everyone can create <span class="permission-value md-warn">{{nrCtrl.getPermissionWord()}}</span>.</p>
+                <md-radio-group ng-model="nrCtrl.pageToMake.permissions">
+                    <md-radio-button value="all" class="md-warn">Anything</md-radio-button>
+                    <md-radio-button value="links" class="md-warn">Links Only</md-radio-button>
+                    <md-radio-button value="none" class="md-warn">Nothing</md-radio-button>
+                </md-radio-group>
+            </md-content>
+            <md-content>
+                <h4 class="md-title">Room Administrators</h4>
+                <md-chips ng-model="nrCtrl.pageToMake.owners"
+                          secondary-placeholder="Enter additional User IDs">
+                </md-chips>
+            </md-content>
+            <br>
+        </form>
+    </md-content>
 </section>

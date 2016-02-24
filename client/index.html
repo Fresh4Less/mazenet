@@ -10,11 +10,13 @@
 	
 </head>
 <body ng-controller="RootController" style="{{ globalPageStyles.stringified }}">
-	<mz-control-menu></mz-control-menu>
-	<!-- Background Canvas -->
-	<mz-canvas></mz-canvas>
-	<!-- Mazenet -->
-	<mz-mazenet></mz-mazenet>
-	<!-- Dropdown Menu -->
+	<mz-control-menu>
+		<!-- Background Canvas -->
+		<mz-canvas></mz-canvas>
+		<!-- Mazenet -->
+		<mz-mazenet></mz-mazenet>
+		<!-- Mouse Click Capturer -->
+		<mz-click-net></mz-click-net>
+	</mz-control-menu>
 </body>
 </html>

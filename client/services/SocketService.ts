@@ -15,7 +15,10 @@ export = SocketService;
 
 class SocketService implements ISocketService {
     static name:string = "SocketService";
+
+    public InitialLoadComplete:boolean;
     private socket:SocketIO.Socket;
+    private pageUpdatePromise:angular.IDeferred<Page> = null;
     private pageEnterPromise:angular.IDeferred<Page> = null;
     private elementCreatePromise:angular.IDeferred<IElement> = null;
 
@@ -36,6 +39,7 @@ class SocketService implements ISocketService {
                 private $location:angular.ILocationService,
                 private UserService:IUserService,
                 private ActivePageService:IActivePageService){
+        this.InitialLoadComplete = false;
     }
     public Init() {
         if(!this.socket || !this.socket.connected) {
@@ -67,7 +71,11 @@ class SocketService implements ISocketService {
     }
 
     public UpdatePage(pageData:Page) {
+        this.pageUpdatePromise = this.$q.defer();
+
         this.socket.emit('pages/update', pageData);
+
+        return this.pageEnterPromise.promise;
     }
 
     public CreateElement(element:IElement) {
@@ -147,18 +155,21 @@ class SocketService implements ISocketService {
     private pageUpdatedCallback():(any)=>void {
         var self = this;
         return (pageChanges) => {
-            this.ActivePageService.UpdatePage(pageChanges);
+            self.ActivePageService.UpdatePage(pageChanges);
+            self.pageEnterPromise.resolve(pageChanges);
         };
     };
     private pageUpdateFailureCallback():(any)=>void {
         var self = this;
         return (error) => {
             console.error('Error updating page.', error);
+            self.pageEnterPromise.resolve(error);
         };
     };
     private loadInitialPage() {
         var self = this;
         var successCallback = function(page) {
+            self.InitialLoadComplete = true;
             console.log('Welcome to Mazenet.', self.UserService.UserData);
         };
         var failureCallback = function(error) {

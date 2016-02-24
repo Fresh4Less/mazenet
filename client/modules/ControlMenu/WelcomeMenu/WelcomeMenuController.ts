@@ -1,15 +1,27 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../typings/tsd.d.ts" />
 
+import IMenuService = require("../../../services/Interfaces/IMenuService");
+import ISocketService = require("../../../services/Interfaces/ISocketService");
 export = WelcomeMenuController;
 
 class WelcomeMenuController {
-    public name = "Sam";
 
-    static $inject = [];
+    static $inject = [
+        '$scope',
+        'MenuService',
+        'SocketService'
+    ];
 
-    constructor() {
+    constructor(private $scope:ng.IScope,
+                private MenuService:IMenuService,
+                public SocketService:ISocketService) {
+    }
 
+    public EnterMazenet() {
+        if(this.SocketService.InitialLoadComplete) {
+            this.MenuService.CloseAllMenus();
+        }
     }
 
 }

@@ -5,24 +5,28 @@ requirejs.config({
         'mazenet':'module',
         'socketio': '/socket.io/socket.io',
         'angular': '/bower_components/angular/angular',
-        'angular-route': '/bower_components/angular-route/angular-route.min',
-        'angular-bootstrap': '/bower_components/angular-bootstrap/ui-bootstrap-tpls.min',
+        'angular-route': '/bower_components/angular-route/angular-route',
+        'angular-aria': '/bower_components/angular-aria/angular-aria',
+        'angular-animate': '/bower_components/angular-animate/angular-animate',
+        'angular-material': '/bower_components/angular-material/angular-material',
         'jquery':'/bower_components/jquery/dist/jquery',
-        'bootstrap':'/bower_components/bootstrap-sass/assets/javascripts/bootstrap',
-        'underscore':'/bower_components/underscore/underscore-min'
+        'underscore':'/bower_components/underscore/underscore-min',
     },
     shim: {
         'mazenet': {
-            deps: ['angular', 'angular-route', 'angular-bootstrap', 'socketio', 'bootstrap', 'underscore']
+            deps: ['angular', 'angular-route', 'angular-material', 'socketio',  'underscore']
         },
         'angular-route': {
             deps: ['angular']
         },
-        'angular-bootstrap': {
+        'angular-material': {
+            deps: ['angular', 'angular-animate', 'angular-aria']
+        },
+        'angular-animate': {
             deps: ['angular']
         },
-        'bootstrap': {
-            deps: ['jquery']
+        'angular-aria': {
+            deps: ['angular']
         }
     }
 });

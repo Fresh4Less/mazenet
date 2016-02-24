@@ -8,65 +8,71 @@ import IUserService = require("../../services/Interfaces/IUserService");
 import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
 import IElement = require("../../models/Interfaces/IElement");
 import Page = require("../../models/Pages/Page");
+import IMenuService = require("../../services/Interfaces/IMenuService");
+import IClickNetService = require("../../services/Interfaces/IClickNetService");
 
 export = ControlMenuController;
 
 class ControlMenuController {
 
-    public state:string;
     public page:Page;
     private controlMenu:HTMLElement;
     private controlPanel:HTMLElement;
 
     static $inject = [
+        '$scope',
         '$timeout',
+        '$mdSidenav',
         'ActivePageService',
         'UserService',
-        'CursorService'
+        'CursorService',
+        'MenuService',
+        'ClickNetService'
     ];
 
-    constructor(private $timeout:ng.ITimeoutService,
+    constructor(private $scope:ng.IScope,
+                private $timeout:ng.ITimeoutService,
+                private $mdSidenav:ng.material.ISidenavService,
                 private ActivePageService:IActivePageService,
                 private UserService:IUserService,
-                private CursorService:ICursorService) {
-        this.state = 'welcome';
+                private CursorService:ICursorService,
+                public MenuService:IMenuService,
+                public ClickNetService:IClickNetService) {
         this.page = ActivePageService.PageData;
-        var self = this;
-        $timeout(function() {
-            self.controlMenu = angular.element( document.querySelector( '#TheControlMenu' ) )[0];
-            self.controlPanel = angular.element( document.querySelector( '#TheControlPanel' ) )[0];
-            $(window).bind('resize.controlmenu', ()=>{self.updateMaxHeight();});
-        });
+        this.ToggleLeft = this.buildToggler('left');
+        this.ToggleRight = this.buildToggler('right');
+    }
+
+    public ToggleLeft:()=>void;
+    public ToggleRight:()=>void;
+
+    public IsOpenRight() {
+        return this.$mdSidenav('right').isOpen();
+    }
+    public IsOpenLeft() {
+        return this.$mdSidenav('left').isOpen();
     }
 
     public RoomNameClick() {
-        if(this.state === 'welcome') {
-            this.state = 'none'
-        } else {
-            this.state = 'welcome';
-        }
+        this.ToggleLeft();
+        this.MenuService.OpenRoomMenu();
     }
 
     public TunnelRoomClick() {
-        if(this.state === 'tunnel') {
-            this.state = 'none'
-        } else {
-            this.state = 'tunnel';
-        }
+        this.ToggleRight();
+        this.MenuService.OpenTunnelMenu();
     }
     public InsertElementClick() {
-        if(this.state === 'insert') {
-            this.state = 'none'
-        } else {
-            this.state = 'insert';
-        }
+        this.MenuService.OpenInsertElementMenu();
     }
 
-    private updateMaxHeight() {
-        if(this.state === 'none') {
-            this.controlPanel.style.maxHeight = '0px';
-        } else {
-            this.controlPanel.style.maxHeight = (window.innerHeight - this.controlMenu.offsetHeight).toString() + 'px';
-        }
+    private buildToggler(navID) {
+        var self = this;
+        return () => {
+            self.$mdSidenav(navID)
+                .toggle()
+                .then(function () {
+        });
     }
+}
 }

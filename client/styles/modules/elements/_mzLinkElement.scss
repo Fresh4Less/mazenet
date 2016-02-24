@@ -2,6 +2,9 @@
   text-align: center;
   cursor: pointer;
   position: absolute;
+  &:hover {
+    text-shadow: 1px 1px 2px gray;
+  }
   .new {
     color: gray;
   }

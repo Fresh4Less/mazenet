@@ -2,7 +2,7 @@
 ========================================================================== */
 
 @import 'vendor/_normalize.scss';
-@import 'vendor/_bootstrap.scss';
+@import '../../bower_components/angular-material/angular-material.scss';
 
 
 /* BASE - Base Variable file along with starting point Mixins and Placeholders.
@@ -27,3 +27,4 @@
 @import 'modules/_mzMazenet.scss';
 @import 'modules/_mzControlMenu.scss';
 @import 'modules/_mzCanvas.scss';
+@import 'modules/_mzClickNet.scss';

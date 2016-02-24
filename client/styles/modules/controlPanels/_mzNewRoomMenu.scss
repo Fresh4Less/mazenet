@@ -1,0 +1,45 @@
+#NewRoomMenu {
+  [class*="col-"]{
+    //border-right: 1px solid white;
+  }
+  .preview-window {
+    border: 1px solid gray;
+    height: 20em;
+    a {
+      font-size: 10px;
+      color: #0000EE;
+    }
+    a:hover {
+      cursor:pointer;
+    }
+    .minature-toolbar {
+      line-height: 3.5em;
+      font-size: 12px;
+      flex-direction: row;
+      min-height: 4em;
+    }
+    .preview-body {
+      position:relative;
+      width:100%;
+      height:100%;
+    }
+  }
+  .permission-value {
+    margin-left: 3px;
+    font-weight: bold;
+    color: $mz-warn-complement;
+  }
+  .hint {
+    /* Position the hint */
+    position: absolute;
+    left: 2px;
+    right: auto;
+    bottom: 7px;
+    /* Copy styles from ng-messages */
+    font-size: 12px;
+    line-height: 14px;
+    transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+    /* Set our own color */
+    color: grey;
+  }
+}

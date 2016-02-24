@@ -11,7 +11,6 @@ export = ActivePageService;
 
 class ActivePageService implements IActivePageService{
     static name:string = 'ActivePageService';
-
     public PageData:Page;
     public RootPages:RootPages;
     public Styles:PageStyles;

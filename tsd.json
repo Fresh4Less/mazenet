@@ -34,6 +34,15 @@
     },
     "jasmine/jasmine.d.ts": {
       "commit": "c393f8974d44840a6c9cc6d5b5c0188a8f05143d"
+    },
+    "angular-material/angular-material.d.ts": {
+      "commit": "dade4414712ce84e3c63393f1aae407e9e7e6af7"
+    },
+    "angularjs/angular.d.ts": {
+      "commit": "dade4414712ce84e3c63393f1aae407e9e7e6af7"
+    },
+    "jquery/jquery.d.ts": {
+      "commit": "dade4414712ce84e3c63393f1aae407e9e7e6af7"
     }
   }
 }

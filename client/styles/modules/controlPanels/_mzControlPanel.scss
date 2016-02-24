@@ -8,15 +8,19 @@
     background: $mz-gray-highlight;
     color: $mz-light-text;
     border-bottom:4px solid $mz-gray;
+
+
     //position:absolute;
     //bottom: 0;
 
   }
   .content-closed {
+    padding: 0;
   }
   .content-open {
+    padding: 1.3em;
   }
-  .content-fully-open {
-    height: 100%;
-  }
+}
+.fill-screen {
+  height: 100%;
 }

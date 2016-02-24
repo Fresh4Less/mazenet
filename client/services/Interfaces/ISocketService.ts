@@ -8,6 +8,7 @@ import CursorFrame = require("../../models/Cursors/CursorFrame");
 export = ISocketService;
 
 interface ISocketService {
+    InitialLoadComplete:boolean;
     Init();
     EnterPage(pageId:string, pos:MzPosition):angular.IPromise<Page>;
     UpdatePage(pageData:Page);

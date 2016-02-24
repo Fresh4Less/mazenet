@@ -10,7 +10,7 @@ function NewRoomMenuDirective():ng.IDirective {
         restrict: 'E',
         templateUrl: '/modules/ControlMenu/NewRoomMenu/NewRoomMenuTemplate.html',
         controller: NewRoomMenuController,
-        controllerAs: 'wmCtrl',
+        controllerAs: 'nrCtrl',
         bindToController: true
     };
     return directive;

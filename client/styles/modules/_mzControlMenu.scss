@@ -1,42 +1,7 @@
 #TheControlMenu {
-  .navbar {
-    min-height: 5rem;
-    z-index: 20;
-  }
-  .navbar-inverse {
-    margin-bottom: 0;
-    border:0;
-    background: $mz-gray;
-    @include border-radius(0px);
-
-    .mz-brand {
-      color: $mz-light-text;
-      float: left;
-      padding: 10px 15px;
-      font-size: 23px;
-      line-height: 2.5rem;
-      height: 5rem;
-      &:hover {
-        background: $mz-gray-highlight;
-        cursor: pointer;
-      }
-    }
-    .mz-top-option {
-      color: $mz-light-text;
-      float: left;
-      padding: 15px 15px;
-      font-size: 18px;
-      line-height: 20px;
-      height: 5rem;
-      &:hover {
-        background: $mz-gray-highlight;
-        cursor: pointer;
-      }
-    }
-    .mz-top-option-selected {
-      background: $mz-gray-highlight;
-    }
-  }
+  overflow-x: hidden;
 }
 
 @import "./controlPanels/mzControlPanel";
+@import "./controlPanels/mzWelcomeMenu";
+@import "./controlPanels/mzNewRoomMenu";

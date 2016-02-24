@@ -78,7 +78,7 @@ class Page {
         this.background = {
             bType: 'color',
             data: {
-                color: '#333333'
+                color: '#dddddd'
             }
         };
         this.owners = [];
