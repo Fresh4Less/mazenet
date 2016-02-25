@@ -24,4 +24,9 @@
     <p>
         Cursor Recordings: {{rsCtrl.page.cursors.length}}
     </p>
+    <p>
+        <a class="pointer" ng-click="rsCtrl.CursorService.CycleDrawMode()">
+            <i class="fa fa-refresh"></i><b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
+        </a>
+    </p>
 </md-content>
