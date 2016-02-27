@@ -5,8 +5,8 @@
 
    <md-toolbar>
       <div class="md-toolbar-tools">
-         <md-button class="md-icon-button" aria-label="Page Settings" ng-click="cmCtrl.RoomNameClick()">
-            <i class="fa fa-bars"></i>
+         <md-button class="md-icon-button" aria-label="Page Settings" ng-click="cmCtrl.RoomInfoClick()">
+            <i class="fa fa-question-circle"></i>
          </md-button>
          <h2>
             <span>{{cmCtrl.page.title}}</span>
@@ -14,10 +14,10 @@
          <span flex></span>
          <div ng-show="!cmCtrl.ClickNetService.AwaitingClick">
             <md-button class="md-icon-button" aria-label="New Room" ng-click="cmCtrl.TunnelRoomClick()">
-               <i class="fa fa-link"></i>
-            </md-button>
-            <md-button class="md-icon-button" aria-label="New Element" ng-click="cmCtrl.InsertElementClick()">
                <i class="fa fa-plus-square"></i>
+            </md-button>
+            <md-button class="md-icon-button" aria-label="New Element" ng-click="cmCtrl.RoomSettingsClick()">
+               <i class="fa fa-cogs"></i>
             </md-button>
          </div>
          <div ng-show="cmCtrl.ClickNetService.AwaitingClick">
@@ -33,7 +33,7 @@
    <ng-transclude></ng-transclude>
 
    <md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="right">
-      <mz-welcome-menu ng-if="cmCtrl.MenuService.MenuState == 'welcome'"></mz-welcome-menu>
-      <mz-new-room-menu ng-if="cmCtrl.MenuService.MenuState == 'tunnel'"></mz-new-room-menu>
+      <!--<mz-welcome-menu ng-if="cmCtrl.MenuService.MenuState == 'naw'"></mz-welcome-menu>-->
+      <mz-new-element-menu ng-if="cmCtrl.ActiveMenu == 'newElement'"></mz-new-element-menu>
    </md-sidenav>
 </section>

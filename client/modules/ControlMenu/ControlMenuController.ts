@@ -8,7 +8,6 @@ import IUserService = require("../../services/Interfaces/IUserService");
 import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
 import IElement = require("../../models/Interfaces/IElement");
 import Page = require("../../models/Pages/Page");
-import IMenuService = require("../../services/Interfaces/IMenuService");
 import IClickNetService = require("../../services/Interfaces/IClickNetService");
 
 export = ControlMenuController;
@@ -16,6 +15,7 @@ export = ControlMenuController;
 class ControlMenuController {
 
     public page:Page;
+    public ActiveMenu:string;
     private controlMenu:HTMLElement;
     private controlPanel:HTMLElement;
 
@@ -26,7 +26,6 @@ class ControlMenuController {
         'ActivePageService',
         'UserService',
         'CursorService',
-        'MenuService',
         'ClickNetService'
     ];
 
@@ -36,9 +35,9 @@ class ControlMenuController {
                 private ActivePageService:IActivePageService,
                 private UserService:IUserService,
                 private CursorService:ICursorService,
-                public MenuService:IMenuService,
                 public ClickNetService:IClickNetService) {
         this.page = ActivePageService.PageData;
+        this.ActiveMenu = 'none';
         this.ToggleLeft = this.buildToggler('left');
         this.ToggleRight = this.buildToggler('right');
     }
@@ -53,17 +52,17 @@ class ControlMenuController {
         return this.$mdSidenav('left').isOpen();
     }
 
-    public RoomNameClick() {
+    public RoomInfoClick() {
         this.ToggleLeft();
-        this.MenuService.OpenRoomMenu();
+        this.ActiveMenu = 'info';
     }
 
     public TunnelRoomClick() {
         this.ToggleRight();
-        this.MenuService.OpenTunnelMenu();
+        this.ActiveMenu = 'newElement';
     }
-    public InsertElementClick() {
-        this.MenuService.OpenInsertElementMenu();
+    public RoomSettingsClick() {
+        this.ActiveMenu = 'settings';
     }
 
     private buildToggler(navID) {
