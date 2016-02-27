@@ -1,0 +1,34 @@
+<md-toolbar>
+    <h1 class="md-toolbar-tools"><i class="fa fa-user" style="padding-right: 1em"> </i> User Account</h1>
+</md-toolbar>
+<md-content flex layout-padding>
+    <div ng-if="!umCtrl.IsLoggedIn()">
+        <h4>You are not logged in</h4>
+        <form name="loginForm" ng-submit="uCtrl.Login()">
+            <md-input-container class="md-block">
+                <label>Username</label>
+                <input required name="username" ng-model="uCtrl.username">
+                <div ng-messages="loginForm.username.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label>Password</label>
+                <input required name="password" ng-model="uCtrl.password">
+                <div ng-messages="loginForm.password.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <md-button class="md-raised md-primary" type="submit">Login</md-button>
+        </form>
+        <br>
+        <h4>Dont have a login?</h4>
+        <md-button class="md-raised md-accent">Register Account</md-button>
+    </div>
+    <div ng-if="umCtrl.IsLoggedIn()">
+        <p>
+            Here you will be able to configure your current user and other snazzy stuff like that.
+        </p>
+    </div>
+    <h5><em>This is all templating. User accounts and things like that have not yet been implemented.</em></h5>
+</md-content>

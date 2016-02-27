@@ -24,8 +24,6 @@ class ControlMenuController {
         '$timeout',
         '$mdSidenav',
         'ActivePageService',
-        'UserService',
-        'CursorService',
         'ClickNetService'
     ];
 
@@ -33,8 +31,6 @@ class ControlMenuController {
                 private $timeout:ng.ITimeoutService,
                 private $mdSidenav:ng.material.ISidenavService,
                 private ActivePageService:IActivePageService,
-                private UserService:IUserService,
-                private CursorService:ICursorService,
                 public ClickNetService:IClickNetService) {
         this.page = ActivePageService.PageData;
         this.ActiveMenu = 'none';
@@ -57,13 +53,18 @@ class ControlMenuController {
         this.ActiveMenu = 'info';
     }
 
-    public TunnelRoomClick() {
+    public NewElementClick() {
         this.ToggleRight();
         this.ActiveMenu = 'newElement';
     }
     public RoomSettingsClick() {
         this.ToggleRight();
-        this.ActiveMenu = 'settings';
+        this.ActiveMenu = 'roomSettings';
+    }
+
+    public UserSettingsClick() {
+        this.ToggleRight();
+        this.ActiveMenu = 'userSettings';
     }
 
     private buildToggler(navID) {

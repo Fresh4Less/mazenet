@@ -1,8 +1,8 @@
-<md-toolbar class="md-theme-indigo">
+<md-toolbar>
     <h1 class="md-toolbar-tools">Configuration</h1>
 </md-toolbar>
 <md-tabs md-dynamic-height md-border-bottom>
-    <md-tab label="{{rsCtrl.page.title}}">
+    <md-tab label="Room: {{rsCtrl.page.title}}">
         <md-content flex layout-padding>
             <p>
                 Id: <i>{{rsCtrl.page._id}}</i>
@@ -26,20 +26,14 @@
             <p>
                 Cursor Recordings: {{rsCtrl.page.cursors.length}}
             </p>
+        </md-content>
+    </md-tab>
+    <md-tab label="Global Settings">
+        <md-content flex layout-padding>
             <p>
                 <a class="pointer" ng-click="rsCtrl.CursorService.CycleDrawMode()">
                     <i class="fa fa-refresh"></i><b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
                 </a>
-            </p>
-        </md-content>
-    </md-tab>
-    <md-tab label="User Profile">
-        <md-content flex layout-padding>
-            <p>
-                Not yet implemented.
-            </p>
-            <p>
-                Here you will be able to configure your current user and other snazzy stuff like that.
             </p>
         </md-content>
     </md-tab>
