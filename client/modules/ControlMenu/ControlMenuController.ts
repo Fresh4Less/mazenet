@@ -62,6 +62,7 @@ class ControlMenuController {
         this.ActiveMenu = 'newElement';
     }
     public RoomSettingsClick() {
+        this.ToggleRight();
         this.ActiveMenu = 'settings';
     }
 

@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/tsd.d.ts" />
 
 import WelcomeMenuDirective = require('./WelcomeMenuDirective');
 

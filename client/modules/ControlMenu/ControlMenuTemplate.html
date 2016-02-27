@@ -1,6 +1,6 @@
 <section id='TheControlMenu' >
    <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left">
-      <mz-room-settings-menu></mz-room-settings-menu>
+      <mz-info-menu></mz-info-menu>
    </md-sidenav>
 
    <md-toolbar>
@@ -35,5 +35,6 @@
    <md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="right">
       <!--<mz-welcome-menu ng-if="cmCtrl.MenuService.MenuState == 'naw'"></mz-welcome-menu>-->
       <mz-new-element-menu ng-if="cmCtrl.ActiveMenu == 'newElement'"></mz-new-element-menu>
+      <mz-room-settings-menu ng-if="cmCtrl.ActiveMenu == 'settings'"></mz-room-settings-menu>
    </md-sidenav>
 </section>

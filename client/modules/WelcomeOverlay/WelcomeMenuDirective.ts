@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/tsd.d.ts" />
 import WelcomeMenuController = require('./WelcomeMenuController');
 
 export = WelcomeMenuDirective
@@ -7,7 +7,7 @@ export = WelcomeMenuDirective
 function WelcomeMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/ControlMenu/WelcomeMenu/WelcomeMenuTemplate.html',
+        templateUrl: '/modules/WelcomeOverlay/WelcomeMenuTemplate.html',
         controller: WelcomeMenuController,
         controllerAs: 'wmCtrl',
         bindToController: true

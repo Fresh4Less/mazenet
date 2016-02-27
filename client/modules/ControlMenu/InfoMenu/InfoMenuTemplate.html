@@ -1,0 +1,56 @@
+<section>
+    <md-toolbar>
+        <h1 class="md-toolbar-tools">Information</h1>
+    </md-toolbar>
+    <md-tabs md-dynamic-height md-border-bottom>
+        <md-tab label="How to Play">
+            <md-content flex layout-padding>
+                <p>
+                    Click the <i class="fa fa-plus-square"></i> to create new stuff.
+                </p>
+                <p>
+                    Click the <i class="fa fa-cogs"></i> to configure the room.
+                </p>
+                <p>
+                    Explore other people's stuff and discover cool things.
+                </p>
+            </md-content>
+        </md-tab>
+        <md-tab label="About">
+            <md-content flex layout-padding>
+                <p>
+                    Created by <a href="http://www.sambdavidson.com/" target="_blank">Samuel Davidson</a> and <a href="https://github.com/elliothatch" target="_blank">Elliot Hatch</a>.
+                </p>
+                <p>
+                    2014-2016
+                </p>
+            </md-content>
+        </md-tab>
+        <md-tab label="Room Statistics" >
+            <md-content flex layout-padding>
+                <p>
+                    Id: <i>{{rsCtrl.page._id}}</i>
+                </p>
+                <p>
+                    Creator: <i>{{rsCtrl.page.creator}}</i>
+                </p>
+                <p>
+                    Owners:
+                    <i style="display: block;" ng-repeat="owner in rsCtrl.page.owners">{{owner}}</i>
+                </p>
+                <p>
+                    Permissions: {{rsCtrl.page.permissions}}
+                </p>
+                <p>
+                    Elements: {{rsCtrl.page.elements.length}}
+                </p>
+                <p>
+                    Background: {{rsCtrl.page.background.bType}}
+                </p>
+                <p>
+                    Cursor Recordings: {{rsCtrl.page.cursors.length}}
+                </p>
+            </md-content>
+        </md-tab>
+    </md-tabs>
+</section>
