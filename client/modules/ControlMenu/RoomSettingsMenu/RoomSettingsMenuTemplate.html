@@ -2,39 +2,35 @@
     <h1 class="md-toolbar-tools">Configuration</h1>
 </md-toolbar>
 <md-tabs md-dynamic-height md-border-bottom>
-    <md-tab label="Room: {{rsCtrl.page.title}}">
-        <md-content flex layout-padding>
-            <p>
-                Id: <i>{{rsCtrl.page._id}}</i>
-            </p>
-            <p>
-                Creator: <i>{{rsCtrl.page.creator}}</i>
-            </p>
-            <p>
-                Owners:
-                <i style="display: block;" ng-repeat="owner in rsCtrl.page.owners">{{owner}}</i>
-            </p>
-            <p>
-                Permissions: {{rsCtrl.page.permissions}}
-            </p>
-            <p>
-                Elements: {{rsCtrl.page.elements.length}}
-            </p>
-            <p>
-                Background: {{rsCtrl.page.background.bType}}
-            </p>
-            <p>
-                Cursor Recordings: {{rsCtrl.page.cursors.length}}
-            </p>
-        </md-content>
+    <md-tab>
+        <md-tab-label>
+            <i class="fa fa-home"></i> {{rsCtrl.page.title}}
+        </md-tab-label>
+        <md-tab-body>
+            <md-content layout-padding>
+                <mz-room-preview preview-room="rsCtrl.page" link-text="rsCtrl.linkText"></mz-room-preview>
+                <mz-background-settings background-model="rsCtrl.page.background"></mz-background-settings>
+                <mz-permission-settings permissions="rsCtrl.page.permissions"></mz-permission-settings>
+                <md-chips ng-model="rsCtrl.page.owners"
+                          secondary-placeholder="Add admin by User ID.">
+                </md-chips>
+                <br>
+                <md-button class="md-raised md-warn" ng-click="rsCtrl.ApplyRoomChanges()">Apply Changes <i class="fa fa-check"></i></md-button>
+            </md-content>
+        </md-tab-body>
     </md-tab>
-    <md-tab label="Global Settings">
-        <md-content flex layout-padding>
-            <p>
-                <a class="pointer" ng-click="rsCtrl.CursorService.CycleDrawMode()">
-                    <i class="fa fa-refresh"></i><b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
-                </a>
-            </p>
-        </md-content>
+    <md-tab>
+        <md-tab-label>
+            <i class="fa fa-globe"></i> Global
+        </md-tab-label>
+        <md-tab-body>
+            <md-content flex layout-padding>
+                <p>
+                    <a class="pointer" ng-click="rsCtrl.CursorService.CycleDrawMode()">
+                        <i class="fa fa-refresh"></i><b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
+                    </a>
+                </p>
+            </md-content>
+        </md-tab-body>
     </md-tab>
 </md-tabs>

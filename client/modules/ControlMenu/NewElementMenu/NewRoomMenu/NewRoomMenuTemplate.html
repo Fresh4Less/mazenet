@@ -16,59 +16,16 @@
                     <div ng-message="required">This is required.</div>
                 </div>
             </md-input-container>
-            <h3 class="md-title">Preview</h3>
-            <div class="preview-window md-whiteframe-9dp" style="background-color: {{nrCtrl.pageToMake.background.data.color}};">
-                <md-toolbar class="minature-toolbar">
-                    <md-button class="md-icon-button" aria-label="Page Settings">
-                        <i class="fa fa-bars"></i>
-                    </md-button>
-                    <span>{{(nrCtrl.pageToMake.title ? nrCtrl.pageToMake.title : 'Page Title')}}</span>
-                </md-toolbar>
-                <div class="preview-body">
-                    <a style="position:absolute; top: 65%; left: 23%">{{(nrCtrl.pageLinkText ? nrCtrl.pageLinkText : 'Page Link Text')}}</a>
-                    <a style="position:absolute; top: 44%; left: 76%">Some other room</a>
-                    <a style="position:absolute; top: 30%; left: 10%">I am link to something cool</a>
-                </div>
-            </div>
+            <mz-room-preview preview-room="nrCtrl.pageToMake" link-text="nrCtrl.pageLinkText"></mz-room-preview>
             <br>
-            <h4 class="md-title">Background design</h4>
-            <md-tabs md-dynamic-height md-border-bottom>
-                <md-tab label="Color" ng-click="nrCtrl.pageToMake.background.bType = 'color'">
-                    <md-content class="md-padding">
-                        <md-autocomplete flex required
-                                         md-input-name="colorName"
-                                         md-no-cache="true"
-                                         md-search-text="nrCtrl.pageToMake.background.data.color"
-                                         md-items="item in nrCtrl.ColorSearch(nrCtrl.pageToMake.background.data.color)"
-                                         md-item-text="item.display"
-                                         md-floating-label="Color Value">
-                            <md-item-template>
-                                <span md-highlight-text="nrCtrl.pageToMake.background.data.color">{{item}}</span>
-                            </md-item-template>
-                            <div class="hint">Color can be either <em>Word</em> or <em>Hex Value</em>.</div>
-                        </md-autocomplete>
-                    </md-content>
-                </md-tab>
-                <md-tab label="Gradient" ng-disabled="true">
-                </md-tab>
-                <md-tab label="Image" ng-disabled="true">
-                </md-tab>
-            </md-tabs>
-            <md-content>
-                <h4 class="md-title">Global permissions</h4>
-                <p>Everyone can create <span class="permission-value md-warn">{{nrCtrl.getPermissionWord()}}</span>.</p>
-                <md-radio-group ng-model="nrCtrl.pageToMake.permissions">
-                    <md-radio-button value="all" class="md-warn">Anything</md-radio-button>
-                    <md-radio-button value="links" class="md-warn">Links Only</md-radio-button>
-                    <md-radio-button value="none" class="md-warn">Nothing</md-radio-button>
-                </md-radio-group>
-            </md-content>
-            <md-content>
-                <h4 class="md-title">Room Administrators</h4>
-                <md-chips ng-model="nrCtrl.pageToMake.owners"
-                          secondary-placeholder="Enter additional User IDs">
-                </md-chips>
-            </md-content>
+            <h4>Background design</h4>
+            <mz-background-settings background-model="nrCtrl.pageToMake.background"></mz-background-settings>
+            <h4>Global permissions</h4>
+            <mz-permission-settings permissions="nrCtrl.pageToMake.permissions"></mz-permission-settings>
+            <h4>Room Administrators</h4>
+            <md-chips ng-model="nrCtrl.pageToMake.owners"
+                      secondary-placeholder="Enter additional User IDs">
+            </md-chips>
             <br>
         </form>
     </md-content>
