@@ -26,9 +26,9 @@
         <md-tab-body>
             <md-content flex layout-padding>
                 <p>
-                    <a class="pointer" ng-click="rsCtrl.CursorService.CycleDrawMode()">
-                        <i class="fa fa-refresh"></i><b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
-                    </a>
+                    <md-button class="md-raised md-primary" ng-click="rsCtrl.CursorService.CycleDrawMode()">
+                        <i class="fa fa-refresh"></i> <b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
+                    </md-button>
                 </p>
             </md-content>
         </md-tab-body>
