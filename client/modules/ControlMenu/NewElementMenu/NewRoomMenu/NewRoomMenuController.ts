@@ -43,6 +43,7 @@ class NewRoomMenuController {
                 x: $event.layerX / $event.srcElement.clientWidth,
                 y: $event.layerY / $event.srcElement.clientHeight
             };
+            console.log(pos);
             var linkElement:IElement = {
                 eType: 'link',
                 creator: self.pageToMake.creator,

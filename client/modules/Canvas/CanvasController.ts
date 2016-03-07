@@ -11,6 +11,7 @@ import CursorFrame = require("../../models/Cursors/CursorFrame");
 import Cursor = require("../../models/Cursors/Cursor");
 import AnimatedCursor = require("../../models/Cursors/AnimatedCursor");
 import IElement = require("../../models/Interfaces/IElement");
+import IScreenPositioningService = require("../../services/Interfaces/IScreenPositioningService");
 
 export = CanvasController;
 
@@ -29,19 +30,21 @@ class CanvasController {
     private cursorMaxTime:number;
     private timer:number;
     private activeRoomTime:number;
-    private controlMenu;
+    private controlMenu:HTMLElement;
 
     static $inject = [
         '$scope',
         '$timeout',
         'ActivePageService',
-        'CursorService'
+        'CursorService',
+        'ScreenPositioningService'
     ];
 
     constructor(private $scope:ng.IScope,
                 private $timeout:ng.ITimeoutService,
                 private ActivePageService:IActivePageService,
-                private CursorService:ICursorService) {
+                private CursorService:ICursorService,
+                private ScreenPositioningService:IScreenPositioningService) {
         this.id = '0';
         this.target = null;
         this.globalPageStyles = ActivePageService.Styles;
@@ -244,8 +247,8 @@ class CanvasController {
                 return;
             }
             self.ctx.beginPath();
-            self.ctx.moveTo(prevCursor.pos.x * self.width, prevCursor.pos.x * self.height);
-            self.ctx.moveTo(cursor.pos.x * self.width, cursor.pos.x * self.height);
+            self.ctx.moveTo(prevCursor.pos.x * self.width, prevCursor.pos.y * self.height);
+            self.ctx.lineTo(cursor.pos.x * self.width, cursor.pos.y * self.height);
             self.ctx.stroke();
         } else if(shapeData.shape === 'rect') {
             self.ctx.fillRect(cursor.pos.x * self.width, cursor.pos.y * self.height, shapeData.size, shapeData.size);
@@ -416,8 +419,12 @@ class CanvasController {
     }
     private resizeCanvas() {
         this.width = window.innerWidth;
-        this.height = window.innerHeight;
-        this.canvas.setAttribute('width', window.innerWidth.toString());
-        this.canvas.setAttribute('height', (window.innerHeight - this.controlMenu.offsetHeight).toString());
+        this.height = (window.innerHeight - this.controlMenu.offsetHeight);
+        this.canvas.setAttribute('width', this.width.toString());
+        this.canvas.setAttribute('height', this.height.toString());
+
+        this.ScreenPositioningService.SetMazenetWidth(this.width);
+        this.ScreenPositioningService.SetMazenetHeight(this.height);
+        this.ScreenPositioningService.SetControlBarHeight(this.controlMenu.offsetHeight);
     }
 }

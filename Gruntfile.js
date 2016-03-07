@@ -12,6 +12,12 @@ module.exports = function(grunt) {
 				src: ['server/**/*.js']
 			}
 		},
+		tslint : {
+			options:{},
+			files: {
+				src: ['client/**/*.ts']
+			}
+		},
 		express: {
 			dev: {
 				options: {
@@ -54,7 +60,8 @@ module.exports = function(grunt) {
 			}
 		}
 	});
-	
+
+	grunt.loadNpmTasks('grunt-tslint');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-express-server');

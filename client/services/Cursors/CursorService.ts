@@ -73,7 +73,7 @@ class CursorService implements ICursorService {
 
     public UserMovedCursor($event:MouseEvent) {
         var self = this;
-        if(self.cursorTimeout && $event.srcElement && $event.srcElement.clientWidth && $event.srcElement.clientHeight) {
+        if(self.cursorTimeout && $event.srcElement && $event.srcElement.clientWidth && $event.srcElement.clientHeight && $event.layerX && $event.layerY) {
             self.cursorTimeout = false;
             var cursorMove:CursorFrame = {
                 pos: {

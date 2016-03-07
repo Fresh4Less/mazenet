@@ -6,6 +6,7 @@ import PagesService = require('./Pages/module');
 import ClickNetService = require('./ClickNetService');
 import SocketService = require('./SocketService');
 import UserService = require('./UserService');
+import ScreenPositioningService = require('./ScreenPositioningService');
 
 //import dep1 = require(./Pages/module);
 export = angular.module('services', [
@@ -14,4 +15,5 @@ export = angular.module('services', [
 ])
     .factory(SocketService.name, SocketService.FactoryDefinition)
     .factory(UserService.name, UserService.FactoryDefinition)
-    .factory(ClickNetService.name, ClickNetService.FactoryDefinition);
+    .factory(ClickNetService.name, ClickNetService.FactoryDefinition)
+    .factory(ScreenPositioningService.name, ScreenPositioningService.FactoryDefinition);

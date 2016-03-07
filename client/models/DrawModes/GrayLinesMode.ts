@@ -12,7 +12,7 @@ class GrayLinesMode implements IDrawMode {
     public cumulative = true;
     public data = {
         shape: 'line',
-        size: 6,
+        size: 4,
         color: {
             red: 50,
             green: 50,

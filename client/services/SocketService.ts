@@ -57,13 +57,13 @@ class SocketService implements ISocketService {
             this.socket.on('pages/update:failure', this.pageUpdateFailureCallback());
         }
     }
-    public EnterPage(pageId:string, pos:MzPosition) {
+    public EnterPage(pageId:string, inPos:MzPosition) {
         this.pageEnterPromise = this.$q.defer();
         var startPage = { //TODO Consider Refactoring
             pId: pageId,
             pos: {
-                x: pos.x,
-                y: pos.y
+                x: inPos.x,
+                y: inPos.y
             }
         };
         this.socket.emit('pages/enter', startPage);
