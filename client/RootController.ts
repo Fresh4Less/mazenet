@@ -19,7 +19,8 @@ class RootController {
                 $routeParams:ng.route.IRouteParamsService,
                 ActivePageService:any,
                 SocketService:ISocketService) {
-        $scope['globalPageStyles'] = ActivePageService.styles;
+        $scope['globalPageStyles'] = ActivePageService.Styles;
+        $scope['ActivePageService'] = ActivePageService;
         $scope.$on('$routeChangeSuccess', function() {
             if($routeParams['pageId']) {
                 ActivePageService.RootPages.url = $routeParams['pageId'];

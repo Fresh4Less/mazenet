@@ -17,7 +17,7 @@ require.config({
 
   paths : {
     'mazenet':'module',
-    'socketio': '../../socket.io/socket.io',
+    'socket.io': '../../socket.io/socket.io',
     'angular': '../bower_components/angular/angular',
     'angular-route': '../bower_components/angular-route/angular-route',
     'angular-aria': '../bower_components/angular-aria/angular-aria',
@@ -29,7 +29,7 @@ require.config({
   },
   shim: {
     'mazenet': {
-      deps: ['angular', 'angular-route', 'angular-material', 'angular-mocks', 'socketio',  'underscore']
+      deps: ['angular', 'angular-route', 'angular-material', 'angular-mocks', 'socket.io',  'underscore']
     },
     'angular-route': {
       deps: ['angular'],
@@ -48,7 +48,10 @@ require.config({
       deps: ['angular']
     },
     'underscore': {
-      exports: ''
+      exports: '_'
+    },
+    'socket.io': {
+      exports: 'io'
     }
   },
 
