@@ -40,12 +40,15 @@ module.exports = function(grunt) {
 		},
 		typescript: {
 			base: {
-				src: ['client/**/*.ts'],
+				src: [
+					'client/**/*.ts'
+				],
 				options: {
 					module: 'amd', //or commonjs
 					target: 'es5', //or es3
 					sourceMap: true,
-					declaration: true
+					declaration: true,
+					removeComments: true
 				}
 			}
 		},
@@ -66,7 +69,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-express-server');
 	grunt.loadNpmTasks('grunt-sass');
-//	grunt.loadNpmTasks('grunt-typescript');
+	grunt.loadNpmTasks('grunt-typescript');
 //	grunt.loadNpmTasks('grunt-contrib-uglify');
 //	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	

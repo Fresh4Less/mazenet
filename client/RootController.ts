@@ -14,9 +14,9 @@ class RootController {
         'ActivePageService',
         'SocketService'
     ];
-    constructor($scope:angular.IScope,
-                $route:angular.route.IRoute,
-                $routeParams:angular.route.IRouteParamsService,
+    constructor($scope:ng.IScope,
+                $route:ng.route.IRoute,
+                $routeParams:ng.route.IRouteParamsService,
                 ActivePageService:any,
                 SocketService:ISocketService) {
         $scope['globalPageStyles'] = ActivePageService.styles;

@@ -33,7 +33,6 @@ class LinkElementController {
             x: $event.clientX / this.ScreenPositioningService.GetMazenetWidth(),
             y: ($event.clientY - this.ScreenPositioningService.GetControlBarHeight()) / this.ScreenPositioningService.GetMazenetHeight()
         };
-        console.log(pos);
         this.SocketService.EnterPage(id, pos).then(function(data:Page) {
             //Success :)
         }, function(error) {

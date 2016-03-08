@@ -3,7 +3,7 @@
 requirejs.config({
     paths : {
         'mazenet':'module',
-        'socketio': '/socket.io/socket.io',
+        'socket.io': '/socket.io/socket.io',
         'angular': '/bower_components/angular/angular',
         'angular-route': '/bower_components/angular-route/angular-route',
         'angular-aria': '/bower_components/angular-aria/angular-aria',
@@ -14,7 +14,7 @@ requirejs.config({
     },
     shim: {
         'mazenet': {
-            deps: ['angular', 'angular-route', 'angular-material', 'socketio',  'underscore']
+            deps: ['angular', 'angular-route', 'angular-material', 'socket.io',  'underscore']
         },
         'angular-route': {
             deps: ['angular']
@@ -27,6 +27,9 @@ requirejs.config({
         },
         'angular-aria': {
             deps: ['angular']
+        },
+        'socket.io': {
+            exports: 'io'
         }
     }
 });

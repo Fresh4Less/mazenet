@@ -43,7 +43,6 @@ class NewRoomMenuController {
                 x: $event.layerX / $event.srcElement.clientWidth,
                 y: $event.layerY / $event.srcElement.clientHeight
             };
-            console.log(pos);
             var linkElement:IElement = {
                 eType: 'link',
                 creator: self.pageToMake.creator,
@@ -52,7 +51,6 @@ class NewRoomMenuController {
                     text: self.pageLinkText
                 }
             };
-            console.log(linkElement);
             self.SocketService.CreateElement(linkElement).then((element:IElement)=> {
                 self.SocketService.EnterPage(element.data.pId, element.pos).then((page:Page)=>{
                     self.SocketService.UpdatePage(self.pageToMake).finally(()=>{

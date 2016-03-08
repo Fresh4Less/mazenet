@@ -1,7 +1,6 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/tsd.d.ts" />
-import io = require('socketio');
-
+import io = require('socket.io');
 import CursorFrame = require("../models/Cursors/CursorFrame");
 import IElement = require('./../models/Interfaces/IElement');
 import ISocketService = require("./Interfaces/ISocketService");
