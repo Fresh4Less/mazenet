@@ -10,19 +10,28 @@ module.exports = function(config) {
 
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['jasmine', 'requirejs'],
+    frameworks: ['jasmine', 'requirejs', 'socketio-server'],
 
 
     // list of files / patterns to load in the browser
     files: [
-      'test-main.js',
-      {pattern: 'client/**/*.js', included: false}
+      'client_tests/test-main.js',
+      {pattern: 'bower_components/underscore/underscore-min.js', included:false, served:true},
+      {pattern: 'bower_components/jquery/dist/jquery.js', included:false, served:true},
+      {pattern: 'bower_components/angular-material/angular-material.js', included:false, served:true},
+      {pattern: 'bower_components/angular-animate/angular-animate.js', included:false, served:true},
+      {pattern: 'bower_components/angular-aria/angular-aria.js', included:false, served:true},
+      {pattern: 'bower_components/angular-route/angular-route.js', included:false, served:true},
+      {pattern: 'bower_components/angular-mocks/angular-mocks.js', included:false, served:true},
+      {pattern: 'bower_components/angular/angular.js', included:false, served:true},
+      {pattern: 'client_tests/**/*.spec.js', included: false, served: true},
+      {pattern: 'client/**/*.js', included: false, served: true}
     ],
 
 
     // list of files to exclude
     exclude: [
-
+      'client/main.js'
     ],
 
 
@@ -43,6 +52,18 @@ module.exports = function(config) {
       dir: 'coverage/'
     },
 
+    socketioServer: {
+      port: 9999, //default port unless you set something different
+      onConnect: function (socket) {
+        // do something with the connected client
+        socket.on('message', function (msg) {
+          console.log('i got a message!', msg)
+        })
+      },
+      ready: function (io) {
+        // do something with the socket.io instance
+      }
+    },
 
     // web server port
     port: 9876,
@@ -54,7 +75,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_DEBUG,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -64,9 +85,6 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: ['Chrome'],
-
-
-
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
