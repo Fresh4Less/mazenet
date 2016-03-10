@@ -19,13 +19,16 @@ class UserService implements IUserService {
         this.OtherUsers = {};
     }
     public AddUser(user:UserData) {
-        this.OtherUsers[user.uId] = user;
-        console.log('adduser', this, user);
-        this.redraw();
+        if(user && user.uId) {
+            this.OtherUsers[user.uId] = user;
+            this.redraw();
+        }
     };
     public RemoveUser(user:UserData){
-        delete this.OtherUsers[user.uId];
-        this.redraw();
+        if(user && user.uId) {
+            delete this.OtherUsers[user.uId];
+            this.redraw();
+        }
     };
     public SetUsers(users:UserData[]){
         this.OtherUsers = {};

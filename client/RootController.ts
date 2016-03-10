@@ -15,7 +15,7 @@ class RootController {
         'SocketService'
     ];
     constructor($scope:ng.IScope,
-                $route:ng.route.IRoute,
+                $route:ng.route.IRouteProvider,
                 $routeParams:ng.route.IRouteParamsService,
                 ActivePageService:any,
                 SocketService:ISocketService) {

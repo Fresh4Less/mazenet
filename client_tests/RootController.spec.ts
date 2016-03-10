@@ -2,27 +2,26 @@
 /// <reference path="../typings/tsd.d.ts" />
 import mazenet = require('mazenet');
 
-import IControllerService = angular.IControllerService;
-
 describe('Unit: RootController', ()=> {
     var $location:ng.ILocationService;
+    var $route:ng.route.IRouteService;
     var $rootScope:ng.IRootScopeService;
     var $scope:ng.IScope;
     var $controller:ng.IControllerService;
     var RootController:any;
 
 
-    beforeEach(()=>{
+    beforeEach((done)=>{
         mazenet;
         module('mazenet'); //Just accept this error. It works.
-        inject((_$location_:ng.ILocationService, _$rootScope_:ng.IRootScopeService  ,_$controller_:IControllerService)=> {
+        inject((_$location_:ng.ILocationService, _$route_:ng.route.IRouteService, _$rootScope_:ng.IRootScopeService  ,_$controller_:ng.IControllerService)=> {
             $location = _$location_;
+            $route = _$route_;
             $rootScope = _$rootScope_;
             $scope = $rootScope.$new();
             $controller = _$controller_;
-
-            console.log('controller', $controller);
             RootController = $controller('RootController', {'$rootScope' : $rootScope, '$scope': $scope});
+            done();
         });
     });
     it('should have RootController defined', ()=>{
@@ -31,11 +30,20 @@ describe('Unit: RootController', ()=> {
     it('should have the globalPageStyles defined', ()=>{
         expect($scope['globalPageStyles']).toBeDefined();
     });
-    it('should update the route if the room changes', ()=>{
-        $location.path('room/1234567890123456');
-        console.log($scope['ActivePageService'].RootPages);
-        fail();
+    it('should map routes to the RootController', (done)=> {
+        expect($route.routes['/room/:pageId'].controller).toBe('RootController');
+        expect($route.routes['/room/:pageId'].templateUrl).toBe('index.html');
+        expect($route.routes['/room'].controller).toBe('RootController');
+        expect($route.routes['/room'].templateUrl).toBe('index.html');
+        done();
     });
-
+    //it('should update the routing stuff on change', (done) => {
+    //    $location.path('room/1234567890');
+    //    $rootScope.$apply();
+    //    $rootScope.$broadcast('$routeChangeSuccess');
+    //    console.log($scope['ActivePageService'].RootPages);
+    //    fail();
+    //    done();
+    //});
 });
 
