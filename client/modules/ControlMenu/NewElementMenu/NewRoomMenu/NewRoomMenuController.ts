@@ -39,9 +39,10 @@ class NewRoomMenuController {
     public SelectPositionToTunnel() {
         var self = this;
         self.ClickNetService.RequestClick().then(($event:MouseEvent)=>{
+            var pgElement:any = $event.target || $event.srcElement;
             var pos = {
-                x: $event.layerX / $event.srcElement.clientWidth,
-                y: $event.layerY / $event.srcElement.clientHeight
+                x: $event.layerX / pgElement.clientWidth,
+                y: $event.layerY / pgElement.clientHeight
             };
             var linkElement:IElement = {
                 eType: 'link',
