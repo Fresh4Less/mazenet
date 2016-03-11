@@ -6,12 +6,14 @@ import IClickNetService = require("../../client/services/Interfaces/IClickNetSer
 
 describe('Unit: UserService', ()=> {
 
+    var $rootScope:ng.IRootScopeService;
     var ClickNetService:IClickNetService;
 
     beforeEach((done)=>{
         mazenet;
         module('mazenet'); //Just accept this error. It works.
-        inject((_ClickNetService_:IClickNetService)=> {
+        inject((_$rootScope_:ng.IRootScopeService, _ClickNetService_:IClickNetService)=> {
+            $rootScope = _$rootScope_;
             ClickNetService = _ClickNetService_;
             done();
         });
@@ -36,12 +38,31 @@ describe('Unit: UserService', ()=> {
     });
     it('should resolve the promise with a mouseEvent', (done)=> {
         var promise:ng.IPromise<MouseEvent> = ClickNetService.RequestClick();
-        var mouseEvent:MouseEvent = new MouseEvent;
+        var mouseEvent:MouseEvent = new MouseEvent('click');
         promise.then((event)=>{
             expect(event).toEqual(mouseEvent);
             done();
-        })
+        });
         ClickNetService.ResolveClick(mouseEvent);
+        expect(ClickNetService.AwaitingClick).toBeFalsy();
+        $rootScope.$digest();
+    });
+    it('should do nothing if the promise never existed', ()=>{
+        var mouseEvent:MouseEvent = new MouseEvent('click');
+        ClickNetService.ResolveClick(mouseEvent);
+    });
+    it('should reject a promise if it was cancelled', (done)=> {
+        var promise:ng.IPromise<MouseEvent> = ClickNetService.RequestClick();
+        promise.catch((msg)=>{
+            expect(msg).toEqual('cancelled');
+            done();
+        });
+        ClickNetService.CancelClick();
+        expect(ClickNetService.AwaitingClick).toBeFalsy();
+        $rootScope.$digest();
+    });
+    it('should do nothing if the promise never existed', ()=> {
+       ClickNetService.CancelClick();
     });
 
 });

@@ -33,13 +33,17 @@ class ClickNetService implements IClickNetService {
     }
 
     public ResolveClick($event:MouseEvent):void {
-        this.clickPromise.resolve($event);
-        this.clickPromise = null;
+        if(this.clickPromise) {
+            this.clickPromise.resolve($event);
+            this.clickPromise = null;
+        }
         this.AwaitingClick = false;
     }
     public CancelClick():void {
-        this.clickPromise.reject('cancelled');
-        this.clickPromise = null;
+        if(this.clickPromise) {
+            this.clickPromise.reject('cancelled');
+            this.clickPromise = null;
+        }
         this.AwaitingClick = false;
     }
 }
