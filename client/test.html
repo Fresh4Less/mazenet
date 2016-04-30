@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head></head>
+<body>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io('http://localhost:8090/mazenet');
+socket.on('/users/connect', function(data) { console.log(data) });
+socket.emit('/users/connect', {method: 'GET', headers: {}, body: undefined});
+/*
+socket.on('pages/enter:success', function(page) {
+		console.log('entered page');
+		console.log(page);
+		});
+socket.on('pages/enter:failure', function(error) {
+		console.log('enter page failed');
+		console.log(error);
+		});
+setInterval(function() {
+		console.log('do it');
+socket.emit('pages/enter', { pId: '0000', pos: { x: 50, y: 50 }});
+socket.emit('pages/cursors/moved', { pos: { x: 10, y: 10}, t: 10});
+}, 1000);
+*/
+/*
+var rootPageId = null;
+var socket = io('http://localhost:8090/mazenet');
+socket.on('users/connected', function(userData) {
+		console.log('connected');
+		console.log(userData);
+		rootPageId = userData.rootPageId;
+		socket.emit('pages/enter', { pId: rootPageId, pos: { x: 50, y: 50 }});
+		socket.emit('pages/cursors/moved', { pos: { x: 10, y: 10}, t: 10});
+		socket.emit('pages/cursors/moved', { pos: { x: 20, y: 30}, t: 20});
+		socket.emit('pages/elements/create', {
+			"eType": "link",
+			"creator": "101010101010101010101010",
+			"pos": {
+			"x": 40,
+			"y": 40
+			},
+			"data": {
+			"text": "my link!"
+			}
+			});
+		socket.emit('pages/update', {
+			permissions: "links",
+			title: "updated title",
+			"background" : { "data" : { "color" : "#aaffaa" } },
+			owners: ['101010101010101010101010']});
+		});
+socket.on('users/connected:failure', function(err) {
+		console.log('failed connected');
+		console.log(err);
+		});
+socket.on('pages/enter:success', function(page) {
+		console.log('entered page');
+		console.log(page);
+		});
+socket.on('pages/enter:failure', function(error) {
+		console.log('enter page failed');
+		console.log(error);
+		});
+socket.on('pages/elements/created', function(element) {
+		console.log('element created');
+		console.log(element);
+		});
+socket.on('pages/elements/create:failure', function(error) {
+		console.log('create element failed');
+		console.log(error);
+		});
+socket.on('pages/updated', function(pageChanges) {
+		console.log('page updated');
+		console.log(pageChanges);
+		});
+socket.on('pages/update:failure', function(error) {
+		console.log('update page failed');
+		console.log(error);
+		});
+socket.on('pages/userEntered', function(user) {
+		console.log('user entered');
+		console.log(user);
+		});
+socket.on('pages/userLeft', function(user) {
+		console.log('user left');
+		console.log(user);
+		});
+socket.on('pages/cursors/moved', function(cursor) {
+		console.log('user moved cursor');
+		console.log(cursor);
+		});
+//  socket.on('pages/cursors/created', function(cursor) {
+//		  console.log('cursor created');
+//		  console.log(cursor);
+//		  });
+//  socket.on('pages/cursors/create:failure', function(error) {
+//		  console.log(error);
+//		  });
+//  socket.emit('pages/cursors/create', {
+//            "uId": "101010101010101010101010",
+//			frames: [
+//			{ pos: { x: 10, y: 10}, t: 0 },
+//			{ pos: { x: 20, y: 20}, t: 30 }
+//			]
+//        });
+*/
+</script>
+</body>
+</html>
