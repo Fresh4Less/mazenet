@@ -13,6 +13,8 @@ var Validator = require('fresh-validation').Validator;
 
 var BPromise = require('bluebird');
 
+var logger = require('./util/logger');
+
 Validator.addGlobalValidator({
 	name: 'objectId',
 	continueOnFail: false,
@@ -52,10 +54,12 @@ function start(appPort) {
 
 	app.use(compress());
 	app.use(bodyParser.json());
-	app.use(routes);
 	app.use(express.static(__dirname + "/../client"));
 	app.use(express.static(__dirname + "/../dist"));
 	app.use('/bower_components',express.static(__dirname + "/../bower_components"));
+	var loggerReqName = 'freshLogger';
+	app.use(logger({name: 'mazenet-api-http', reqName: loggerReqName }));
+	app.use(routes({ loggerReqName: loggerReqName}));
 }
 
 function close() {
