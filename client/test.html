@@ -6,7 +6,35 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 var socket = io('http://localhost:8090/mazenet');
-socket.on('/users/connect', function(data) { console.log(data) });
+socket.on('/users/connect', function(res) {
+	console.log('/users/connect', res);
+	socket.emit('/pages/enter', {method: 'GET', headers: {'X-Fresh-Request-Id': 2}, body: {pId: res.body.rootPageId, pos: {x: 0.5, y: 0.5}}});
+
+});
+socket.on('/pages/enter', function(res) {
+	console.log('/pages/enter', res);
+	socket.emit('/pages/elements/create', {method: 'GET', headers: {}, body: {eType: 'link', pos: {x: 0.55, y: 0.55}, data: {text: 'hello'}}});
+	socket.emit('/pages/cursors/moved', { pos: {x: 10, y: 10}, t: 10});
+});
+socket.on('/pages/elements/create', function(res) {
+	console.log('/pages/elements/create', res);
+});
+socket.on('/pages/elements/created', function(element) {
+		console.log('element created', element);
+		});
+socket.on('/pages/updated', function(pageChanges) {
+		console.log('page updated', pageChanges);
+		});
+socket.on('/pages/userEntered', function(user) {
+		console.log('user entered', user);
+		});
+socket.on('/pages/userLeft', function(user) {
+		console.log('user left', user);
+		});
+socket.on('/pages/cursors/moved', function(cursor) {
+		console.log('user moved cursor', cursor);
+		});
+
 socket.emit('/users/connect', {method: 'GET', headers: {}, body: undefined});
 /*
 socket.on('pages/enter:success', function(page) {

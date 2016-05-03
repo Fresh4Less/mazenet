@@ -39,9 +39,10 @@ var app;
 var server;
 var socketServer;
 function start(appPort) {
+	var loggerReqName = 'freshLogger';
 	app = express();
 	server = http.Server(app);
-	socketServer = sockets.listen(server);
+	socketServer = sockets.listen(server, { loggerReqName: loggerReqName});
 
 	server.listen(appPort);
 	console.log('Listening on port ' + appPort);
@@ -57,7 +58,6 @@ function start(appPort) {
 	app.use(express.static(__dirname + "/../client"));
 	app.use(express.static(__dirname + "/../dist"));
 	app.use('/bower_components',express.static(__dirname + "/../bower_components"));
-	var loggerReqName = 'freshLogger';
 	app.use(logger({name: 'mazenet-api-http', reqName: loggerReqName }));
 	app.use(routes({ loggerReqName: loggerReqName}));
 }

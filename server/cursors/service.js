@@ -30,13 +30,11 @@ function createActiveCursor(pageIdStr, uIdStr, position) {
 function addActiveFrame(pageIdStr, uIdStr, frame) {
 	var pageObj = activeCursors[pageIdStr];
 	if(pageObj === undefined) {
-		console.error('cursors/service: addActiveCursor: No active cursors on page: ' + pageIdStr);
-		return;
+		throw new Error('cursors/service: addActiveCursor: No active cursors on page: ' + pageIdStr);
 	}
 	var cursorObj = pageObj[uIdStr];
 	if(pageObj === undefined) {
-		console.error('cursors/service: addActiveCursor: No active cursor on page: ' + pageIdStr + ' with uId ' + uIdStr);
-		return;
+		throw new Error('cursors/service: addActiveCursor: No active cursor on page: ' + pageIdStr + ' with uId ' + uIdStr);
 	}
 	validator.is(frame, 'frame').required().object()
 		.property('pos').required().object()
@@ -56,15 +54,14 @@ function commitActiveCursor(pageIdStr, uIdStr) {
 		validator.is(pageIdStr, 'pageId').required().objectId();
 		var pageId = validator.transformationOutput();
 		validator.is(uIdStr, 'userId').required().objectId();
+		validator.throwErrors();
 		var pageObj = activeCursors[pageIdStr];
 		if(pageObj === undefined) {
-			console.error('cursors/service: commitActiveCursor: No active cursors on page: ' + pageIdStr);
-			return;
+			throw new Error('cursors/service: commitActiveCursor: No active cursors on page: ' + pageIdStr);
 		}
 		var cursorObj = pageObj[uIdStr];
 		if(pageObj === undefined) {
-			console.error('cursors/service: commitActiveCursor: No active cursor on page: ' + pageIdStr + ' with uId ' + uIdStr);
-			return;
+			throw new Error('cursors/service: commitActiveCursor: No active cursor on page: ' + pageIdStr + ' with uId ' + uIdStr);
 		}
 		delete pageObj[uIdStr];
 		return cursorsDataAccess.createCursor(pageId, cursorObj);

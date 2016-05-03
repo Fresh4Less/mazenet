@@ -3,24 +3,31 @@ var socketio = require('socket.io');
 
 var freshSocketRouter = require('fresh-socketio-router');
 
+//sockets files generally contain two important properties:
+// - router: constructor for a socket-io-router
+// - middleware: a standardized constructor that produces a socketio middleware
 var pagesSockets = require('./pages/sockets');
 var usersSockets = require('./users/sockets');
 
 var io;
 
-function listen(server) {
+function listen(server, options) {
 	if(io) {
 		console.warn('sockets already initialized');
 	}
 
+	options = options || {};
+
 	io = socketio(server);
 	var mazenetIo = io.of('/mazenet');
-	//pagesSockets.registerHandlers('pages', mazenetIo);
-	//usersSockets.registerHandlers('users', mazenetIo);
-	mazenetIo.use(usersSockets.middleware); //initializes socket.mazenet
+	var usersSocketsInstance = usersSockets('/users');
+	var pagesSocketsInstance = pagesSockets('/pages');
+	mazenetIo.use(usersSocketsInstance.middleware);
+	mazenetIo.use(pagesSocketsInstance.middleware);
 
 	var baseRouter = freshSocketRouter.Router();
-	baseRouter.use('/users', usersSockets.router);
+	baseRouter.use('/users', usersSocketsInstance.router);
+	baseRouter.use('/pages', pagesSocketsInstance.router);
 
 	baseRouter.use(function(err, req, res, next) {
 		if(!err.status) {
@@ -40,7 +47,10 @@ function listen(server) {
 		}
 		res.status(err.status).send(err.message || 'Internal Server Error');
 	});
-	mazenetIo.use(freshSocketRouter(baseRouter));
+	mazenetIo.use(freshSocketRouter(baseRouter, {
+		ignoreList: usersSocketsInstance.ignoreRoutes
+						.concat(pagesSocketsInstance.ignoreRoutes)
+	}));
 	return io;
 }
 

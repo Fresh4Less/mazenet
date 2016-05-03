@@ -11,5 +11,6 @@ function _createError(name) {
 module.exports = {
 	NotFoundError: _createError('NotFoundError'),
 	NotInitializedError: _createError('NotInitializedError'),
+	UserNotOnPageError: _createError('UserNotOnPageError')
 };
 
