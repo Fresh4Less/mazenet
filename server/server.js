@@ -38,14 +38,17 @@ BPromise.longStackTraces();
 var app;
 var server;
 var socketServer;
-function start(appPort) {
+function start(appPort, options) {
+	var opts = Object.create(options || null);
+
 	var loggerReqName = 'freshLogger';
+	if(opts.logLevel === undefined) {
+		opts.logLevel = 'info';
+	}
 	app = express();
 	server = http.Server(app);
-	socketServer = sockets.listen(server, { loggerReqName: loggerReqName});
+	socketServer = sockets.listen(server, { loggerReqName: loggerReqName, logLevel: opts.logLevel});
 
-	server.listen(appPort);
-	console.log('Listening on port ' + appPort);
 	//
 	//app.use(session({
 	//	secret: 'change this',
@@ -58,8 +61,11 @@ function start(appPort) {
 	app.use(express.static(__dirname + "/../client"));
 	app.use(express.static(__dirname + "/../dist"));
 	app.use('/bower_components',express.static(__dirname + "/../bower_components"));
-	app.use(logger({name: 'mazenet-api-http', reqName: loggerReqName }));
+	app.use(logger({name: 'mazenet-api-http', reqName: loggerReqName, level: opts.logLevel }));
 	app.use(routes({ loggerReqName: loggerReqName}));
+
+	server.listen(appPort);
+	console.log('Listening on port ' + appPort);
 }
 
 function close() {

@@ -1,11 +1,27 @@
 # mazenet
 social web spelunking
+ - [Server Reference](#server-reference)
  - [General API Reference](#general-api-reference)
     - [Pages](#pages)
     - [Elements](#elements)
  - [REST API Reference](#rest-api-reference)
  - [Socket API Reference](#socket-api-reference)
 
+
+# Server Reference
+
+## Command line arguments
+
+### `--logLevel=[level]`
+Highest level the access logger should print to stdout (in JSON form). Thrown errors will always
+be printed to stderr, regardless of this value.
+
+Allowed values:
+ - `info`
+ - `error`
+ - `none`
+
+It can be useful to set this to `none` while debugging.
 
 # General API Reference
 

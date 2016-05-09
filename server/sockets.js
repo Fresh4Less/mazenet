@@ -3,6 +3,8 @@ var socketio = require('socket.io');
 
 var freshSocketRouter = require('fresh-socketio-router');
 
+var logger = require('./util/logger');
+
 //sockets files generally contain two important properties:
 // - router: constructor for a socket-io-router
 // - middleware: a standardized constructor that produces a socketio middleware
@@ -16,7 +18,7 @@ function listen(server, options) {
 		console.warn('sockets already initialized');
 	}
 
-	options = options || {};
+	var opts = Object.create(options || null);
 
 	io = socketio(server);
 	var mazenetIo = io.of('/mazenet');
@@ -26,6 +28,7 @@ function listen(server, options) {
 	mazenetIo.use(pagesSocketsInstance.middleware);
 
 	var baseRouter = freshSocketRouter.Router();
+	baseRouter.use(logger({name: 'mazenet-api-websocket', reqName: opts.loggerReqName, level: opts.logLevel }));
 	baseRouter.use('/users', usersSocketsInstance.router);
 	baseRouter.use('/pages', pagesSocketsInstance.router);
 
@@ -34,18 +37,24 @@ function listen(server, options) {
 			err.status = 500;
 		}
 		if(err.status >= 500) {
-			if(options.loggerReqName && req[options.loggerReqName]) {
+			if(opts.loggerReqName && req[opts.loggerReqName]) {
 				// put the error on req for the logger
 				// make message and stack enumerable so they will be logged
 				Object.defineProperty(err, 'message', { enumerable: true });
 				Object.defineProperty(err, 'stack', { enumerable: true });
-				req[options.loggerReqName].error = err;
+				req[opts.loggerReqName].error = err;
 			}
-			if(!options.silent) {
+			if(!opts.silent) {
 				console.error(err.stack);
 			}
 		}
 		res.status(err.status).send(err.message || 'Internal Server Error');
+	});
+
+	// log websocket connection http requests
+	var socketHttpLogger = logger({name: 'mazenet-websocket-connection', level: opts.logLevel, ignoreResponse: true});
+	mazenetIo.use(function(socket, next) {
+		socketHttpLogger(socket.request, null, next);
 	});
 	mazenetIo.use(freshSocketRouter(baseRouter, {
 		ignoreList: usersSocketsInstance.ignoreRoutes

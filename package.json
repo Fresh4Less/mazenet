@@ -33,6 +33,7 @@
     "fresh-socketio-router": "^0.1.0",
     "fresh-validation": "~0.2.1",
     "http-errors": "~1.3.1",
+    "minimist": "^1.2.0",
     "mongodb": "~2.0.33",
     "requirejs": "^2.1.20",
     "socket.io": "~1.3.5",
