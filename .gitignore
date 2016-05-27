@@ -41,3 +41,6 @@ typings
 
 # SASS stuff
 client/**/*.css
+
+#Client test code coverage
+coverage
