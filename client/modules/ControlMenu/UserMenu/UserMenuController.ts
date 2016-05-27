@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../typings/tsd.d.ts" />
 
-import IUserService = require("../../../services/Interfaces/IUserService");
+import IUserService = require("../../../services/interfaces/IUserService");
 import UserData = require("../../../models/UserData");
 
 export = UserMenuController;

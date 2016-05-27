@@ -3,15 +3,15 @@
 declare var _;
 import $ = require('jquery');
 import PageStyles = require("../../models/Pages/PageStyles");
-import IActivePageService = require("../../services/Pages/Interfaces/IActivePageService");
-import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
+import IActivePageService = require("../../services/pages/Interfaces/IActivePageService");
+import ICursorService = require("../../services/cursors/Interfaces/ICursorService");
 import SpriteOptions = require("../../models/Canvas/SpriteOptions");
 import Sprite = require("../../models/Canvas/Sprite");
 import CursorFrame = require("../../models/Cursors/CursorFrame");
 import Cursor = require("../../models/Cursors/Cursor");
 import AnimatedCursor = require("../../models/Cursors/AnimatedCursor");
 import IElement = require("../../models/Interfaces/IElement");
-import IScreenPositioningService = require("../../services/Interfaces/IScreenPositioningService");
+import IScreenPositioningService = require("../../services/interfaces/IScreenPositioningService");
 
 export = CanvasController;
 

@@ -2,7 +2,7 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 import mazenet = require('mazenet');
-import IClickNetService = require("../../client/services/Interfaces/IClickNetService");
+import IClickNetService = require("../../client/services/interfaces/IClickNetService");
 
 describe('Unit: UserService', ()=> {
 

@@ -2,7 +2,7 @@
 /// <reference path="../../typings/tsd.d.ts" />
 import UserData = require("./../models/UserData");
 import Cursor = require("./../models/Cursors/Cursor");
-import IUserService = require('./Interfaces/IUserService');
+import IUserService = require('./interfaces/IUserService');
 
 export = UserService
 

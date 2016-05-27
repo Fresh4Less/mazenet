@@ -3,12 +3,12 @@
 import io = require('socket.io');
 import CursorFrame = require("../models/Cursors/CursorFrame");
 import IElement = require('./../models/Interfaces/IElement');
-import ISocketService = require("./Interfaces/ISocketService");
+import ISocketService = require("./interfaces/ISocketService");
 import MzPosition = require('./../models/MzPosition');
 import Cursor = require('./../models/Cursors/Cursor');
 import Page = require('./../models/Pages/Page');
-import IUserService = require('./Interfaces/IUserService');
-import IActivePageService = require("./Pages/Interfaces/IActivePageService");
+import IUserService = require('./interfaces/IUserService');
+import IActivePageService = require("./pages/Interfaces/IActivePageService");
 
 export = SocketService;
 

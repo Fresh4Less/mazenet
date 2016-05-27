@@ -2,9 +2,9 @@
 /// <reference path="../../../../typings/tsd.d.ts" />
 
 import Page = require("../../../models/Pages/Page");
-import IActivePageService = require("../../../services/Pages/Interfaces/IActivePageService");
-import ICursorService = require("../../../services/Cursors/Interfaces/ICursorService");
-import ISocketService = require("../../../services/Interfaces/ISocketService");
+import IActivePageService = require("../../../services/pages/Interfaces/IActivePageService");
+import ICursorService = require("../../../services/cursors/Interfaces/ICursorService");
+import ISocketService = require("../../../services/interfaces/ISocketService");
 
 export = RoomSettingsMenuController;
 

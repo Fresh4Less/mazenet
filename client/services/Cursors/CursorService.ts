@@ -9,8 +9,8 @@ import RedCircleMode = require('../../models/DrawModes/RedCircleMode');
 import StaticRedLinesMode = require('../../models/DrawModes/StaticRedLinesMode');
 import JensenMode = require('../../models/DrawModes/JensenMode');
 import CursorFrame = require("../../models/Cursors/CursorFrame");
-import IActivePageService = require("../Pages/Interfaces/IActivePageService");
-import ISocketService = require("../Interfaces/ISocketService");
+import IActivePageService = require("../pages/Interfaces/IActivePageService");
+import ISocketService = require("../interfaces/ISocketService");
 
 export = CursorService;
 
@@ -73,7 +73,7 @@ class CursorService implements ICursorService {
 
     public UserMovedCursor($event:MouseEvent) {
         var self = this;
-        if(self.cursorTimeout && $event.srcElement && $event.srcElement.clientWidth && $event.srcElement.clientHeight && $event.layerX && $event.layerY) {
+        if(self.cursorTimeout && $event && $event.srcElement && $event.srcElement.clientWidth && $event.srcElement.clientHeight && $event.layerX && $event.layerY) {
             self.cursorTimeout = false;
             var cursorMove:CursorFrame = {
                 pos: {

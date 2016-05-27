@@ -1,11 +1,11 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../typings/tsd.d.ts" />
 
-import IActivePageService = require("../../../services/Pages/Interfaces/IActivePageService");
-import ISocketService = require("../../../services/Interfaces/ISocketService");
+import IActivePageService = require("../../../services/pages/Interfaces/IActivePageService");
+import ISocketService = require("../../../services/interfaces/ISocketService");
 import MzPosition = require("../../../models/MzPosition");
 import Page = require("../../../models/Pages/Page");
-import IScreenPositioningService = require("../../../services/Interfaces/IScreenPositioningService");
+import IScreenPositioningService = require("../../../services/interfaces/IScreenPositioningService");
 
 export = LinkElementController;
 

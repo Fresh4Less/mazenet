@@ -1,6 +1,6 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../typings/tsd.d.ts" />
-import ISocketService = require('./services/Interfaces/ISocketService');
+import ISocketService = require('services/interfaces/ISocketService');
 
 export = RootController;
 

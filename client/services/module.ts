@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/tsd.d.ts" />
-import CursorService = require('./Cursors/module');
-import PagesService = require('./Pages/module');
+import CursorService = require('./cursors/module');
+import PagesService = require('./pages/module');
 
 import ClickNetService = require('./ClickNetService');
 import SocketService = require('./SocketService');

@@ -3,7 +3,7 @@
 
 import mazenet = require('mazenet');
 
-import IUserService = require("../../client/services/Interfaces/IUserService");
+import IUserService = require("../../client/services/interfaces/IUserService");
 import UserData = require("../../client/models/UserData");
 import Cursor = require("../../client/models/Cursors/Cursor");
 
@@ -123,19 +123,20 @@ describe('Unit: UserService', ()=> {
     it('should return a valid user by ID', ()=>{
         var otherUser1:UserData = {uId: '123456', username: 'a', pos: {x: 0, y:0}};
         UserService.AddUser(otherUser1);
-        expect(UserService.GetUserById[otherUser1.uId]).toEqual(otherUser1);
+        expect(UserService.GetUserById(otherUser1.uId)).toEqual(otherUser1);
     });
     it('should return undefined with a bad ID', ()=>{
         var otherUser1:UserData = {uId: '123456', username: 'a', pos: {x: 0, y:0}};
         UserService.AddUser(otherUser1);
-        expect(UserService.GetUserById['654321']).toBeUndefined();
+        expect(UserService.GetUserById('654321')).toBeUndefined();
     });
     it('should update the position with a cursor info', ()=> {
         var cursor:Cursor = {uId: '123456', pos: {x:7, y: 9}};
         var otherUser:UserData = {uId: '123456', username: 'a', pos: {x: 0, y:0}};
-        expect(UserService.OtherUsers[otherUser.uId].pos).toEqual({x: 0, y: 0});
+        UserService.AddUser(otherUser);
+        expect(UserService.GetUserById(otherUser.uId).pos).toEqual({x: 0, y: 0});
         UserService.UpdatePosition(cursor);
-        expect(UserService.OtherUsers[otherUser.uId].pos).toEqual({x: 7, y: 9});
+        expect(UserService.GetUserById(otherUser.uId).pos).toEqual({x: 7, y: 9});
 
     });
 

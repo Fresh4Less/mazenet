@@ -2,13 +2,13 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 
 import $ = require('jquery');
-import ISocketService = require("../../services/Interfaces/ISocketService");
-import IActivePageService = require("../../services/Pages/Interfaces/IActivePageService");
-import IUserService = require("../../services/Interfaces/IUserService");
-import ICursorService = require("../../services/Cursors/Interfaces/ICursorService");
+import ISocketService = require("../../services/interfaces/ISocketService");
+import IActivePageService = require("../../services/pages/Interfaces/IActivePageService");
+import IUserService = require("../../services/interfaces/IUserService");
+import ICursorService = require("../../services/cursors/Interfaces/ICursorService");
 import IElement = require("../../models/Interfaces/IElement");
 import Page = require("../../models/Pages/Page");
-import IClickNetService = require("../../services/Interfaces/IClickNetService");
+import IClickNetService = require("../../services/interfaces/IClickNetService");
 
 export = ControlMenuController;
 

@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/tsd.d.ts" />
 
-import IClickNetService = require("./Interfaces/IClickNetService");
+import IClickNetService = require("./interfaces/IClickNetService");
 
 export = ClickNetService;
 

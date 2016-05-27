@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/tsd.d.ts" />
 
-import IScreenPositioningService = require("./Interfaces/IScreenPositioningService");
+import IScreenPositioningService = require("./interfaces/IScreenPositioningService");
 
 export = ScreenPositioningService;
 
@@ -38,12 +38,12 @@ class ScreenPositioningService implements IScreenPositioningService{
     public GetMazenetHeight():number {
         return this.mazenetHeight;
     }
-    SetControlBarHeight(height:number):void {
+    public SetControlBarHeight(height:number):void {
         if(height) {
             this.controlBarHeight = height;
         }
     }
-    GetControlBarHeight():number {
+    public GetControlBarHeight():number {
         return this.controlBarHeight;
     }
 }
