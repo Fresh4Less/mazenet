@@ -1,3 +1,5 @@
-<div class="linkelement" style="left: {{(element.pos.x*100)}}%;  top: {{(element.pos.y*100)}}%">
-	<a ng-click="EnterPage($event, element.data.pId)">{{element.data.text}}</a>
+<div class="linkElement"
+	 style="left: 	{{	leCtrl.element.pos.x*100	}}%;
+	 		top: 	{{	leCtrl.element.pos.y*100	}}%">
+	<a ng-click="leCtrl.EnterPage($event, leCtrl.element.data.pId)">{{leCtrl.element.data.text}}</a>
 </div>

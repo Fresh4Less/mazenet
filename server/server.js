@@ -59,8 +59,7 @@ function start(appPort, options) {
 	app.use(compress());
 	app.use(bodyParser.json());
 	app.use(express.static(__dirname + "/../client"));
-	app.use(express.static(__dirname + "/../dist"));
-	app.use('/bower_components',express.static(__dirname + "/../bower_components"));
+	app.use('/bower_components', express.static(__dirname + "/../bower_components"));
 	app.use(logger({name: 'mazenet-api-http', reqName: loggerReqName, level: opts.logLevel }));
 	app.use(routes({ loggerReqName: loggerReqName}));
 

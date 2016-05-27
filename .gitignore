@@ -1,5 +1,3 @@
-# Generated Dist files
-dist/*.js
 
 # Logs
 logs
@@ -27,3 +25,19 @@ bower_components
 
 # Users Environment Variables
 .lock-wscript
+
+# Webstorm folder
+.idea
+
+# VS Code folder
+.vscode
+
+# Typescript Files
+client/**/*.map
+client/**/*.js
+client_tests/**/*.map
+client_tests/**/*.js
+typings
+
+# SASS stuff
+client/**/*.css

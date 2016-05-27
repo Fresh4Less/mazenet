@@ -1,0 +1,43 @@
+<section id='TheControlMenu' >
+   <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left">
+      <mz-info-menu></mz-info-menu>
+   </md-sidenav>
+
+   <md-toolbar>
+      <div class="md-toolbar-tools">
+         <md-button class="md-icon-button" aria-label="Page Settings" ng-click="cmCtrl.RoomInfoClick()">
+            <i class="fa fa-question-circle"></i>
+         </md-button>
+         <h2>
+            <span>{{cmCtrl.page.title}}</span>
+         </h2>
+         <span flex></span>
+         <span ng-show="!cmCtrl.ClickNetService.AwaitingClick">
+            <md-button class="md-icon-button" aria-label="New Room" ng-click="cmCtrl.NewElementClick()">
+               <i class="fa fa-plus-square"></i>
+            </md-button>
+            <md-button class="md-icon-button" aria-label="Room Settings" ng-click="cmCtrl.RoomSettingsClick()">
+               <i class="fa fa-cogs"></i>
+            </md-button>
+            <md-button class="md-icon-button" aria-label="User Settings" ng-click="cmCtrl.UserSettingsClick()">
+               <i class="fa fa-user"></i>
+            </md-button>
+         </span>
+         <div ng-show="cmCtrl.ClickNetService.AwaitingClick">
+            <md-button class="md-raised md-accent" aria-label="Cancel" ng-click="cmCtrl.ClickNetService.CancelClick()">
+               Cancel
+            </md-button>
+         </div>
+      </div>
+   </md-toolbar>
+
+   <!-- Transcludes in the rest of Mazenet -->
+   <ng-transclude></ng-transclude>
+
+   <md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="right">
+      <!--<mz-welcome-menu ng-if="cmCtrl.MenuService.MenuState == 'naw'"></mz-welcome-menu>-->
+      <mz-new-element-menu ng-if="cmCtrl.ActiveMenu == 'newElement'"></mz-new-element-menu>
+      <mz-room-settings-menu ng-if="cmCtrl.ActiveMenu == 'roomSettings'"></mz-room-settings-menu>
+      <mz-user-menu ng-if="cmCtrl.ActiveMenu == 'userSettings'"></mz-user-menu>
+   </md-sidenav>
+</section>

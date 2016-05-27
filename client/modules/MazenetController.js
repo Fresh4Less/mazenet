@@ -1,41 +1,29 @@
-function mazenetController($scope, $window, SocketService, ActivePageService, UserService) {
-	var cursorTimeout = true;
-	var networkTiming = 30;
-	//Scope Variables
-	$scope.page = ActivePageService.PageData;
-	
-	$scope.CursorMove = function($event) {
-		if(ActivePageService.PageData) {
-			if(cursorTimeout) {
-				cursorTimeout = false;
-				
-				var cursorMove = {
-					pos: {
-						x: $event.clientX / $window.innerWidth,
-						y: $event.clientY / $window.innerHeight
-					},
-					t: frameDifference(ActivePageService.PageData.enterTime, new Date().getTime())
-				};			
-				
-				SocketService.CursorMove(cursorMove);
-				
-				window.setTimeout(function() {
-					cursorTimeout = true;
-				}, (1000/networkTiming));	
-			}	
-		}
-	};
-	UserService.RedrawCallback = function() {
-		$scope.$apply();
-	};
-	$scope.OtherUsers = UserService.OtherUsers;
-	//End Scope
-	
-	function frameDifference(oldTime, newTime) {
-		var difference = newTime - oldTime;
-		return Math.ceil((difference / 1000) * networkTiming);
-		
-	}
-}
-
-angular.module('mazenet').controller('MazenetController', ['$scope', '$window', 'SocketService','ActivePageService','UserService', mazenetController]);
+/* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
+/// <reference path="../../typings/tsd.d.ts" />
+define(["require", "exports"], function (require, exports) {
+    var MazenetController = (function () {
+        function MazenetController($scope, $window, CursorService, ActivePageService, UserService) {
+            this.$scope = $scope;
+            this.$window = $window;
+            this.CursorService = CursorService;
+            this.ActivePageService = ActivePageService;
+            this.UserService = UserService;
+            this.Page = ActivePageService.PageData;
+            this.OtherUsers = UserService.OtherUsers;
+            UserService.RedrawCallback = function () { $scope.$apply(); };
+        }
+        MazenetController.prototype.CursorMove = function ($event) {
+            this.CursorService.UserMovedCursor($event);
+        };
+        MazenetController.$inject = [
+            '$scope',
+            '$window',
+            'CursorService',
+            'ActivePageService',
+            'UserService'
+        ];
+        return MazenetController;
+    })();
+    return MazenetController;
+});
+//# sourceMappingURL=MazenetController.js.map
