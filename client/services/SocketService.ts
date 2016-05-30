@@ -9,6 +9,8 @@ import Cursor = require('./../models/Cursors/Cursor');
 import Page = require('./../models/Pages/Page');
 import IUserService = require('./interfaces/IUserService');
 import IActivePageService = require("./pages/Interfaces/IActivePageService");
+import IPromiseMapper = require("../models/Interfaces/IPromiseMapper");
+import PromiseMapper = require("../models/PromiseMapper");
 
 export = SocketService;
 
@@ -17,9 +19,9 @@ class SocketService implements ISocketService {
 
     public InitialLoadComplete:boolean;
     private socket:SocketIO.Socket;
-    private pageUpdatePromise:angular.IDeferred<Page> = null;
-    private pageEnterPromise:angular.IDeferred<Page> = null;
-    private elementCreatePromise:angular.IDeferred<IElement> = null;
+    private pageUpdatePromiseMapper:IPromiseMapper<Page>;
+    private pageEnterPromiseMapper:IPromiseMapper<Page>;
+    private elementCreatePromiseMapper:IPromiseMapper<IElement>;
 
     static FactoryDefinition = [
         '$q',
@@ -39,6 +41,10 @@ class SocketService implements ISocketService {
                 private UserService:IUserService,
                 private ActivePageService:IActivePageService){
         this.InitialLoadComplete = false;
+
+        this.pageUpdatePromiseMapper = new PromiseMapper<Page>();
+        this.pageEnterPromiseMapper = new PromiseMapper<Page>();
+        this.elementCreatePromiseMapper = new PromiseMapper<IElement>();
     }
     public Init() {
         if(!this.socket || !this.socket.connected) {
@@ -49,7 +55,7 @@ class SocketService implements ISocketService {
             this.socket.on('pages/userEntered', this.userEnteredCallback());
             this.socket.on('pages/userLeft', this.userLeftCallback());
             this.socket.on('pages/cursors/moved', this.userMovedCursorCallback());
-            this.socket.on('pages/enter:success', this.userEnterPageCallback());
+            this.socket.on('/pages/enter', this.userEnterPageCallback());
             this.socket.on('pages/enter:failure', this.userEnterPageFailureCallback());
             this.socket.on('pages/elements/created', this.elementCreatedCallback());
             this.socket.on('pages/element/create:failure', this.elementCreateFailureCallback());
@@ -57,8 +63,8 @@ class SocketService implements ISocketService {
             this.socket.on('pages/update:failure', this.pageUpdateFailureCallback());
         }
     }
-    public EnterPage(pageId:string, inPos:MzPosition) {
-        this.pageEnterPromise = this.$q.defer();
+    public EnterPage(pageId:string, inPos:MzPosition):angular.IPromise<Page> {
+        var defered:angular.IDeferred<Page> = this.$q.defer();
         var startPage = { //TODO Consider Refactoring
             pId: pageId,
             pos: {
@@ -66,11 +72,16 @@ class SocketService implements ISocketService {
                 y: inPos.y
             }
         };
-        this.socket.emit('pages/enter', startPage);
-        return this.pageEnterPromise.promise;
+
+        var id:string = this.pageEnterPromiseMapper.GetNewId();
+        this.pageEnterPromiseMapper.SetPromiseForId(id,defered);
+
+        this.socket.emit('/pages/enter', this.buildFreshGET(startPage, id));
+
+        return defered.promise;
     }
 
-    public UpdatePage(pageData:Page) {
+    public UpdatePage(pageData:Page):angular.IPromise<Page> {
         this.pageUpdatePromise = this.$q.defer();
 
         this.socket.emit('pages/update', pageData);
@@ -78,7 +89,7 @@ class SocketService implements ISocketService {
         return this.pageEnterPromise.promise;
     }
 
-    public CreateElement(element:IElement) {
+    public CreateElement(element:IElement):angular.IPromise<IElement> {
         this.elementCreatePromise = this.$q.defer();
 
         this.socket.emit('pages/elements/create', element);
@@ -186,6 +197,16 @@ class SocketService implements ISocketService {
             self.EnterPage(self.ActivePageService.RootPages.root, {x: 0, y: 0}).then(successCallback, failureCallback);
         } else {
             console.error('No root page, homepage, or url page defined.');
+        }
+    }
+
+    private buildFreshGET(body:any, requestId:string) {
+        return {
+            method: 'GET',
+            headers: {
+                'X-Fresh-Request-Id': requestId
+            },
+            body: body
         }
     }
 }

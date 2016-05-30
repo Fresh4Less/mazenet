@@ -11,7 +11,7 @@ interface ISocketService {
     InitialLoadComplete:boolean;
     Init();
     EnterPage(pageId:string, pos:MzPosition):angular.IPromise<Page>;
-    UpdatePage(pageData:Page);
-    CreateElement(element:IElement);
+    UpdatePage(pageData:Page):angular.IPromise<Page>;
+    CreateElement(element:IElement):angular.IPromise<IElement>;
     CursorMove(cursor:CursorFrame);
 }
