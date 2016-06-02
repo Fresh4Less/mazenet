@@ -6,6 +6,6 @@ export = IPromiseMapper;
 interface IPromiseMapper<T> {
 
     GetNewId():string;
-    GetPromiseForId(id:string):angular.IDeferred<T>;
-    SetPromiseForId(id:string, promise:angular.IDeferred<T>);
+    GetDeferredForId(id:string):angular.IDeferred<T>;
+    SetDeferredForId(id:string, promise:angular.IDeferred<T>);
 }

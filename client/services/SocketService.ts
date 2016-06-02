@@ -10,7 +10,9 @@ import Page = require('./../models/Pages/Page');
 import IUserService = require('./interfaces/IUserService');
 import IActivePageService = require("./pages/Interfaces/IActivePageService");
 import IPromiseMapper = require("../models/Interfaces/IPromiseMapper");
-import PromiseMapper = require("../models/PromiseMapper");
+import PromiseMapper = require("../models/FreshIO/PromiseMapper");
+import WebResponse = require("../models/FreshIO/WebResponse");
+import WebRequest = require("../models/FreshIO/WebRequest");
 
 export = SocketService;
 
@@ -50,21 +52,19 @@ class SocketService implements ISocketService {
         if(!this.socket || !this.socket.connected) {
             var port:number = (this.$location.port() === 9876) ? 9999 : this.$location.port(); /* Change the port if we are on the testing port. */
             this.socket = io('http://'+ this.$location.host() +':' + this.$location.port() + '/mazenet');
-            this.socket.on('users/connected', this.connectedCallback());
-            this.socket.on('users/connected:failure', this.connectErrorCallback());
-            this.socket.on('pages/userEntered', this.userEnteredCallback());
-            this.socket.on('pages/userLeft', this.userLeftCallback());
-            this.socket.on('pages/cursors/moved', this.userMovedCursorCallback());
+            this.socket.on('/users/connect', this.connectedCallback());
+            this.socket.on('/pages/userEntered', this.userEnteredCallback());
+            this.socket.on('/pages/userLeft', this.userLeftCallback());
+            this.socket.on('/pages/cursors/moved', this.userMovedCursorCallback());
             this.socket.on('/pages/enter', this.userEnterPageCallback());
-            this.socket.on('pages/enter:failure', this.userEnterPageFailureCallback());
-            this.socket.on('pages/elements/created', this.elementCreatedCallback());
-            this.socket.on('pages/element/create:failure', this.elementCreateFailureCallback());
-            this.socket.on('pages/updated', this.pageUpdatedCallback());
-            this.socket.on('pages/update:failure', this.pageUpdateFailureCallback());
+            this.socket.on('/pages/elements/created', this.elementCreatedCallback());
+            this.socket.on('/pages/update', this.pageUpdatedCallback());
+
+            this.socket.emit('/users/connect', new WebRequest('GET', {}, '1'));
         }
     }
     public EnterPage(pageId:string, inPos:MzPosition):angular.IPromise<Page> {
-        var defered:angular.IDeferred<Page> = this.$q.defer();
+        var deferred:angular.IDeferred<Page> = this.$q.defer();
         var startPage = { //TODO Consider Refactoring
             pId: pageId,
             pos: {
@@ -74,46 +74,57 @@ class SocketService implements ISocketService {
         };
 
         var id:string = this.pageEnterPromiseMapper.GetNewId();
-        this.pageEnterPromiseMapper.SetPromiseForId(id,defered);
 
-        this.socket.emit('/pages/enter', this.buildFreshGET(startPage, id));
+        this.pageEnterPromiseMapper.SetDeferredForId(id,deferred);
 
-        return defered.promise;
+        this.socket.emit('/pages/enter', new WebRequest('GET',startPage, id));
+
+        return deferred.promise;
     }
 
     public UpdatePage(pageData:Page):angular.IPromise<Page> {
-        this.pageUpdatePromise = this.$q.defer();
 
-        this.socket.emit('pages/update', pageData);
+        var deferred:angular.IDeferred<Page> = this.$q.defer();
 
-        return this.pageEnterPromise.promise;
+        var id:string = this.pageUpdatePromiseMapper.GetNewId();
+
+        this.socket.emit('/pages/update', new WebRequest('GET', pageData, id));
+
+        return deferred.promise;
     }
 
     public CreateElement(element:IElement):angular.IPromise<IElement> {
-        this.elementCreatePromise = this.$q.defer();
+        var deferred:angular.IDeferred<IElement> = this.$q.defer();
 
-        this.socket.emit('pages/elements/create', element);
+        var id:string = this.elementCreatePromiseMapper.GetNewId();
 
-        return this.elementCreatePromise.promise;
+        this.socket.emit('pages/elements/create', new WebRequest('GET', element, id));
+
+        return deferred.promise;
     }
 
     public CursorMove(cursor:CursorFrame) {
-        this.socket.emit('pages/cursors/moved', cursor);
+        this.socket.emit('/pages/cursors/moved', cursor);
     }
 
-    /* Event Handlers */
+    /* ********** Event Handlers ********** */
+
     private connectedCallback():(any)=>void {
         var self = this;
-        return (user)=> {
-            self.UserService.UserData.uId = user.uId;
-            self.ActivePageService.RootPages.root = user.rootPageId;
-            self.ActivePageService.RootPages.homepage = user.homepageId;
-            self.loadInitialPage();
-        };
-    };
-    private connectErrorCallback():(any)=>void {
-        return (error) => {
-            console.error("Could not connect to the Mazenet.", error);
+        return (response:WebResponse)=> {
+            if(response.status == 200) {
+
+                var user = response.body;
+
+                self.UserService.UserData.uId = user.uId;
+                self.ActivePageService.RootPages.root = user.rootPageId;
+                self.ActivePageService.RootPages.homepage = user.homepageId;
+
+                self.loadInitialPage();
+
+            } else {
+                console.error("Could not connect to the Mazenet.", response);
+            }
         };
     };
     private userEnteredCallback():(any)=>void {
@@ -137,44 +148,62 @@ class SocketService implements ISocketService {
     };
     private userEnterPageCallback():(any)=>void {
         var self = this;
-        return (pageData) => {
-            self.$location.path('room/'+pageData.page._id);
-            self.ActivePageService.LoadPage(pageData.page);
-            self.UserService.SetUsers(pageData.users);
-            self.pageEnterPromise.resolve(pageData);
+        return (response:WebResponse) => {
+
+            var promise:ng.IDeferred<Page> = self.pageEnterPromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
+
+            if(promise) { //Check if somehow we got a response that we didn't ask for.
+                if(response.status == 200) {
+                    var pageData = response.body;
+                    self.$location.path('room/'+pageData.page._id);
+                    self.ActivePageService.LoadPage(pageData.page);
+                    self.UserService.SetUsers(pageData.users);
+                    promise.resolve(pageData.body);
+                } else {
+                    promise.reject(response.body);
+                }
+            }
         };
     };
-    private userEnterPageFailureCallback():(any)=>void {
-        var self = this;
-        return (error)=>{
-            self.pageEnterPromise.reject(error);
-        };
-    };
+
     private elementCreatedCallback():(any)=>void {
         var self = this;
-        return (element) => {
-            self.ActivePageService.AddElement(element);
-            self.elementCreatePromise.resolve(element);
+        return (response:WebResponse) => {
+
+            var promise:ng.IDeferred<IElement> = self.elementCreatePromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
+
+            if(promise) {
+                if(response.status == 200) {
+                    var element = response.body;
+
+                    self.ActivePageService.AddElement(element);
+
+                    promise.resolve(element);
+
+                } else {
+                    promise.reject(response);
+                }
+            } else {
+            }
         };
     };
-    private elementCreateFailureCallback():(any)=>void {
-        var self = this;
-        return (error) => {
-            self.elementCreatePromise.reject(error);
-        };
-    };
+
     private pageUpdatedCallback():(any)=>void {
         var self = this;
-        return (pageChanges) => {
-            self.ActivePageService.UpdatePage(pageChanges);
-            self.pageEnterPromise.resolve(pageChanges);
-        };
-    };
-    private pageUpdateFailureCallback():(any)=>void {
-        var self = this;
-        return (error) => {
-            console.error('Error updating page.', error);
-            self.pageEnterPromise.resolve(error);
+        return (response:WebResponse) => {
+
+            var promise:ng.IDeferred<Page> = self.pageUpdatePromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
+
+            if(promise) {
+                if(response.status == 200) {
+                    var pageChanges = response.body;
+                    self.ActivePageService.UpdatePage(pageChanges);
+                    promise.resolve(pageChanges);
+                } else {
+                    console.error('Error updating page.', response);
+                    promise.reject(response);
+                }
+            }
         };
     };
     private loadInitialPage() {
@@ -200,13 +229,4 @@ class SocketService implements ISocketService {
         }
     }
 
-    private buildFreshGET(body:any, requestId:string) {
-        return {
-            method: 'GET',
-            headers: {
-                'X-Fresh-Request-Id': requestId
-            },
-            body: body
-        }
-    }
 }
