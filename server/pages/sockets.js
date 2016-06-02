@@ -78,9 +78,9 @@ function initialze(route, options) {
 	router.get('/update', function(req, res, next) {
 		// update the page the user is currently in
 		if(req.socket.mazenet.room !== undefined) {
-			pagesService.updatePage(r.substring((opts.pageRoomPrefix + '/').length), req.body)
+			pagesService.updatePage(req.socket.mazenet.room.substring((opts.pageRoomPrefix + '/').length), req.body)
 				.then(function(pageChanges) {
-					req.socket.broadcast.to(r).emit(req.baseUrl + '/updated', pageChanges);
+					req.socket.broadcast.to(req.socket.mazenet.room).emit(req.baseUrl + '/updated', pageChanges);
 					res.status(200).send(pageChanges);
 				})
 				.catch(ValidatorErrors.ValidationError, function(err) {
