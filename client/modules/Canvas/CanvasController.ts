@@ -402,6 +402,7 @@ class CanvasController {
 
     /* Resets the canvas by resetting timers, cursors, and clearing the canvas */
     private resetCanvas() {
+
         this.activeRoomTime = this.ActivePageService.PageData.enterTime;
         this.timer = 0;
         this.ctx.clearRect(0, 0, this.width, this.height);
@@ -409,6 +410,9 @@ class CanvasController {
         //this.cursorTimeMarkers = [];
         this.cursorMaxTime = 0;
         var self = this;
+
+        this.CursorService.FilterCursorData(this.ActivePageService.PageData.cursors);
+
         _.forEach(this.ActivePageService.PageData.cursors, function(cursor:AnimatedCursor) {
             var oldestTime = cursor.frames[cursor.frames.length-1].t;
             if(oldestTime > self.cursorMaxTime) {
