@@ -88,6 +88,8 @@ class SocketService implements ISocketService {
 
         var id:string = this.pageUpdatePromiseMapper.GetNewId();
 
+        this.pageUpdatePromiseMapper.SetDeferredForId(id, deferred);
+
         this.socket.emit('/pages/update', new WebRequest('GET', pageData, id));
 
         return deferred.promise;
@@ -97,6 +99,8 @@ class SocketService implements ISocketService {
         var deferred:angular.IDeferred<IElement> = this.$q.defer();
 
         var id:string = this.elementCreatePromiseMapper.GetNewId();
+
+        this.elementCreatePromiseMapper.SetDeferredForId(id, deferred);
 
         this.socket.emit('pages/elements/create', new WebRequest('GET', element, id));
 
