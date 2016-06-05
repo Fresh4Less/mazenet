@@ -51,7 +51,7 @@ class SocketService implements ISocketService {
     public Init() {
         if(!this.socket || !this.socket.connected) {
             var port:number = (this.$location.port() === 9876) ? 9999 : this.$location.port(); /* Change the port if we are on the testing port. */
-            this.socket = io('http://'+ this.$location.host() +':' + this.$location.port() + '/mazenet');
+            this.socket = <SocketIO.Socket><any> io('http://'+ this.$location.host() +':' + this.$location.port() + '/mazenet');
             this.socket.on('/users/connect', this.connectedCallback());
             this.socket.on('/pages/userEntered', this.userEnteredCallback());
             this.socket.on('/pages/userLeft', this.userLeftCallback());
