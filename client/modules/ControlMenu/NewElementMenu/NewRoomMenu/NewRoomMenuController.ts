@@ -2,12 +2,11 @@
 /// <reference path="../../../../../typings/tsd.d.ts" />
 
 import $ = require('jquery');
-import IUserService = require("../../../services/Interfaces/IUserService");
-import UserData = require("../../../models/UserData");
-import IClickNetService = require("../../../services/Interfaces/IClickNetService");
-import IElement = require("../../../models/Interfaces/IElement");
-import {link} from "fs";
-import ISocketService = require("../../../services/Interfaces/ISocketService");
+import IUserService = require("../../../../services/interfaces/IUserService");
+import UserData = require("../../../../models/UserData");
+import IClickNetService = require("../../../../services/Interfaces/IClickNetService");
+import IElement = require("../../../../models/Interfaces/IElement");
+import ISocketService = require("../../../../services/Interfaces/ISocketService");
 import Page = require("../../../../models/Pages/Page");
 
 export = NewRoomMenuController;

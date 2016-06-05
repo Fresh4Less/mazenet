@@ -5,8 +5,8 @@ import InfoMenuController = require('./InfoMenuController');
 
 export = InfoMenuDirective;
 
-function InfoMenuDirective():ng.IDirective {
-    var directive = <ng.IDirective> {
+function InfoMenuDirective():angular.IDirective {
+    var directive = <angular.IDirective> {
         restrict: 'E',
         templateUrl: '/modules/ControlMenu/InfoMenu/InfoMenuTemplate.html',
         controller: InfoMenuController,

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    target
+  },
+  "files": [
+    "client/**/*.ts"
+  ]
+}
