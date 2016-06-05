@@ -1,0 +1,18 @@
+.pointer {
+  cursor:pointer;
+}
+
+.pad-right-sm {
+  padding-right: 1em
+}
+
+.pad-left-sm {
+  padding-left: 1em
+}
+
+@import "./controlPanels/mzControlPanel";
+@import "./controlPanels/mzWelcomeMenu";
+@import "./controlPanels/mzNewRoomMenu";
+@import "./controlPanels/mzPreviewWindow";
+@import "./controlPanels/mzBackgroundSettings";
+@import "./controlPanels/mzPermissionsSettings";

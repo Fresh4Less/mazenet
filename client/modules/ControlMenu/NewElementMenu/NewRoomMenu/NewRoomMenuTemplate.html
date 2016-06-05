@@ -1,0 +1,32 @@
+<section id="NewRoomMenu">
+    <md-content layout="column" layout-padding>
+        <form name="newRoomForm" ng-submit="nrCtrl.SelectPositionToTunnel()">
+            <md-button class="md-raised md-accent" type="submit">Select Position to Tunnel <i class="fa fa-crosshairs"></i></md-button>
+            <md-input-container class="md-block">
+                <label>Room Title</label>
+                <input required name="title" ng-model="nrCtrl.pageToMake.title">
+                <div ng-messages="newRoomForm.title.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+                <label>Link Text</label>
+                <input required name="linkText" ng-model="nrCtrl.pageLinkText">
+                <div ng-messages="newRoomForm.linkText.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <mz-room-preview preview-room="nrCtrl.pageToMake" link-text="nrCtrl.pageLinkText"></mz-room-preview>
+            <br>
+            <h4>Background design</h4>
+            <mz-background-settings background-model="nrCtrl.pageToMake.background"></mz-background-settings>
+            <h4>Global permissions</h4>
+            <mz-permission-settings permissions="nrCtrl.pageToMake.permissions"></mz-permission-settings>
+            <h4>Room Administrators</h4>
+            <md-chips ng-model="nrCtrl.pageToMake.owners"
+                      secondary-placeholder="Enter additional User IDs">
+            </md-chips>
+            <br>
+        </form>
+    </md-content>
+</section>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Mazenet</title>
+	<link rel="icon" href="images/favicon.png?v=6" type="image/x-icon" />
+	<script src="/bower_components/requirejs/require.js" data-main="main.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  	<link rel="stylesheet" href="MazenetStyles.css">
+	
+</head>
+<body ng-controller="RootController" style="{{ globalPageStyles.stringified }}">
+	<mz-control-menu>
+		<!-- Background Canvas -->
+		<mz-canvas></mz-canvas>
+		<!-- Mazenet -->
+		<mz-mazenet></mz-mazenet>
+		<!-- Mouse Click Capturer -->
+		<mz-click-net></mz-click-net>
+	</mz-control-menu>
+</body>
+</html>

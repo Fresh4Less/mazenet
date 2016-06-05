@@ -1,0 +1,26 @@
+#TheControlPanel {
+  @include mz-ease-out(height, 200ms);
+  position: absolute;
+  width:100%;
+  z-index: 10;
+
+  .control-panel-content {
+    background: $mz-gray-highlight;
+    color: $mz-light-text;
+    border-bottom:4px solid $mz-gray;
+
+
+    //position:absolute;
+    //bottom: 0;
+
+  }
+  .content-closed {
+    padding: 0;
+  }
+  .content-open {
+    padding: 1.3em;
+  }
+}
+.fill-screen {
+  height: 100%;
+}

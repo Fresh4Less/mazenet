@@ -1,0 +1,36 @@
+<md-toolbar>
+    <h1 class="md-toolbar-tools"><i class="fa fa-cogs pad-right-sm"></i>Configuration</h1>
+</md-toolbar>
+<md-tabs md-dynamic-height md-border-bottom>
+    <md-tab>
+        <md-tab-label>
+            <i class="fa fa-home"></i> {{rsCtrl.page.title}}
+        </md-tab-label>
+        <md-tab-body>
+            <md-content layout-padding>
+                <mz-room-preview preview-room="rsCtrl.page" link-text="rsCtrl.linkText"></mz-room-preview>
+                <mz-background-settings background-model="rsCtrl.page.background"></mz-background-settings>
+                <mz-permission-settings permissions="rsCtrl.page.permissions"></mz-permission-settings>
+                <md-chips ng-model="rsCtrl.page.owners"
+                          secondary-placeholder="Add admin by User ID.">
+                </md-chips>
+                <br>
+                <md-button class="md-raised md-warn" ng-click="rsCtrl.ApplyRoomChanges()">Apply Changes <i class="fa fa-check"></i></md-button>
+            </md-content>
+        </md-tab-body>
+    </md-tab>
+    <md-tab>
+        <md-tab-label>
+            <i class="fa fa-globe"></i> Global
+        </md-tab-label>
+        <md-tab-body>
+            <md-content flex layout-padding>
+                <p>
+                    <md-button class="md-raised md-primary" ng-click="rsCtrl.CursorService.CycleDrawMode()">
+                        <i class="fa fa-refresh"></i> <b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
+                    </md-button>
+                </p>
+            </md-content>
+        </md-tab-body>
+    </md-tab>
+</md-tabs>
