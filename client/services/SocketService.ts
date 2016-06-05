@@ -102,7 +102,7 @@ class SocketService implements ISocketService {
 
         this.elementCreatePromiseMapper.SetDeferredForId(id, deferred);
 
-        this.socket.emit('pages/elements/create', new WebRequest('GET', element, id));
+        this.socket.emit('/pages/elements/create', new WebRequest('GET', element, id));
 
         return deferred.promise;
     }
