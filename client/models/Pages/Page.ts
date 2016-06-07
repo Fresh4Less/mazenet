@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/index.d.ts" />
 import IElement = require("./../Interfaces/IElement");
 import IBackground = require("./../Interfaces/IBackground");
 import AnimatedCursor = require("./../Cursors/AnimatedCursor");

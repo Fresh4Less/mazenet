@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="../typings/index.d.ts" />
 
 import RootController = require("./RootController");
 import Services = require('./services/module');
@@ -9,7 +9,7 @@ export = mazenet;
 
 var mazenet = angular.module('mazenet', ['ngRoute', 'ngMaterial', Services.name, Modules.name]);
 
-mazenet.controller(RootController.name, RootController);
+mazenet.controller(RootController.moduleName, RootController);
 
 mazenet.config(['$routeProvider', '$mdThemingProvider',
     function($routeProvider, $mdThemingProvider) {

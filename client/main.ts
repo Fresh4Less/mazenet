@@ -1,4 +1,5 @@
-/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="../typings/index.d.ts" />
+declare var requirejs: any;
 
 requirejs.config({
     paths : {

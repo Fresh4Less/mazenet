@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 import UserData = require("./../models/UserData");
 import Cursor = require("./../models/Cursors/Cursor");
 import IUserService = require('./interfaces/IUserService');
@@ -7,7 +7,7 @@ import IUserService = require('./interfaces/IUserService');
 export = UserService
 
 class UserService implements IUserService {
-    static name:string = "UserService";
+    static moduleName:string = "UserService";
     public UserData: UserData;
     public OtherUsers: { [id: string] : UserData; };
     public RedrawCallback:()=>void;

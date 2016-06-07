@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/index.d.ts" />
 import AnimatedCursor = require("../../models/Cursors/AnimatedCursor");
 declare var _;
 import ICursorService = require("./Interfaces/ICursorService");
@@ -17,7 +17,7 @@ import MzPosition = require("../../models/MzPosition");
 export = CursorService;
 
 class CursorService implements ICursorService {
-    static name:string = 'CursorService';
+    static moduleName:string = 'CursorService';
 
     public DrawMode:IDrawMode;
     private callbacks;

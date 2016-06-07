@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/index.d.ts" />
 declare var _;
 import IActivePageService = require("./Interfaces/IActivePageService");
 import Page = require("../../models/Pages/Page");
@@ -10,7 +10,7 @@ import PageStyles = require("../../models/Pages/PageStyles");
 export = ActivePageService;
 
 class ActivePageService implements IActivePageService{
-    static name:string = 'ActivePageService';
+    static moduleName:string = 'ActivePageService';
     public PageData:Page;
     public RootPages:RootPages;
     public Styles:PageStyles;

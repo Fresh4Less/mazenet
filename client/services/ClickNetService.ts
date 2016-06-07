@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 
 import IClickNetService = require("./interfaces/IClickNetService");
 
@@ -7,7 +7,7 @@ export = ClickNetService;
 
 class ClickNetService implements IClickNetService {
 
-    static name:string = 'ClickNetService';
+    static moduleName:string = 'ClickNetService';
 
     static FactoryDefinition = [
         '$q',

@@ -1,11 +1,11 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="../typings/index.d.ts" />
 import ISocketService = require('./services/interfaces/ISocketService');
 
 export = RootController;
 
 class RootController {
-   static name:string = "RootController";
+   static moduleName:string = "RootController";
 
     $inject = [
         '$scope',

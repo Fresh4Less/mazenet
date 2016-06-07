@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 import MazenetDirective = require('./MazenetDirective');
 import CanvasModule = require('./Canvas/module');
 import ElementsModule = require('./Elements/module');

@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../../typings/tsd.d.ts" />
+/// <reference path="../../../../typings/index.d.ts" />
 import RootPages = require('../../../models/Pages/RootPages');
 import Page = require('../../../models/Pages/Page');
 import PageStyles = require("../../../models/Pages/PageStyles");

@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 
 import IScreenPositioningService = require("./interfaces/IScreenPositioningService");
 
@@ -10,7 +10,7 @@ class ScreenPositioningService implements IScreenPositioningService{
     private mazenetHeight:number;
     private controlBarHeight:number;
 
-    static name = 'ScreenPositioningService';
+    static moduleName:string = 'ScreenPositioningService';
     static FactoryDefinition = [
         ()=> {
             return new ScreenPositioningService();

@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 import io = require('socket.io');
 import CursorFrame = require("../models/Cursors/CursorFrame");
 import IElement = require('./../models/Interfaces/IElement');
@@ -17,7 +17,7 @@ import WebRequest = require("../models/FreshIO/WebRequest");
 export = SocketService;
 
 class SocketService implements ISocketService {
-    static name:string = "SocketService";
+    static moduleName:string = "SocketService";
 
     public InitialLoadComplete:boolean;
     private socket:SocketIO.Socket;

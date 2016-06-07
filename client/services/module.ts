@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../typings/tsd.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 import CursorService = require('./cursors/module');
 import PagesService = require('./pages/module');
 
@@ -13,7 +13,7 @@ export = angular.module('services', [
     CursorService.name,
     PagesService.name
 ])
-    .factory(SocketService.name, SocketService.FactoryDefinition)
-    .factory(UserService.name, UserService.FactoryDefinition)
-    .factory(ClickNetService.name, ClickNetService.FactoryDefinition)
-    .factory(ScreenPositioningService.name, ScreenPositioningService.FactoryDefinition);
+    .factory(SocketService.moduleName, SocketService.FactoryDefinition)
+    .factory(UserService.moduleName, UserService.FactoryDefinition)
+    .factory(ClickNetService.moduleName, ClickNetService.FactoryDefinition)
+    .factory(ScreenPositioningService.moduleName, ScreenPositioningService.FactoryDefinition);

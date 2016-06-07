@@ -1,5 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
-/// <reference path="../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/index.d.ts" />
 
 import mazenet = require('mazenet');
 import ICursorService = require("../../../client/services/cursors/Interfaces/ICursorService");

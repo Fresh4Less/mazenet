@@ -32,15 +32,13 @@
     "express-session": "^1.13.0",
     "fresh-socketio-router": "^0.1.2",
     "fresh-validation": "^0.2.2",
-    "grunt-typescript": "^0.8.0",
     "http-errors": "^1.5.0",
     "minimist": "^1.2.0",
     "mongodb": "^2.1.21",
     "normalize-scss": "^5.0.3",
     "requirejs": "^2.2.0",
     "safe-json-stringify": "^1.0.3",
-    "socket.io": "^1.4.6",
-    "typescript": "^1.8.10"
+    "socket.io": "^1.4.6"
   },
   "private": true,
   "devDependencies": {
@@ -56,8 +54,6 @@
     "grunt-express-server": "^0.5.3",
     "grunt-mocha-test": "^0.12.7",
     "grunt-sass": "^1.2.0",
-    "grunt-ts": "^5.5.1",
-    "grunt-tslint": "^3.1.0",
     "jasmine-core": "^2.4.1",
     "karma": "^0.13.22",
     "karma-chrome-launcher": "^1.0.1",
@@ -71,6 +67,6 @@
     "sinon": "^1.17.4",
     "socket.io-client": "*",
     "tslint": "^3.10.2",
-    "typescript": "*"
+    "typescript": "^1.8.10"
   }
 }
