@@ -35,8 +35,6 @@
     "http-errors": "^1.5.0",
     "minimist": "^1.2.0",
     "mongodb": "^2.1.21",
-    "normalize-scss": "^5.0.3",
-    "requirejs": "^2.2.0",
     "safe-json-stringify": "^1.0.3",
     "socket.io": "^1.4.6"
   },
@@ -63,9 +61,11 @@
     "karma-requirejs": "^1.0.0",
     "karma-socketio-server": "^1.0.0",
     "mocha": "^2.5.3",
+    "normalize-scss": "^5.0.3",
     "phantomjs-prebuilt": "^2.1.7",
+    "requirejs": "^2.2.0",
     "sinon": "^1.17.4",
-    "socket.io-client": "*",
+    "socket.io-client": "^1.4.6",
     "tslint": "^3.10.2",
     "typescript": "^1.8.10"
   }
