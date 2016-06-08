@@ -49,6 +49,7 @@
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-env": "^0.4.4",
+    "grunt-exec": "^0.4.7",
     "grunt-express-server": "^0.5.3",
     "grunt-mocha-test": "^0.12.7",
     "grunt-sass": "^1.2.0",
@@ -66,7 +67,6 @@
     "requirejs": "^2.2.0",
     "sinon": "^1.17.4",
     "socket.io-client": "^1.4.6",
-    "tslint": "^3.10.2",
     "typescript": "^1.8.10"
   }
 }

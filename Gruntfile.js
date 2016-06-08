@@ -68,6 +68,10 @@ module.exports = function(grunt) {
 				},
 				src: serverTestFiles
 			}
+		},
+		exec: {
+			installTSD: 'typings install',
+			compileTypescript: 'node node_modules/typescript/bin/tsc client/module.ts --m amd -t es5 --sourceMap'
 		}
 	});
 	grunt.loadNpmTasks('grunt-env');
@@ -76,8 +80,10 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-express-server');
 	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-sass');
+	grunt.loadNpmTasks('grunt-exec');
 
-//	grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'sass', 'cssmin']);
+	grunt.registerTask('build', ['sass', 'exec:installTSD', 'exec:compileTypescript']);
+
 	grunt.registerTask('default', ['env:dev', 'jshint', 'concat']);
 	grunt.registerTask('dev', ['default', 'express:dev', 'watch:js']);
 	grunt.registerTask('test', ['env:test', 'jshint', 'mochaTest']);
