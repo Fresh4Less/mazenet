@@ -1,12 +1,12 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/index.d.ts" />
 
-import IActivePageService = require("../services/pages/Interfaces/IActivePageService");
+import IActivePageService = require("../services/pages/interfaces/IActivePageService");
 import IUserService = require("../services/interfaces/IUserService");
-import Page = require("../models/Pages/Page");
-import CursorFrame = require("../models/Cursors/CursorFrame");
+import Page = require("../models/pages/Page");
+import CursorFrame = require("../models/cursors/CursorFrame");
 import UserData = require("../models/UserData");
-import ICursorService = require("../services/cursors/Interfaces/ICursorService");
+import ICursorService = require("../services/cursors/interfaces/ICursorService");
 import UserService = require("../services/UserService");
 
 export = MazenetController;

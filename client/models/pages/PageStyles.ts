@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 
-import IBackground = require("../Interfaces/IBackground");
+import IBackground = require("../interfaces/IBackground");
 
 export = PageStyles;
 

@@ -8,7 +8,7 @@ export = RoomSettingsMenuDirective;
 function RoomSettingsMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/ControlMenu/RoomSettingsMenu/RoomSettingsMenuTemplate.html',
+        templateUrl: '/modules/controlMenu/roomSettingsMenu/RoomSettingsMenuTemplate.html',
         controller: RoomSettingsMenuController,
         controllerAs: 'rsCtrl',
         bindToController: true

@@ -1,9 +1,9 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../typings/index.d.ts" />
-import RootPages = require('../../../models/Pages/RootPages');
-import Page = require('../../../models/Pages/Page');
-import PageStyles = require("../../../models/Pages/PageStyles");
-import IElement = require("../../../models/Interfaces/IElement");
+import RootPages = require('../../../models/pages/RootPages');
+import Page = require('../../../models/pages/Page');
+import PageStyles = require("../../../models/pages/PageStyles");
+import IElement = require("../../../models/interfaces/IElement");
 
 export = IActivePageService;
 

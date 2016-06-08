@@ -4,10 +4,10 @@
 import $ = require('jquery');
 import IUserService = require("../../../../services/interfaces/IUserService");
 import UserData = require("../../../../models/UserData");
-import IClickNetService = require("../../../../services/Interfaces/IClickNetService");
-import IElement = require("../../../../models/Interfaces/IElement");
-import ISocketService = require("../../../../services/Interfaces/ISocketService");
-import Page = require("../../../../models/Pages/Page");
+import IClickNetService = require("../../../../services/interfaces/IClickNetService");
+import IElement = require("../../../../models/interfaces/IElement");
+import ISocketService = require("../../../../services/interfaces/ISocketService");
+import Page = require("../../../../models/pages/Page");
 
 export = NewRoomMenuController;
 

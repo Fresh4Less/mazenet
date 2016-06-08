@@ -1,8 +1,8 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../typings/index.d.ts" />
 
-import IActivePageService = require("../../../services/pages/Interfaces/IActivePageService");
-import Page = require("../../../models/Pages/Page");
+import IActivePageService = require("../../../services/pages/interfaces/IActivePageService");
+import Page = require("../../../models/pages/Page");
 
 export = InfoMenuController;
 

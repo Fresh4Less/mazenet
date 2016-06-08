@@ -1,12 +1,12 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
-import NewElementMenuModule = require('./NewElementMenu/module');
-import InfoMenuModule = require('./InfoMenu/module');
-import RoomSettingsMenuModule = require('./RoomSettingsMenu/module');
-import UserMenuModule = require('./UserMenu/module');
-import RoomPreviewModule = require('./RoomPreview/module')
-import BackgroundSettingsModule = require('./BackgroundSettings/module')
-import PermissionSettingsModule = require('./PermissionSettings/module')
+import NewElementMenuModule = require('./newElementMenu/module');
+import InfoMenuModule = require('./infoMenu/module');
+import RoomSettingsMenuModule = require('./roomSettingsMenu/module');
+import UserMenuModule = require('./userMenu/module');
+import RoomPreviewModule = require('./roomPreview/module')
+import BackgroundSettingsModule = require('./backgroundSettings/module')
+import PermissionSettingsModule = require('./permissionSettings/module')
 
 import ControlMenuDirective = require('./ControlMenuDirective');
 

@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 
-import IPromiseMapper = require("./../Interfaces/IPromiseMapper");
+import IPromiseMapper = require("./interfaces/IPromiseMapper");
 
 export = PromiseMapper;
 

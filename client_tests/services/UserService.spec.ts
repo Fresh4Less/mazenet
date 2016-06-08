@@ -5,7 +5,7 @@ import mazenet = require('mazenet');
 
 import IUserService = require("../../client/services/interfaces/IUserService");
 import UserData = require("../../client/models/UserData");
-import Cursor = require("../../client/models/Cursors/Cursor");
+import Cursor = require("../../client/models/cursors/Cursor");
 
 describe('Unit: UserService', ()=> {
     var UserService:IUserService;

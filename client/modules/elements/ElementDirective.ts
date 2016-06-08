@@ -9,7 +9,7 @@ function ElementDirective():ng.IDirective {
         scope: {
             element: '='
         },
-        templateUrl: '/modules/Elements/ElementTemplate.html',
+        templateUrl: '/modules/elements/ElementTemplate.html',
     };
     return directive;
 }

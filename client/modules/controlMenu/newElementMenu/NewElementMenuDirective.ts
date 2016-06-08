@@ -8,7 +8,7 @@ export = NewElementMenuDirective;
 function NewElementMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/ControlMenu/NewElementMenu/NewElementMenuTemplate.html',
+        templateUrl: '/modules/controlMenu/newElementMenu/NewElementMenuTemplate.html',
         controller: NewElementMenuController,
         controllerAs: 'neCtrl',
         bindToController: true

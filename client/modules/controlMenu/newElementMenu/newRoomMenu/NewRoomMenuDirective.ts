@@ -8,7 +8,7 @@ export = NewRoomMenuDirective;
 function NewRoomMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/ControlMenu/NewElementMenu/NewRoomMenu/NewRoomMenuTemplate.html',
+        templateUrl: '/modules/controlMenu/newElementMenu/newRoomMenu/NewRoomMenuTemplate.html',
         controller: NewRoomMenuController,
         controllerAs: 'nrCtrl',
         bindToController: true

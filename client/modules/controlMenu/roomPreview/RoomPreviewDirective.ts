@@ -12,7 +12,7 @@ function RoomPreviewDirective():ng.IDirective {
             previewRoom: '=',
             linkText: '='
         },
-        templateUrl: '/modules/ControlMenu/RoomPreview/RoomPreviewTemplate.html',
+        templateUrl: '/modules/controlMenu/roomPreview/RoomPreviewTemplate.html',
         controller: RoomPreviewController,
         controllerAs: 'rpCtrl',
         bindToController: true

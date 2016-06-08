@@ -11,7 +11,7 @@ function LinkElementDirective():ng.IDirective {
         scope: {
             element: '='
         },
-        templateUrl: '/modules/Elements/Link/LinkElementTemplate.html',
+        templateUrl: '/modules/elements/link/LinkElementTemplate.html',
         controller: LinkElementController,
         controllerAs: 'leCtrl',
         bindToController: true

@@ -11,7 +11,7 @@ function BackgroundSettingsDirective():ng.IDirective {
         scope: {
             backgroundModel: '='
         },
-        templateUrl: '/modules/ControlMenu/BackgroundSettings/BackgroundSettingsTemplate.html',
+        templateUrl: '/modules/controlMenu/backgroundSettings/BackgroundSettingsTemplate.html',
         controller: BackgroundSettingsController,
         controllerAs: 'bsCtrl',
         bindToController: true

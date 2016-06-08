@@ -2,15 +2,15 @@
 /// <reference path="../../../typings/index.d.ts" />
 declare var _;
 import $ = require('jquery');
-import PageStyles = require("../../models/Pages/PageStyles");
-import IActivePageService = require("../../services/pages/Interfaces/IActivePageService");
-import ICursorService = require("../../services/cursors/Interfaces/ICursorService");
-import SpriteOptions = require("../../models/Canvas/SpriteOptions");
-import Sprite = require("../../models/Canvas/Sprite");
-import CursorFrame = require("../../models/Cursors/CursorFrame");
-import Cursor = require("../../models/Cursors/Cursor");
-import AnimatedCursor = require("../../models/Cursors/AnimatedCursor");
-import IElement = require("../../models/Interfaces/IElement");
+import PageStyles = require("../../models/pages/PageStyles");
+import IActivePageService = require("../../services/pages/interfaces/IActivePageService");
+import ICursorService = require("../../services/cursors/interfaces/ICursorService");
+import SpriteOptions = require("../../models/canvas/SpriteOptions");
+import Sprite = require("../../models/canvas/Sprite");
+import CursorFrame = require("../../models/cursors/CursorFrame");
+import Cursor = require("../../models/cursors/Cursor");
+import AnimatedCursor = require("../../models/cursors/AnimatedCursor");
+import IElement = require("../../models/interfaces/IElement");
 import IScreenPositioningService = require("../../services/interfaces/IScreenPositioningService");
 
 export = CanvasController;

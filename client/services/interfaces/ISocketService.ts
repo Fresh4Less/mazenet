@@ -1,9 +1,9 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 import MzPosition = require('./../../models/MzPosition');
-import Page = require('./../../models/Pages/Page');
-import IElement = require('./../../models/Interfaces/IElement');
-import CursorFrame = require("../../models/Cursors/CursorFrame");
+import Page = require('./../../models/pages/Page');
+import IElement = require('./../../models/interfaces/IElement');
+import CursorFrame = require("../../models/cursors/CursorFrame");
 
 export = ISocketService;
 

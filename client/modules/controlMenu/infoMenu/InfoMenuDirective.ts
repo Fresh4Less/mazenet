@@ -8,7 +8,7 @@ export = InfoMenuDirective;
 function InfoMenuDirective():angular.IDirective {
     var directive = <angular.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/ControlMenu/InfoMenu/InfoMenuTemplate.html',
+        templateUrl: '/modules/controlMenu/infoMenu/InfoMenuTemplate.html',
         controller: InfoMenuController,
         controllerAs: 'imCtrl',
         bindToController: true

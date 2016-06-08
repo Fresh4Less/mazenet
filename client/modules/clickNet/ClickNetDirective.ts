@@ -8,7 +8,7 @@ export = ClickNetDirective;
 function ClickNetDirective():ng.IDirective {
     var directive = <ng.IDirective>{
         restrict: 'E',
-        templateUrl: '/modules/ClickNet/ClickNetTemplate.html',
+        templateUrl: '/modules/clickNet/ClickNetTemplate.html',
         controller: ClickNetController,
         controllerAs: 'cnCtrl',
         bindToController: true

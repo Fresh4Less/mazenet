@@ -7,7 +7,7 @@ export = WelcomeMenuDirective
 function WelcomeMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/WelcomeOverlay/WelcomeMenuTemplate.html',
+        templateUrl: '/modules/welcomeOverlay/WelcomeMenuTemplate.html',
         controller: WelcomeMenuController,
         controllerAs: 'wmCtrl',
         bindToController: true

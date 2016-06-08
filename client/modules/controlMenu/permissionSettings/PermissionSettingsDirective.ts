@@ -11,7 +11,7 @@ function RoomPreviewDirective():ng.IDirective {
         scope: {
             permissions: '=',
         },
-        templateUrl: '/modules/ControlMenu/PermissionSettings/PermissionSettingsTemplate.html',
+        templateUrl: '/modules/controlMenu/permissionSettings/PermissionSettingsTemplate.html',
         controller: PermissionSettingsController,
         controllerAs: 'psCtrl',
         bindToController: true

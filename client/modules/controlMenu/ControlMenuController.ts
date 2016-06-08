@@ -3,11 +3,11 @@
 
 import $ = require('jquery');
 import ISocketService = require("../../services/interfaces/ISocketService");
-import IActivePageService = require("../../services/pages/Interfaces/IActivePageService");
+import IActivePageService = require("../../services/pages/interfaces/IActivePageService");
 import IUserService = require("../../services/interfaces/IUserService");
-import ICursorService = require("../../services/cursors/Interfaces/ICursorService");
-import IElement = require("../../models/Interfaces/IElement");
-import Page = require("../../models/Pages/Page");
+import ICursorService = require("../../services/cursors/interfaces/ICursorService");
+import IElement = require("../../models/interfaces/IElement");
+import Page = require("../../models/pages/Page");
 import IClickNetService = require("../../services/interfaces/IClickNetService");
 
 export = ControlMenuController;

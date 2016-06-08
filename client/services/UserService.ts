@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/index.d.ts" />
 import UserData = require("./../models/UserData");
-import Cursor = require("./../models/Cursors/Cursor");
+import Cursor = require("./../models/cursors/Cursor");
 import IUserService = require('./interfaces/IUserService');
 
 export = UserService

@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 
-import IDrawMode = require("./Interfaces/IDrawMode");
+import IDrawMode = require("./interfaces/IDrawMode");
 
 export = CursorDrawMode;
 

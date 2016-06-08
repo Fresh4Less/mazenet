@@ -1,9 +1,9 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../typings/index.d.ts" />
 
-import Page = require("../../../models/Pages/Page");
-import IActivePageService = require("../../../services/pages/Interfaces/IActivePageService");
-import ICursorService = require("../../../services/cursors/Interfaces/ICursorService");
+import Page = require("../../../models/pages/Page");
+import IActivePageService = require("../../../services/pages/interfaces/IActivePageService");
+import ICursorService = require("../../../services/cursors/interfaces/ICursorService");
 import ISocketService = require("../../../services/interfaces/ISocketService");
 
 export = RoomSettingsMenuController;

@@ -8,7 +8,7 @@ export = ControlMenuDirective;
 function ControlMenuDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/ControlMenu/ControlMenuTemplate.html',
+        templateUrl: '/modules/controlMenu/ControlMenuTemplate.html',
         transclude: true,
         controller: ControlMenuController,
         controllerAs: 'cmCtrl',

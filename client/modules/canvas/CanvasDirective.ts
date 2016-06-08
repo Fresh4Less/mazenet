@@ -7,7 +7,7 @@ export = CanvasDirective;
 function CanvasDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
-        templateUrl: '/modules/Canvas/CanvasTemplate.html',
+        templateUrl: '/modules/canvas/CanvasTemplate.html',
         controller: CanvasController,
         controllerAs: 'cvCtrl',
         bindToController:true,

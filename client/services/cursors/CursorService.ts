@@ -1,16 +1,16 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
-import AnimatedCursor = require("../../models/Cursors/AnimatedCursor");
+import AnimatedCursor = require("../../models/cursors/AnimatedCursor");
 declare var _;
-import ICursorService = require("./Interfaces/ICursorService");
-import IDrawMode = require("../../models/DrawModes/Interfaces/IDrawMode");
-import CursorDrawMode = require('../../models/DrawModes/CursorDrawMode');
-import GrayLinesMode = require('../../models/DrawModes/GrayLinesMode');
-import RedCircleMode = require('../../models/DrawModes/RedCircleMode');
-import StaticRedLinesMode = require('../../models/DrawModes/StaticRedLinesMode');
-import JensenMode = require('../../models/DrawModes/JensenMode');
-import CursorFrame = require("../../models/Cursors/CursorFrame");
-import IActivePageService = require("../pages/Interfaces/IActivePageService");
+import ICursorService = require("./interfaces/ICursorService");
+import IDrawMode = require("../../models/drawModes/interfaces/IDrawMode");
+import CursorDrawMode = require('../../models/drawModes/CursorDrawMode');
+import GrayLinesMode = require('../../models/drawModes/GrayLinesMode');
+import RedCircleMode = require('../../models/drawModes/RedCircleMode');
+import StaticRedLinesMode = require('../../models/drawModes/StaticRedLinesMode');
+import JensenMode = require('../../models/drawModes/JensenMode');
+import CursorFrame = require("../../models/cursors/CursorFrame");
+import IActivePageService = require("../pages/interfaces/IActivePageService");
 import ISocketService = require("../interfaces/ISocketService");
 import MzPosition = require("../../models/MzPosition");
 

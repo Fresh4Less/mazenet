@@ -2,12 +2,12 @@
 /// <reference path="../../../typings/index.d.ts" />
 
 import mazenet = require('mazenet');
-import ICursorService = require("../../../client/services/cursors/Interfaces/ICursorService");
-import IDrawMode = require("../../../client/models/DrawModes/Interfaces/IDrawMode");
-import IActivePageService = require("../../../client/services/pages/Interfaces/IActivePageService");
+import ICursorService = require("../../../client/services/cursors/interfaces/ICursorService");
+import IDrawMode = require("../../../client/models/drawModes/interfaces/IDrawMode");
+import IActivePageService = require("../../../client/services/pages/interfaces/IActivePageService");
 import ISocketService = require("../../../client/services/interfaces/ISocketService");
 import {underline} from "colors";
-import CursorFrame = require("../../../client/models/Cursors/CursorFrame");
+import CursorFrame = require("../../../client/models/cursors/CursorFrame");
 
 describe('Unit: CursorService', ()=> {
 

@@ -1,18 +1,18 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/index.d.ts" />
 import io = require('socket.io');
-import CursorFrame = require("../models/Cursors/CursorFrame");
-import IElement = require('./../models/Interfaces/IElement');
+import CursorFrame = require("../models/cursors/CursorFrame");
+import IElement = require('./../models/interfaces/IElement');
 import ISocketService = require("./interfaces/ISocketService");
 import MzPosition = require('./../models/MzPosition');
-import Cursor = require('./../models/Cursors/Cursor');
-import Page = require('./../models/Pages/Page');
+import Cursor = require('./../models/cursors/Cursor');
+import Page = require('./../models/pages/Page');
 import IUserService = require('./interfaces/IUserService');
-import IActivePageService = require("./pages/Interfaces/IActivePageService");
-import IPromiseMapper = require("../models/Interfaces/IPromiseMapper");
-import PromiseMapper = require("../models/FreshIO/PromiseMapper");
-import WebResponse = require("../models/FreshIO/WebResponse");
-import WebRequest = require("../models/FreshIO/WebRequest");
+import IActivePageService = require("./pages/interfaces/IActivePageService");
+import IPromiseMapper = require("../models/freshIO/interfaces/IPromiseMapper");
+import PromiseMapper = require("../models/freshIO/PromiseMapper");
+import WebResponse = require("../models/freshIO/WebResponse");
+import WebRequest = require("../models/freshIO/WebRequest");
 
 export = SocketService;
 
