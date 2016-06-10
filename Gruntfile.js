@@ -71,7 +71,7 @@ module.exports = function(grunt) {
 		},
 		exec: {
 			installTSD: 'typings install',
-			compileTypescript: 'node node_modules/typescript/bin/tsc client/module.ts --m amd -t es5 --sourceMap'
+			compileTypescript: 'node node_modules/typescript/bin/tsc client/main.ts client/module.ts --m amd -t es5 --sourceMap'
 		}
 	});
 	grunt.loadNpmTasks('grunt-env');
