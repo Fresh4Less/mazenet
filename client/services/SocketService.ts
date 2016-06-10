@@ -196,7 +196,7 @@ class SocketService implements ISocketService {
     };
     private elementCreatedCallback():(any)=>void {
         var self = this;
-        return (response:WebResponse) => {
+        return (response:IElement) => {
 
             var element = response;
             self.ActivePageService.AddElement(element);
@@ -227,12 +227,10 @@ class SocketService implements ISocketService {
 
     private pageUpdatedCallback():(any)=>void {
         var self = this;
-        return (response:WebResponse) => {
+        return (response:Page) => {
 
             var pageChanges = response;
             self.ActivePageService.UpdatePage(pageChanges);
-
-            var promise:ng.IDeferred<Page> = self.pageUpdatePromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
 
         };
     };
