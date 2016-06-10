@@ -57,8 +57,10 @@ class SocketService implements ISocketService {
             this.socket.on('/pages/userLeft', this.userLeftCallback());
             this.socket.on('/pages/cursors/moved', this.userMovedCursorCallback());
             this.socket.on('/pages/enter', this.userEnterPageCallback());
+            this.socket.on('/pages/elements/create', this.elementCreatedCallback());
             this.socket.on('/pages/elements/created', this.elementCreatedCallback());
             this.socket.on('/pages/update', this.pageUpdatedCallback());
+            this.socket.on('/pages/updated', this.pageUpdatedCallback());
 
             this.socket.emit('/users/connect', new WebRequest('GET', {}, '1'));
         }
@@ -174,17 +176,18 @@ class SocketService implements ISocketService {
         var self = this;
         return (response:WebResponse) => {
 
+            var element = response.body;
+            self.ActivePageService.AddElement(element);
+
             var promise:ng.IDeferred<IElement> = self.elementCreatePromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
 
             if(promise) {
-                if(response.status == 200) {
-                    var element = response.body;
-
-                    self.ActivePageService.AddElement(element);
+                if(response.status == 201) {
 
                     promise.resolve(element);
 
                 } else {
+
                     promise.reject(response);
                 }
             } else {
@@ -196,12 +199,14 @@ class SocketService implements ISocketService {
         var self = this;
         return (response:WebResponse) => {
 
+            var pageChanges = response.body;
+            self.ActivePageService.UpdatePage(pageChanges);
+
             var promise:ng.IDeferred<Page> = self.pageUpdatePromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
 
             if(promise) {
                 if(response.status == 200) {
-                    var pageChanges = response.body;
-                    self.ActivePageService.UpdatePage(pageChanges);
+
                     promise.resolve(pageChanges);
                 } else {
                     console.error('Error updating page.', response);
