@@ -57,9 +57,9 @@ class SocketService implements ISocketService {
             this.socket.on('/pages/userLeft', this.userLeftCallback());
             this.socket.on('/pages/cursors/moved', this.userMovedCursorCallback());
             this.socket.on('/pages/enter', this.userEnterPageCallback());
-            this.socket.on('/pages/elements/create', this.elementCreatedCallback());
+            this.socket.on('/pages/elements/create', this.elementCreateCallback());
             this.socket.on('/pages/elements/created', this.elementCreatedCallback());
-            this.socket.on('/pages/update', this.pageUpdatedCallback());
+            this.socket.on('/pages/update', this.pageUpdateCallback());
             this.socket.on('/pages/updated', this.pageUpdatedCallback());
 
             this.socket.emit('/users/connect', new WebRequest('GET', {}, '1'));
@@ -172,7 +172,7 @@ class SocketService implements ISocketService {
         };
     };
 
-    private elementCreatedCallback():(any)=>void {
+    private elementCreateCallback():(any)=>void {
         var self = this;
         return (response:WebResponse) => {
 
@@ -194,8 +194,17 @@ class SocketService implements ISocketService {
             }
         };
     };
+    private elementCreatedCallback():(any)=>void {
+        var self = this;
+        return (response:WebResponse) => {
 
-    private pageUpdatedCallback():(any)=>void {
+            var element = response;
+            self.ActivePageService.AddElement(element);
+
+        };
+    };
+
+    private pageUpdateCallback():(any)=>void {
         var self = this;
         return (response:WebResponse) => {
 
@@ -213,6 +222,18 @@ class SocketService implements ISocketService {
                     promise.reject(response);
                 }
             }
+        };
+    };
+
+    private pageUpdatedCallback():(any)=>void {
+        var self = this;
+        return (response:WebResponse) => {
+
+            var pageChanges = response;
+            self.ActivePageService.UpdatePage(pageChanges);
+
+            var promise:ng.IDeferred<Page> = self.pageUpdatePromiseMapper.GetDeferredForId(response.headers['X-Fresh-Request-Id']);
+
         };
     };
     private loadInitialPage() {
