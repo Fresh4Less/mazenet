@@ -5,12 +5,12 @@ requirejs.config({
     paths : {
         'mazenet':'module',
         'socket.io': '/socket.io/socket.io',
-        'angular': '/bower_components/angular/angular',
-        'angular-route': '/bower_components/angular-route/angular-route',
-        'angular-aria': '/bower_components/angular-aria/angular-aria',
-        'angular-animate': '/bower_components/angular-animate/angular-animate',
-        'angular-material': '/bower_components/angular-material/angular-material',
-        'jquery':'/bower_components/jquery/dist/jquery',
+        'angular': '/bower_components/angular/angular.min',
+        'angular-route': '/bower_components/angular-route/angular-route.min',
+        'angular-aria': '/bower_components/angular-aria/angular-aria.min',
+        'angular-animate': '/bower_components/angular-animate/angular-animate.min',
+        'angular-material': '/bower_components/angular-material/angular-material.min',
+        'jquery':'/bower_components/jquery/dist/jquery.min',
         'underscore':'/bower_components/underscore/underscore-min',
     },
     shim: {
