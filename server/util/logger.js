@@ -61,8 +61,22 @@ function logger(options) {
 						ip: req.ip
 					});
 				}
-				if(res && res.statusCode) {
-					setDefault(logData, 'status', res.statusCode);
+
+				if(res) {
+					if(res.statusCode) {
+						setDefault(logData, 'status', res.statusCode);
+					}
+					var responseLength = res.get && res.get('Content-Length');
+					if(responseLength) {
+						setDefault(logData, 'responseLength', responseLength);
+					}
+					else if(res.message && typeof res.message === 'object') {
+						// assume this is a fresh-socketio-router JSON response and stringify it
+						// to figure out the length. currently, socketio doesn't expose the
+						// actual sent packet, so this is just a rough approximation, that
+						// doesn't account for packet encoding, overhead, and compression
+						setDefault(logData, 'responseLength', Buffer.byteLength(JSON.stringify(res.message), 'utf8'));
+					}
 				}
 				if(logData.error) {
 					logData.level = 'error';
