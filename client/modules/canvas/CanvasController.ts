@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 declare var _;
-import $ = require('jquery');
+declare var $;
 import PageStyles = require("../../models/pages/PageStyles");
 import IActivePageService = require("../../services/pages/interfaces/IActivePageService");
 import ICursorService = require("../../services/cursors/interfaces/ICursorService");

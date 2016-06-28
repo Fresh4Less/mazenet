@@ -1,7 +1,8 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../../typings/index.d.ts" />
 
-import $ = require('jquery');
+declare var $;
+
 import IUserService = require("../../../../services/interfaces/IUserService");
 import UserData = require("../../../../models/UserData");
 import IClickNetService = require("../../../../services/interfaces/IClickNetService");

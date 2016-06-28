@@ -1,7 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 
-import $ = require('jquery');
+declare var $;
 import ISocketService = require("../../services/interfaces/ISocketService");
 import IActivePageService = require("../../services/pages/interfaces/IActivePageService");
 import IUserService = require("../../services/interfaces/IUserService");

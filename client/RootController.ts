@@ -5,9 +5,10 @@ import ISocketService = require('./services/interfaces/ISocketService');
 export = RootController;
 
 class RootController {
-   static moduleName:string = "RootController";
 
-    $inject = [
+    static moduleName:string = "RootController";
+
+    static $inject = [
         '$scope',
         '$route',
         '$routeParams',
@@ -19,6 +20,7 @@ class RootController {
                 $routeParams:ng.route.IRouteParamsService,
                 ActivePageService:any,
                 SocketService:ISocketService) {
+
         $scope['globalPageStyles'] = ActivePageService.Styles;
         $scope['ActivePageService'] = ActivePageService;
         $scope.$on('$routeChangeSuccess', function() {

@@ -35,8 +35,8 @@ bower_components
 # Typescript Files
 client/**/*.map
 client/**/*.js
-client_tests/**/*.map
-client_tests/**/*.js
+test/client/**/*.map
+test/client/**/*.js
 typings
 
 # SASS stuff

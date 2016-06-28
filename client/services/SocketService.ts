@@ -1,6 +1,5 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../typings/index.d.ts" />
-import io = require('socket.io');
 import CursorFrame = require("../models/cursors/CursorFrame");
 import IElement = require('./../models/interfaces/IElement');
 import ISocketService = require("./interfaces/ISocketService");
@@ -13,6 +12,8 @@ import IPromiseMapper = require("../models/freshIO/interfaces/IPromiseMapper");
 import PromiseMapper = require("../models/freshIO/PromiseMapper");
 import WebResponse = require("../models/freshIO/WebResponse");
 import WebRequest = require("../models/freshIO/WebRequest");
+
+declare var io;
 
 export = SocketService;
 

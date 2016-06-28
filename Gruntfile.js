@@ -44,7 +44,7 @@ module.exports = function(grunt) {
 		},
 		sass: {
 			options: {
-				sourceMap: true
+				sourceMap: false
 			},
 			dist: {
 				files: {
@@ -71,7 +71,12 @@ module.exports = function(grunt) {
 		},
 		exec: {
 			installTSD: 'typings install',
-			compileTypescript: 'node node_modules/typescript/bin/tsc client/main.ts client/module.ts --m amd -t es5 --sourceMap'
+			compileTypescript: 'node node_modules/typescript/bin/tsc client/main.ts client/module.ts --m amd -t es5 --sourceMap',
+			concatRequireFiles: 'node node_modules/requirejs/bin/r.js -o ' +
+			'baseUrl=./client ' +
+			'name=main ' +
+			'out=./client/main-prod.js ' +
+			'paths.mazenet=module '
 		}
 	});
 	grunt.loadNpmTasks('grunt-env');
@@ -83,6 +88,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-exec');
 
 	grunt.registerTask('build', ['sass', 'exec:installTSD', 'exec:compileTypescript']);
+	grunt.registerTask('build-prod', ['sass', 'exec:installTSD', 'exec:compileTypescript', 'exec:concatRequireFiles']);
 
 	grunt.registerTask('default', ['env:dev', 'jshint', 'concat']);
 	grunt.registerTask('dev', ['default', 'express:dev', 'watch:js']);

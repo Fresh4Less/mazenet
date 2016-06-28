@@ -15,7 +15,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'client_tests/test-main.js',
+      'test/client/test-main.js',
       {pattern: 'bower_components/underscore/underscore-min.js', included:false, served:true},
       {pattern: 'bower_components/jquery/dist/jquery.js', included:false, served:true},
       {pattern: 'bower_components/angular-material/angular-material.js', included:false, served:true},
