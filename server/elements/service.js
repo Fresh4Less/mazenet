@@ -11,64 +11,96 @@ var elementsDataAccess = require('./dataAccess');
 //    eType: String,
 //    editable: boolean
 //    pos: { x: int, y: int },
-//    classes: [String],
 //    data: {...}
 // }
 
+// lazily initialized in createElement, in case there are circular requires
+// (e.g. elements that create other elements)
 var elementTypes = null;
 
-function createElement(pageIdStr, elementParams) {
+// createElement
+// Creates a base element, whitelisting allowed fields and the entire data object
+// Passes this element to an element "initializer" based on eType
+// An element initializer must be a function with the signature:
+//       Promise<Element> function(options)
+// options is an object with the following fields:
+//   - pageId {ObjectId}: the page this element is being created on
+//   - baseElement {Object}: an object initialized with the standard element parameters.
+//                  Most elements will only need to attach a "data" object to this
+//   - publicParams {Object}: the public element parameters (can be set by external API)
+//   - privateParams {Object}: the private element parameters (only set internally)
+// Returns: A promise to a fully constructed element object. This is passed
+//          to the database as-is, without validation.
+// The element initializer is responsible for validating its data fields
+//
+// Parameters:
+//   createElement whitelists the data field--element constructors are expected to 
+//   publicElementParams can be set by external APIs
+//   privateElementParams are internal fields that should never be set to external data
+// Returns a promise to a complete element entry.
+function createElement(pageIdStr, publicElementParams, privateElementParams) {
 	if(!elementTypes) {
 		elementTypes = {
+			// register element constructors here
 			link: require('./types/link').create
 		};
 	}
+
+	// validate public parameters
 	validator.is(pageIdStr, 'pageId').required().objectId();
 	var pageId = validator.transformationOutput();
-	validator.is(elementParams, 'elementParams').required().object()
-		.property('eType').required().string().elementOf(elementTypes);
-	try {
-		validator.throwErrors();
-	}
-	catch(err) {
-		return BPromise.reject(err);
-	}
-
-	return elementTypes[elementParams.eType](pageId, elementParams)
-		.then(function(element) {
-			return element;
-		});
-}
-
-function buildElement(pageIdStr, elementParams, whitelistedDataProperties) {
-	validator.is(pageIdStr, 'pageId').required().objectId();
-	var pageId = validator.transformationOutput();
-	validator.is(elementParams, 'elementParams')
-		.property('eType').required().string().back()
-		.property('creator').required().objectId().back()
+	validator.is(publicElementParams, 'publicElementParams').required().object()
+		.property('eType').required().string().elementOf(elementTypes).back()
 		.property('pos').required().object()
 			.property('x').required().number().back()
 			.property('y').required().number().back()
-		.back()
-		.property('classes').not.required().array()
-		.property('editable').not.required();
+		.back();
+
+	validator.whitelist({ data: true });
+	var sanitizedPublicElementParams = validator.transformationOutput();
+
+	// validate private parameters
+	validator.is(privateElementParams, 'privateElementParams').required().object()
+		.property('creator').required().objectId().back()
+		.property('editable').not.required().back();
+
+	validator.whitelist({ data: true, creator: true });
+	var sanitizedPrivateElementParams = validator.transformationOutput();
+
 	try {
 		validator.throwErrors();
 	}
 	catch(err) {
 		return BPromise.reject(err);
 	}
-	
-	validator.whitelist({ creator: true, data: whitelistedDataProperties });
-	var sanitizedElementParams = validator.transformationOutput();
-	return elementsDataAccess.createElement(pageId, sanitizedElementParams)
-		.then(function(element) {
-			return element;
+
+	// default values
+	if(sanitizedPrivateElementParams.editable === undefined) {
+		sanitizedPrivateElementParams.editable = true;
+	}
+
+	// merge public and private parameters into the baseElement (ignoring data)
+	var baseElement = [sanitizedPublicElementParams, sanitizedPrivateElementParams].reduce(function(base, obj) {
+		Object.keys(obj).forEach(function(key) {
+			if(key !== 'data') {
+				base[key] = obj[key];
+			}
 		});
+		return base;
+	}, {});
+
+	// call element initializer
+	return elementTypes[sanitizedPublicElementParams.eType](
+			pageId,
+			baseElement,
+			sanitizedPublicElementParams,
+			sanitizedPrivateElementParams
+	).then(function(element) {
+		return elementsDataAccess.createElement(pageId, element);
+	});
 }
 
 module.exports = {
-	buildElement: buildElement,
 	createElement: createElement
 };
 

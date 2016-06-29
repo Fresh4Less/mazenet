@@ -53,6 +53,7 @@ Response parameters:
  - `_id` [elementId]: element id
  - `eType` [string]: element type
  - `creator` [userId]: id of the user who created the element
+ - `editable` [boolean]: true if this element is editable by users
  - `pos` [object]: position of element on the page, in percent
     - `x` [number]
     - `y` [number]
@@ -67,6 +68,7 @@ Request fields:
 Response fields:
  - `text` [string]: hyperlink text
  - `pId` [pageId]: the page this link points to
+ - `isReturnLink` [boolean]: true if this is a return link
 
 ## Cursors
 

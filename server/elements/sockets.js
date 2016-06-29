@@ -24,11 +24,9 @@ function initialze(route, options) {
 			return next(err);
 		}
 
-		if(req.body !== undefined) {
-			req.body.creator = req.socket.mazenet.uId;
-		}
-
-		elementsService.createElement(req.socket.mazenet.room.substring((opts.pageRoomPrefix + '/').length), req.body)
+		elementsService.createElement(req.socket.mazenet.room.substring((opts.pageRoomPrefix + '/').length),
+				req.body,
+				{ creator: req.socket.mazenet.uId })
 		.then(function(element) {
 			req.socket.broadcast.to(req.socket.mazenet.room).emit(req.baseUrl + '/created', element);
 			res.status(201).send(element);

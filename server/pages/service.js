@@ -106,13 +106,15 @@ function resetAllPages() {
 		})
 		.then(function(page) {
 			mainPage = page;
-			var initialLink = {
+			var initialLinkPublic = {
 				"eType": "link",
-				"creator": "101010101010101010101010",
-				"pos": {"x": 50, "y": 50},
+				"pos": {"x": 0.5, "y": 0.5},
 				"data": { "text": "enter mazenet" }
 			};
-			return elementsService.createElement(page._id, initialLink);
+			var initialLinkPrivate = {
+				"creator": "101010101010101010101010",
+			};
+			return elementsService.createElement(page._id, initialLinkPublic, initialLinkPrivate);
 		})
 		.then(function() {
 			return getPage(mainPage._id);

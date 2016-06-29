@@ -22,6 +22,7 @@ function logger(options) {
 			req[opts.reqName] = {};
 		}
 
+		var startTime = new Date();
 		if(opts.ignoreResponse) {
 			//immediately log. used if we are getting an old request that is already done without access to the response
 			var logData = req[opts.reqName];
@@ -44,7 +45,6 @@ function logger(options) {
 			logJson(logData, opts.level, opts.stream, 'utf8');
 		}
 		else {
-			var startTime = new Date();
 			res.on('finish', function() {
 				var logData = req[opts.reqName];
 				setDefault(logData, 'time', startTime);
