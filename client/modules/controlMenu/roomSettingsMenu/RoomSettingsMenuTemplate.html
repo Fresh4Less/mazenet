@@ -15,7 +15,12 @@
                           secondary-placeholder="Add admin by User ID.">
                 </md-chips>
                 <br>
-                <md-button class="md-raised md-warn" ng-click="rsCtrl.ApplyRoomChanges()">Apply Changes <i class="fa fa-check"></i></md-button>
+                <md-button class="md-raised md-warn"
+                           ng-click="rsCtrl.ApplyRoomChanges()"
+                           ng-disabled="rsCtrl.pendingResponse">
+                    <span ng-show="!rsCtrl.pendingResponse">Apply Changes <i class="fa fa-check"></i></span>
+                    <span ng-show="rsCtrl.pendingResponse">Applying Changes</span>
+                </md-button>
             </md-content>
         </md-tab-body>
     </md-tab>
@@ -26,7 +31,8 @@
         <md-tab-body>
             <md-content flex layout-padding>
                 <p>
-                    <md-button class="md-raised md-primary" ng-click="rsCtrl.CursorService.CycleDrawMode()">
+                    <md-button class="md-raised md-primary"
+                               ng-click="rsCtrl.CursorService.CycleDrawMode()">
                         <i class="fa fa-refresh"></i> <b>Cursors: {{rsCtrl.CursorService.DrawMode.name}}</b>
                     </md-button>
                 </p>

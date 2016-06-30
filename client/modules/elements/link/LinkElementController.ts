@@ -43,8 +43,5 @@ class LinkElementController {
             alert("Unable To Enter Page.\n" + error.message);
         });
     };
-    public CursorMove($event:MouseEvent) {
-        this.CursorService.UserMovedCursor($event);
-    }
 
 }
