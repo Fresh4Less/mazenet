@@ -5,7 +5,10 @@
 
    <md-toolbar>
       <div class="md-toolbar-tools">
-         <md-button class="md-icon-button" aria-label="Page Settings" ng-click="cmCtrl.RoomInfoClick()">
+         <md-button ng-show="!cmCtrl.ClickNetService.AwaitingClick"
+                    class="md-icon-button"
+                    aria-label="Page Settings"
+                    ng-click="cmCtrl.RoomInfoClick()">
             <i class="fa fa-question-circle"></i>
          </md-button>
          <h2>

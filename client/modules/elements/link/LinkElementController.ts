@@ -6,6 +6,7 @@ import ISocketService = require("../../../services/interfaces/ISocketService");
 import MzPosition = require("../../../models/MzPosition");
 import Page = require("../../../models/pages/Page");
 import IScreenPositioningService = require("../../../services/interfaces/IScreenPositioningService");
+import ICursorService = require("../../../services/cursors/interfaces/ICursorService");
 
 export = LinkElementController;
 
@@ -14,11 +15,13 @@ class LinkElementController {
     static $inject = [
         'ActivePageService',
         'SocketService',
+        'CursorService',
         'ScreenPositioningService'
     ];
 
     constructor(private ActivePageService:IActivePageService,
                 private SocketService:ISocketService,
+                private CursorService:ICursorService,
                 private ScreenPositioningService:IScreenPositioningService) {
     }
 
@@ -40,5 +43,8 @@ class LinkElementController {
             alert("Unable To Enter Page.\n" + error.message);
         });
     };
+    public CursorMove($event:MouseEvent) {
+        this.CursorService.UserMovedCursor($event);
+    }
 
 }

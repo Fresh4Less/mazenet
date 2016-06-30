@@ -1,5 +1,13 @@
 <div class="linkElement"
 	 style="left: 	{{	leCtrl.element.pos.x*100	}}%;
 	 		top: 	{{	leCtrl.element.pos.y*100	}}%">
-	<a ng-click="leCtrl.EnterPage($event, leCtrl.element.data.pId)">{{leCtrl.element.data.text}}</a>
+	<a ng-click="leCtrl.EnterPage($event, leCtrl.element.data.pId)"
+	   ng-mousemove="leCtrl.CursorMove($event)">
+		<span ng-if="leCtrl.element.data.isReturnLink">
+			<i class="fa fa-caret-right" aria-hidden="true"></i>
+			<b>{{leCtrl.element.data.text}}</b>
+			<i class="fa fa-caret-left" aria-hidden="true"></i>
+		</span>
+		<span ng-if="!leCtrl.element.data.isReturnLink">{{leCtrl.element.data.text}}</span>
+	</a>
 </div>

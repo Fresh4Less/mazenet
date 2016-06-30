@@ -15,4 +15,5 @@ interface IActivePageService {
     LoadPage(page:Page);
     AddElement(element:IElement);
     OnAddElement(func:(e:IElement)=>void);
+    ContainsLinkOfName(name:string):boolean;
 }
