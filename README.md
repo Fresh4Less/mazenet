@@ -1,5 +1,6 @@
-# mazenet
-social web spelunking
+# MAZENET
+#### Social Web Spelunking
+#### www.mazenet.net
  - [Server Reference](#server-reference)
  - [General API Reference](#general-api-reference)
     - [Pages](#pages)
