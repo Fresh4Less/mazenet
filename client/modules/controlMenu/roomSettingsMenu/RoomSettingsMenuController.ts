@@ -11,6 +11,8 @@ export = RoomSettingsMenuController;
 class RoomSettingsMenuController {
 
     public page:Page;
+    public editingPage:Page;
+    public pendingResponse:boolean;
     public linkText:string;
 
     static $inject = [
@@ -22,10 +24,19 @@ class RoomSettingsMenuController {
     constructor(private ActivePageService:IActivePageService,
                 private SocketService:ISocketService,
                 public CursorService:ICursorService) {
+
         this.page = ActivePageService.PageData;
+        this.editingPage = ActivePageService.PageData.CloneBasic();
+
         this.linkText = 'Waiting on Elliot...';
+        this.pendingResponse = false;
     }
     public ApplyRoomChanges() {
-        this.SocketService.UpdatePage(this.page);
+        this.pendingResponse = true;
+        var promise:angular.IPromise<Page> = this.SocketService.UpdatePage(this.editingPage);
+        promise.finally((resp) => {
+            console.log(resp);
+            this.pendingResponse = false;
+        });
     }
 }

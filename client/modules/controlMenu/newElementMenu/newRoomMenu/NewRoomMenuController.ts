@@ -1,6 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../../../typings/index.d.ts" />
 
+import IActivePageService = require("../../../../services/pages/interfaces/IActivePageService");
 declare var $;
 
 import IUserService = require("../../../../services/interfaces/IUserService");
@@ -14,10 +15,10 @@ export = NewRoomMenuController;
 
 class NewRoomMenuController {
 
-    private colorInput:any;
-
     public pageToMake:Page;
     public pageLinkText:string;
+    public formFilled:boolean;
+    public linkDuplicateExists:boolean;
     public settingsExpanded:boolean;
 
     static $inject = [  '$scope',
@@ -25,6 +26,7 @@ class NewRoomMenuController {
                         '$mdSidenav',
                         'ClickNetService',
                         'SocketService',
+                        'ActivePageService',
                         'UserService'];
 
     constructor(private $scope:ng.IScope,
@@ -32,6 +34,7 @@ class NewRoomMenuController {
                 private $mdSidenav:ng.material.ISidenavService,
                 private ClickNetService:IClickNetService,
                 private SocketService:ISocketService,
+                private ActivePageService:IActivePageService,
                 private UserService:IUserService) {
         this.resetData();
     }
@@ -71,11 +74,28 @@ class NewRoomMenuController {
         });
     };
 
+    public validateLinkText() {
+
+        if(this.pageLinkText && this.pageLinkText.length > 0) {
+            if(this.ActivePageService.ContainsLinkOfName(this.pageLinkText)) {
+                this.$scope.newRoomForm.linkText.$setValidity("duplicateLink", false);
+            } else {
+                this.$scope.newRoomForm.linkText.$setValidity("duplicateLink", true);
+                this.formFilled = true;
+                return;
+            }
+        }
+        this.formFilled = false;
+    }
+
     private resetData() {
         this.pageToMake = new Page();
-        this.pageToMake.title = '';
+        this.pageToMake.title = 'New Room';
         this.pageToMake.creator = this.UserService.UserData.uId;
         this.pageToMake.owners.push(this.UserService.UserData.uId);
         this.pageLinkText = '';
+        this.formFilled = false;
+        this.linkDuplicateExists = false;
     }
+
 }

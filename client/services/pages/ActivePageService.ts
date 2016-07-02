@@ -60,6 +60,14 @@ class ActivePageService implements IActivePageService{
         }
     }
 
+    public ContainsLinkOfName(name:string):boolean {
+        return !_.every(this.PageData.elements, (element:IElement) => {
+            /* Checks if its a link and not the return link then compares.
+            * Iteration will stop as soon as false is returned. */
+            return element.eType != 'link' || !!element.data.isReturnLink || element.data.text != name;
+        });
+    }
+
     private updateStyles() {
         //Background
         if(this.PageData.background.bType == 'color') {

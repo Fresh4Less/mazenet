@@ -76,6 +76,8 @@ module.exports = function(grunt) {
 			'baseUrl=./client ' +
 			'name=main ' +
 			'out=./client/main-prod.js ' +
+			'generateSourceMaps=true ' +
+			'preserveLicenseComments=false ' +
 			'paths.mazenet=module '
 		}
 	});

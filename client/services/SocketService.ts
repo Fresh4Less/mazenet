@@ -137,7 +137,6 @@ class SocketService implements ISocketService {
     private userEnteredCallback():(any)=>void {
         var self = this;
         return (user)=> {
-            console.log('Other User Entered', user);
             self.UserService.AddUser(user);
         }
     };

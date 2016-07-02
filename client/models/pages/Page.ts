@@ -70,6 +70,50 @@ class Page {
         }
     }
 
+    /**
+     * Returns a cloned version of this.
+     * The cursor and element data is just a pointer to the same data and not a deep copy.
+     */
+    public Clone():Page {
+        var ret:Page = new Page;
+
+        ret._id = this._id;
+        if(this.background.bType === 'color') {
+            ret.background.bType = 'color';
+            ret.background.data.color = this.background.data.color;
+        }
+        ret.creator = this.creator;
+        ret.owners = this.owners;
+        ret.title = this.title;
+        ret.permissions = this.permissions;
+
+        ret.cursors = this.cursors;
+        ret.elements = this.elements;
+
+        return ret;
+
+    }
+
+    /**
+     * Returns a cloned version of this.
+     * The cursor and element data is ommitted
+     */
+    public CloneBasic():Page {
+        var ret:Page = new Page;
+
+        ret._id = this._id;
+        if(this.background.bType === 'color') {
+            ret.background.bType = 'color';
+            ret.background.data.color = this.background.data.color;
+        }
+        ret.creator = this.creator;
+        ret.owners = this.owners;
+        ret.title = this.title;
+        ret.permissions = this.permissions;
+        return ret;
+    }
+
+
     private resetPage() {
         this._id = '0';
         this.creator = null;

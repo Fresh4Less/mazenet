@@ -1,32 +1,25 @@
 <section id="NewRoomMenu">
     <md-content layout="column" layout-padding>
         <form name="newRoomForm" ng-submit="nrCtrl.SelectPositionToTunnel()">
-            <md-button class="md-raised md-accent" type="submit">Select Position to Tunnel <i class="fa fa-crosshairs"></i></md-button>
-            <md-input-container class="md-block">
-                <label>Room Title</label>
-                <input required name="title" ng-model="nrCtrl.pageToMake.title">
-                <div ng-messages="newRoomForm.title.$error">
-                    <div ng-message="required">This is required.</div>
-                </div>
-            </md-input-container>
+            <h2>Create a new room:</h2>
             <md-input-container class="md-block">
                 <label>Link Text</label>
-                <input required name="linkText" ng-model="nrCtrl.pageLinkText">
+                <input required name="linkText" ng-model="nrCtrl.pageLinkText" ng-change="nrCtrl.validateLinkText()" autocomplete="off">
                 <div ng-messages="newRoomForm.linkText.$error">
-                    <div ng-message="required">This is required.</div>
+                    <div ng-show="newRoomForm.linkText.$error.required" ng-message="required">This is required.</div>
+                    <div ng-show="newRoomForm.linkText.$error.duplicateLink" ng-message="duplicateLink">Link text cannot already exist on current page.</div>
                 </div>
             </md-input-container>
-            <mz-room-preview preview-room="nrCtrl.pageToMake" link-text="nrCtrl.pageLinkText"></mz-room-preview>
-            <br>
-            <h4>Background design</h4>
-            <mz-background-settings background-model="nrCtrl.pageToMake.background"></mz-background-settings>
-            <h4>Global permissions</h4>
+            <h4>Permissions (Optional)</h4>
             <mz-permission-settings permissions="nrCtrl.pageToMake.permissions"></mz-permission-settings>
-            <h4>Room Administrators</h4>
+            <h4>Administrators (Optional)</h4>
             <md-chips ng-model="nrCtrl.pageToMake.owners"
                       secondary-placeholder="Enter additional User IDs">
             </md-chips>
             <br>
+            <br>
+            <md-button class="md-raised md-accent" type="submit" ng-disabled="!nrCtrl.formFilled">Selection Position And Create <i class="fa fa-crosshairs"></i></md-button>
+
         </form>
     </md-content>
 </section>
