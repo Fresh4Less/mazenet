@@ -78,9 +78,10 @@ class NewRoomMenuController {
 
         if(this.pageLinkText && this.pageLinkText.length > 0) {
             if(this.ActivePageService.ContainsLinkOfName(this.pageLinkText)) {
-                this.$scope.newRoomForm.linkText.$setValidity("duplicateLink", false);
+
+                (<any> this.$scope).newRoomForm.linkText.$setValidity("duplicateLink", false);
             } else {
-                this.$scope.newRoomForm.linkText.$setValidity("duplicateLink", true);
+                (<any> this.$scope).newRoomForm.linkText.$setValidity("duplicateLink", true);
                 this.formFilled = true;
                 return;
             }

@@ -34,8 +34,7 @@ class RoomSettingsMenuController {
     public ApplyRoomChanges() {
         this.pendingResponse = true;
         var promise:angular.IPromise<Page> = this.SocketService.UpdatePage(this.editingPage);
-        promise.finally((resp) => {
-            console.log(resp);
+        promise.finally(() => {
             this.pendingResponse = false;
         });
     }
