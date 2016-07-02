@@ -1,6 +1,7 @@
 <section id="NewRoomMenu">
     <md-content layout="column" layout-padding>
         <form name="newRoomForm" ng-submit="nrCtrl.SelectPositionToTunnel()">
+            <h2>Create a new room:</h2>
             <md-input-container class="md-block">
                 <label>Link Text</label>
                 <input required name="linkText" ng-model="nrCtrl.pageLinkText" ng-change="nrCtrl.validateLinkText()" autocomplete="off">
@@ -15,6 +16,7 @@
             <md-chips ng-model="nrCtrl.pageToMake.owners"
                       secondary-placeholder="Enter additional User IDs">
             </md-chips>
+            <br>
             <br>
             <md-button class="md-raised md-accent" type="submit" ng-disabled="!nrCtrl.formFilled">Selection Position And Create <i class="fa fa-crosshairs"></i></md-button>
 
