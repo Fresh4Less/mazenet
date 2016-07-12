@@ -6,6 +6,7 @@ import LinkElementController = require('./LinkElementController');
 export = LinkElementDirective;
 
 function LinkElementDirective():ng.IDirective {
+
     var directive = <ng.IDirective> {
         restrict: 'E',
         scope: {
@@ -15,7 +16,7 @@ function LinkElementDirective():ng.IDirective {
         controller: LinkElementController,
         controllerAs: 'leCtrl',
         bindToController: true
-    }
+    };
 
     return directive;
 }

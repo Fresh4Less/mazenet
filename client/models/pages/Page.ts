@@ -1,7 +1,8 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 /// <reference path="../../../typings/index.d.ts" />
 import IElement = require("./../interfaces/IElement");
-import IBackground = require("./../interfaces/IBackground");
+import IBackground = require("./interfaces/IBackground");
+import ColorBgData = require("./ColorBgData");
 import AnimatedCursor = require("./../cursors/AnimatedCursor");
 
 export = Page;
@@ -40,7 +41,13 @@ class Page {
             }
             if(otherPage.background){
                 this.background.bType = otherPage.background.bType;
-                this.background.data = angular.copy(otherPage.background.data);
+                if(this.background.bType === 'color') {
+                    var colorData:ColorBgData = new ColorBgData();
+                    colorData.color = (<any> otherPage.background.data).color;
+                    this.background.data = colorData;
+                } else {
+                    this.background.data = angular.copy(otherPage.background.data);
+                }
             }
             if(otherPage.owners) {
                 this.owners = otherPage.owners;
@@ -80,7 +87,9 @@ class Page {
         ret._id = this._id;
         if(this.background.bType === 'color') {
             ret.background.bType = 'color';
-            ret.background.data.color = this.background.data.color;
+            var colorData:ColorBgData = new ColorBgData();
+            colorData.color = (<any> this.background.data).color;
+            ret.background.data = colorData;
         }
         ret.creator = this.creator;
         ret.owners = this.owners;
@@ -104,13 +113,29 @@ class Page {
         ret._id = this._id;
         if(this.background.bType === 'color') {
             ret.background.bType = 'color';
-            ret.background.data.color = this.background.data.color;
+            var colorData:ColorBgData = new ColorBgData();
+            colorData.color = (<any> this.background.data).color;
+            ret.background.data = colorData;
         }
         ret.creator = this.creator;
         ret.owners = this.owners;
         ret.title = this.title;
         ret.permissions = this.permissions;
         return ret;
+    }
+
+    public GetJSON():any {
+        return {
+            id: this._id,
+            creator: this.creator,
+            owners: this.owners,
+            title: this.title,
+            permissions: this.permissions,
+            background: {
+                bType: this.background.bType,
+                data: this.background.data.GetJSON()
+            }
+        };
     }
 
 
@@ -121,9 +146,7 @@ class Page {
         this.title = 'loading...';
         this.background = {
             bType: 'color',
-            data: {
-                color: '#dddddd'
-            }
+            data: new ColorBgData()
         };
         this.owners = [];
         this.elements = [];

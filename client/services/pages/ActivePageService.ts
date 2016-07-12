@@ -19,9 +19,10 @@ class ActivePageService implements IActivePageService{
         cbAddElement: []
     };
 
-    static FactoryDefinition = [()=>{return new ActivePageService()}];
+    static FactoryDefinition = ['$rootScope',
+                                ($rootScope:ng.IRootScopeService)=>{return new ActivePageService($rootScope)}];
 
-    constructor() {
+    constructor(private $rootScope:ng.IRootScopeService) {
         this.PageData = new Page();
         this.RootPages = new RootPages();
         this.Styles = new PageStyles();
@@ -31,6 +32,7 @@ class ActivePageService implements IActivePageService{
         try {
             this.PageData.UpdatePage(page);
             this.updateStyles();
+            this.$rootScope.$broadcast('activePageChanged');
         } catch(e) {
             console.error(e, page);
         }
@@ -40,6 +42,7 @@ class ActivePageService implements IActivePageService{
         try {
             this.PageData.LoadPage(page);
             this.updateStyles();
+            this.$rootScope.$broadcast('activePageChanged');
         } catch(e) {
             console.error(e, page);
         }
@@ -69,20 +72,9 @@ class ActivePageService implements IActivePageService{
     }
 
     private updateStyles() {
-        //Background
-        if(this.PageData.background.bType == 'color') {
-            this.Styles.background = this.PageData.background;
-        } else {
-            this.Styles.background.data.color = '#cccccc';
-        }
 
-        this.Styles.stringified = '';
-        this.Styles.canvasStringified = '';
-
-        //Stringify for 'styles'.
-        if(this.Styles.background.bType == 'color') {
-            this.Styles.canvasStringified += 'background : ' + this.Styles.background.data.color + ';';
-        }
+        this.Styles.background = this.PageData.background;
+        this.Styles.SetStringifications();
     }
 
 }

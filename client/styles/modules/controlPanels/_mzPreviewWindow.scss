@@ -1,12 +1,10 @@
 .preview-window {
   border: 1px solid gray;
   height: 20em;
+  pointer-events: none;
   a {
     font-size: 10px;
     color: #2B4A6F;
-  }
-  a:hover {
-    cursor:pointer;
   }
   .minature-toolbar {
     line-height: 3.5em;

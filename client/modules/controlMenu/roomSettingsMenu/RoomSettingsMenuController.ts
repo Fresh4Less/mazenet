@@ -13,24 +13,36 @@ class RoomSettingsMenuController {
     public page:Page;
     public editingPage:Page;
     public pendingResponse:boolean;
-    public linkText:string;
+    private HTMLColors:string[];
+    private HTMLColorsLower:string[];
 
     static $inject = [
+        '$rootScope',
         'ActivePageService',
         'SocketService',
         'CursorService'
     ];
 
-    constructor(private ActivePageService:IActivePageService,
+    constructor(private $rootScope:ng.IRootScopeService,
+                private ActivePageService:IActivePageService,
                 private SocketService:ISocketService,
                 public CursorService:ICursorService) {
 
-        this.page = ActivePageService.PageData;
-        this.editingPage = ActivePageService.PageData.CloneBasic();
+        this.page = this.ActivePageService.PageData;
+        this.reset();
 
-        this.linkText = 'Waiting on Elliot...';
+        var self = this;
+        this.$rootScope.$on('activePageChanged',()=>{
+            self.reset();
+        });
+
         this.pendingResponse = false;
     }
+
+    private reset() {
+        this.editingPage = this.ActivePageService.PageData.CloneBasic();
+    }
+
     public ApplyRoomChanges() {
         this.pendingResponse = true;
         var promise:angular.IPromise<Page> = this.SocketService.UpdatePage(this.editingPage);
@@ -38,4 +50,5 @@ class RoomSettingsMenuController {
             this.pendingResponse = false;
         });
     }
+
 }

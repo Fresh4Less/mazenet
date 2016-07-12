@@ -1,4 +1,4 @@
-<section class="preview-window md-whiteframe-9dp" style="background-color: {{rpCtrl.previewRoom.background.data.color}};">
+<section class="preview-window md-whiteframe-3dp" style="background-color: {{rpCtrl.previewRoom.background.data.color}};">
     <md-toolbar class="minature-toolbar">
         <md-button class="md-icon-button" aria-label="Page Settings">
             <i class="fa fa-bars"></i>
@@ -6,8 +6,8 @@
         <span>{{(rpCtrl.previewRoom.title)}}</span>
     </md-toolbar>
     <div class="preview-body">
-        <a style="position:absolute; top: 65%; left: 23%">{{(rpCtrl.linkText ? rpCtrl.linkText : 'Page Link Text')}}</a>
-        <a style="position:absolute; top: 44%; left: 76%">Some other room</a>
-        <a style="position:absolute; top: 30%; left: 10%">I am link to something cool</a>
+        <a style="position:absolute; top: 65%; left: 23%; color: {{rpCtrl.GetLinkColor()}};">MazeNet is great!</a>
+        <a style="position:absolute; top: 44%; left: 76%; color: {{rpCtrl.GetLinkColor()}};">Creative content here.</a>
+        <a style="position:absolute; top: 30%; left: 10%; color: {{rpCtrl.GetLinkColor()}};">I am a link to something cool</a>
     </div>
 </section>

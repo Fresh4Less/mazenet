@@ -8,12 +8,15 @@
         </md-tab-label>
         <md-tab-body>
             <md-content layout-padding>
-                <mz-room-preview preview-room="rsCtrl.editingPage" link-text="rsCtrl.linkText"></mz-room-preview>
+                <mz-room-preview preview-room="rsCtrl.editingPage"></mz-room-preview>
                 <md-input-container class="md-block">
                     <label>Room Title</label>
-                    <input required name="linkText" ng-model="rsCtrl.editingPage.title" autocomplete="off">
+                    <input required name="title" ng-model="rsCtrl.editingPage.title" autocomplete="off">
                 </md-input-container>
-                <mz-background-settings background-model="rsCtrl.editingPage.background"></mz-background-settings>
+                <md-input-container class="md-block compact">
+                    <label>Background</label>
+                    <input type="color" ng-model="rsCtrl.editingPage.background.data.color">
+                </md-input-container>
                 <mz-permission-settings permissions="rsCtrl.editingPage.permissions"></mz-permission-settings>
                 <md-chips ng-model="rsCtrl.editingPage.owners"
                           secondary-placeholder="Add admin by User ID.">

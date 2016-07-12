@@ -4,6 +4,8 @@
 	<meta charset="utf-8">
 	<title>Mazenet</title>
 	<link rel="icon" href="images/favicon.png?v=6" type="image/x-icon" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="MazenetStyles.css">
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/bower_components/angular/angular.js"></script>
 	<script src="/bower_components/angular-route/angular-route.min.js"></script>
@@ -13,8 +15,6 @@
 	<script src="/bower_components/jquery/dist/jquery.min.js"></script>
 	<script src="/bower_components/underscore/underscore-min.js"></script>
 	<script src="/bower_components/requirejs/require.js" data-main="main.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-  	<link rel="stylesheet" href="MazenetStyles.css">
 </head>
 <body ng-controller="RootController" style="{{ globalPageStyles.stringified }}">
 	<mz-control-menu>

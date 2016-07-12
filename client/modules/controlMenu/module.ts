@@ -4,9 +4,8 @@ import NewElementMenuModule = require('./newElementMenu/module');
 import InfoMenuModule = require('./infoMenu/module');
 import RoomSettingsMenuModule = require('./roomSettingsMenu/module');
 import UserMenuModule = require('./userMenu/module');
-import RoomPreviewModule = require('./roomPreview/module')
-import BackgroundSettingsModule = require('./backgroundSettings/module')
-import PermissionSettingsModule = require('./permissionSettings/module')
+import RoomPreviewModule = require('./roomPreview/module');
+import PermissionSettingsModule = require('./permissionSettings/module');
 
 import ControlMenuDirective = require('./ControlMenuDirective');
 
@@ -16,7 +15,6 @@ export = angular.module('mod.controlmenu', [
     InfoMenuModule.name,
     UserMenuModule.name,
     RoomPreviewModule.name,
-    BackgroundSettingsModule.name,
     PermissionSettingsModule.name
 ])
     .directive('mzControlMenu', ControlMenuDirective)

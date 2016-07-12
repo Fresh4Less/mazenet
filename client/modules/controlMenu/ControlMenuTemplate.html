@@ -39,8 +39,8 @@
 
    <md-sidenav class="md-sidenav-right md-whiteframe-z2" md-component-id="right">
       <!--<mz-welcome-menu ng-if="cmCtrl.MenuService.MenuState == 'naw'"></mz-welcome-menu>-->
-      <mz-new-element-menu ng-if="cmCtrl.ActiveMenu == 'newElement'"></mz-new-element-menu>
-      <mz-room-settings-menu ng-if="cmCtrl.ActiveMenu == 'roomSettings'"></mz-room-settings-menu>
-      <mz-user-menu ng-if="cmCtrl.ActiveMenu == 'userSettings'"></mz-user-menu>
+      <mz-new-element-menu ng-show="cmCtrl.ActiveMenu == 'newElement'"></mz-new-element-menu>
+      <mz-room-settings-menu ng-show="cmCtrl.ActiveMenu == 'roomSettings'"></mz-room-settings-menu>
+      <mz-user-menu ng-show="cmCtrl.ActiveMenu == 'userSettings'"></mz-user-menu>
    </md-sidenav>
 </section>

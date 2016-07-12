@@ -57,9 +57,7 @@ class NewRoomMenuController {
             };
             self.SocketService.CreateElement(linkElement).then((element:IElement)=> {
                 self.SocketService.EnterPage(element.data.pId, element.pos).then((page:Page)=>{
-                    self.SocketService.UpdatePage(self.pageToMake).finally(()=>{
-                        self.resetData();
-                    });
+                    self.resetData();
                 }, (error)=>{
                     self.resetData();
                 });

@@ -24,7 +24,7 @@ module.exports = function(config) {
       {pattern: 'bower_components/angular-route/angular-route.js', included:false, served:true},
       {pattern: 'bower_components/angular-mocks/angular-mocks.js', included:false, served:true},
       {pattern: 'bower_components/angular/angular.js', included:false, served:true},
-      {pattern: 'client_tests/**/*.spec.js', included: false, served: true},
+      {pattern: 'test/client/**/*.spec.js', included: false, served: true},
       {pattern: 'client/**/*.js', included: false, served: true},
       {pattern: 'client/**/*.html', included: false, served: true}
     ],

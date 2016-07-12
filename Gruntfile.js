@@ -44,7 +44,9 @@ module.exports = function(grunt) {
 		},
 		sass: {
 			options: {
-				sourceMap: false
+				outputStyle: 'compressed',
+				sourceComments: false,
+				sourceMap: true
 			},
 			dist: {
 				files: {
@@ -89,6 +91,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-sass');
 	grunt.loadNpmTasks('grunt-exec');
 
+	grunt.registerTask('compile', ['sass', 'exec:compileTypescript']);
 	grunt.registerTask('build', ['sass', 'exec:installTSD', 'exec:compileTypescript']);
 	grunt.registerTask('build-prod', ['sass', 'exec:installTSD', 'exec:compileTypescript', 'exec:concatRequireFiles']);
 

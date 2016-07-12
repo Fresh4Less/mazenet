@@ -92,8 +92,8 @@ class SocketService implements ISocketService {
         var id:string = this.pageUpdatePromiseMapper.GetNewId();
 
         this.pageUpdatePromiseMapper.SetDeferredForId(id, deferred);
-
-        this.socket.emit('/pages/update', new WebRequest('GET', pageData, id));
+        console.log(pageData.GetJSON());
+        this.socket.emit('/pages/update', new WebRequest('GET', pageData.GetJSON(), id));
 
         return deferred.promise;
     }

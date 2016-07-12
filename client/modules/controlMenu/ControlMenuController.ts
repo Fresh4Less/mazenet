@@ -72,8 +72,7 @@ class ControlMenuController {
         return () => {
             self.$mdSidenav(navID)
                 .toggle()
-                .then(function () {
-        });
+                .then(function (){});
     }
 }
 }

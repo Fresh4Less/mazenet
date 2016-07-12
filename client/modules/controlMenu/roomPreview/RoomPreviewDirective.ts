@@ -9,8 +9,7 @@ function RoomPreviewDirective():ng.IDirective {
     var directive = <ng.IDirective> {
         restrict: 'E',
         scope: {
-            previewRoom: '=',
-            linkText: '='
+            previewRoom: '='
         },
         templateUrl: '/modules/controlMenu/roomPreview/RoomPreviewTemplate.html',
         controller: RoomPreviewController,
