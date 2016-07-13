@@ -3,9 +3,8 @@
   cursor: pointer;
   position: absolute;
   &:hover {
-    text-shadow: 1px 1px 2px gray;
+    text-shadow: 1px 1px 1px #7f7f7f;
+    text-decoration: underline;
   }
-  .new {
-    color: gray;
-  }
+
 }

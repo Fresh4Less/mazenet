@@ -5,6 +5,5 @@ export = IBackgroundData;
 
 interface IBackgroundData {
     GetJSON():any;
-    GetOppositeColorHex():string;
-    GetHighContrastHex():string;
+    GetHighContrastBWHex():string;
 }

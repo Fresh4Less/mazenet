@@ -31,12 +31,7 @@ class LinkElementController {
 
     public GetColor():string {
         if(this.ActivePageService.PageData.background.bType === 'color') {
-            if((<any> this.element.data).isReturnLink) {
-                return (<ColorBgData> this.ActivePageService.PageData.background.data).GetHighContrastHex();
-            }
-            else {
-                return (<ColorBgData> this.ActivePageService.PageData.background.data).GetOppositeColorHex();
-            }
+            return (<ColorBgData> this.ActivePageService.PageData.background.data).GetHighContrastBWHex();
         } else {
             return '#2B4A6F';
         }

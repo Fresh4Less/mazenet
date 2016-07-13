@@ -7,6 +7,7 @@ export = ColorBgData;
 
 class ColorBgData implements IBackgroundData {
     private _color:string;
+    private _bwYIQContast:string;
 
     public get color():string {
         return this._color;
@@ -18,11 +19,17 @@ class ColorBgData implements IBackgroundData {
 
         if(isHex) {
             /* Turn 3 digit hexes to 6 digit hexes e.g. #123 to #112233 */
+            var colHex:string;
             if(col.length == 4) {
-                this._color = '#' + col[1] + col[1] + col[2] + col[2] + col[3] + col[3];
+                colHex = col[1] + col[1] + col[2] + col[2] + col[3] + col[3];
+                this._color = '#' + colHex;
             } else {
+                colHex = col.substring(1);
                 this._color = col;
             }
+
+            this.setBlackOrWhiteFromYIQ(colHex)
+
         }
     }
 
@@ -30,27 +37,20 @@ class ColorBgData implements IBackgroundData {
         this.color = '#dddddd';
     }
 
-    public GetOppositeColorHex():string {
-        /* 16777215 is the int value of #ffffff */
-        return '#' + (16777215 - parseInt(this._color.substring(1), 16)).toString(16);
+    public GetHighContrastBWHex():string {
+
+        return this._bwYIQContast;
+
     }
-    /* Returns the same as GetOppositeColorHex.
-     * Except it accounts for the dastardly rgb(127,127,127) case and returns something darker. */
-    public GetHighContrastHex():string {
 
-        var oppositeCol = this.GetOppositeColorHex()
-        var tol = 20;
-        var red = parseInt(oppositeCol.substring(1,3), 16);
-        var green = parseInt(oppositeCol.substring(3,5), 16);
-        var blue = parseInt(oppositeCol.substring(5), 16);
+    private setBlackOrWhiteFromYIQ(hexcolor:string) {
 
-        if((red > 127-tol && red < 127+tol)
-            && (green > 127-tol && green < 127+tol)
-            && (blue > 127-tol && blue < 127+tol)) {
-            return '#434343'; //Dark Gray
-        }
+        var r = parseInt(hexcolor.substr(0,2),16);
+        var g = parseInt(hexcolor.substr(2,2),16);
+        var b = parseInt(hexcolor.substr(4,2),16);
+        var yiq = ((r*299)+(g*587)+(b*114))/1000;
 
-        return oppositeCol;
+        this._bwYIQContast = (yiq >= 128) ? '#000000' : '#ffffff';
     }
 
     public GetJSON():any {
