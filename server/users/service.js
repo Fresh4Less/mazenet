@@ -5,7 +5,7 @@ var connectedUsers = {};
 // TODO: implement login!
 function userConnected(socketId) {
 	// generate a mongo ObjectID for this user
-	var uId = new ObjectID();
+	var uId = new ObjectID().toHexString();
 	connectedUsers[socketId] = uId;
 	return uId;
 }

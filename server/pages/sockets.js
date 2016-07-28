@@ -1,4 +1,4 @@
-var BPromise = require('bluebird');
+var Promise = require('bluebird');
 
 var freshSocketRouter = require('fresh-socketio-router');
 
@@ -30,7 +30,7 @@ function initialze(route, options) {
 	var router = freshSocketRouter.Router();
 
 	router.get('/enter', function(req, res, next) {
-		BPromise.try(function() {
+		Promise.try(function() {
 			validator.is(req.body, 'body').required().object()
 				.property('pId').required().objectId().back()
 				.property('pos').required().object()

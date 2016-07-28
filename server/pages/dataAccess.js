@@ -1,23 +1,24 @@
 var config = require('config');
-var BPromise = require('bluebird');
+var Promise = require('bluebird');
 var MongoDb = require('mongodb');
 var CustomErrors = require('../util/custom-errors');
 var db = require('../util/db');
 var MongoClient = MongoDb.MongoClient;
-BPromise.promisifyAll(MongoDb);
-BPromise.promisifyAll(MongoClient);
+Promise.promisifyAll(MongoDb);
+Promise.promisifyAll(MongoClient);
 
 function getPage(pageId) {
 	return db.getMazenetDb()
 		.then(function(db) {
 			return db.collection('pages')
-				.find({ "_id" : pageId }).limit(1).nextAsync();
+				.find({ "_id" : new MongoDb.ObjectID(pageId) }).limit(1).nextAsync();
 		})
 		.then(function(page) {
 			if(!page) {
 				throw new CustomErrors.NotFoundError('Page ' + pageId + ' not found.');
 			}
-			return page;
+
+			return db.convertAllObjectIdToString(page);
 		});
 }
 
@@ -34,28 +35,7 @@ function createPage(pageParams) {
 				console.error('failed insert');
 				console.error(page);
 			}
-			return page.ops[0];
-		});
-}
-
-function createCursor(pageId, cursorParams) {
-	return db.getMazenetDb()
-		.then(function(db) {
-			return db.collection('pages')
-				.findOneAndUpdateAsync(
-					{ '_id': pageId},
-					{ $push: { cursors: cursorParams } },
-					{ projection: { cursors: { $slice: -1 } }, returnOriginal: false });
-		})
-		.then(function(page) {
-			if(!page || !page.ok || page.value === null) {
-				//throw CustomErrors.
-				//TODO: proper handling
-				console.error('failed update');
-				console.error(page);
-				throw new CustomErrors.NotFoundError('Add cursor failed: could not find pageId ' + pageId);
-			}
-			return page.value.cursors[0];
+			return db.convertAllObjectIdToString(page.ops[0]);
 		});
 }
 
@@ -69,7 +49,7 @@ function getRootPageId() {
 			if(!page) {
 				throw new CustomErrors.NotFoundError('Root page not found.');
 			}
-			return page._id;
+			return page._id.toHexString();
 		});
 }
 
@@ -86,7 +66,7 @@ function updatePage(pageId, pageParams) {
 			}
 			return db.collection('pages')
 				.findOneAndUpdateAsync(
-					{ '_id': pageId},
+					{ '_id': new MongoDb.ObjectID(pageId)},
 					{ $set: flatParams},
 					{ projection: projectionParams, returnOriginal: false });
 		})
@@ -98,7 +78,7 @@ function updatePage(pageId, pageParams) {
 				console.error(page);
 				throw new CustomErrors.NotFoundError('Update page failed: could not find pageId ' + pageId);
 			}
-			return page.value;
+			return db.convertAllObjectIdToString(page.value);
 		});
 }
 
@@ -127,7 +107,6 @@ function flattenObject(obj) {
 module.exports = {
 	getPage: getPage,
 	createPage: createPage,
-	createCursor: createCursor,
 	getRootPageId: getRootPageId,
 	updatePage: updatePage
 };

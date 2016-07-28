@@ -31,8 +31,25 @@ function getMazenetDb() {
 	}
 }
 
+function convertAllObjectIdToString(obj) {
+	for (var p in obj) {
+		if(!obj.hasOwnProperty(p)) {
+			continue;
+		}
+		//hacky way to detect ObjectId
+		if(obj[p].toHexString) {
+			obj[p] = obj[p].toHexString();
+		}
+		else if(typeof obj[p] === 'object') {
+			convertAllObjectIdToString(obj[p]);
+		}
+	}
+	return obj;
+}
+
 module.exports = {
 	connect: connect,
-	getMazenetDb: getMazenetDb
+	getMazenetDb: getMazenetDb,
+	convertAllObjectIdToString: convertAllObjectIdToString
 };
 

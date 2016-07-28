@@ -11,7 +11,7 @@ var routes = require('./routes');
 var ObjectID = require('mongodb').ObjectID;
 var Validator = require('fresh-validation').Validator;
 
-var BPromise = require('bluebird');
+var Promise = require('bluebird');
 
 var logger = require('./util/logger');
 
@@ -22,20 +22,12 @@ Validator.addGlobalValidator({
 	continueOnFail: false,
 	errorMessage: '{name} ({val}) must be an objectId',
 	validationFunction: function(target) {
-		//return target instanceof ObjectID || ObjectID.isValid(target);
-		return target.toHexString || ObjectID.isValid(target); //TODO: make this not a hack
-	},
-	transformationFunction: function(target) {
-		//if(target instanceof ObjectID) {
-		if(target.toHexString) { //TODO: make this not a hack
-			return target;
-		}
-		return new ObjectID(target);
+		return ObjectID.isValid(target);
 	}
 });
 
 // debug
-BPromise.longStackTraces();
+Promise.longStackTraces();
 
 var app;
 var server;

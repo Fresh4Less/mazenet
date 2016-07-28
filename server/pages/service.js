@@ -1,4 +1,4 @@
-var BPromise = require('bluebird');
+var Promise = require('bluebird');
 var ObjectID = require('mongodb').ObjectID;
 var CustomErrors = require('../util/custom-errors');
 
@@ -15,7 +15,7 @@ var validator = new Validator();
 //pages schema
 // field names in parentheses () optional
 //  creator: String (userId)
-//  owner: Array String (userId)
+//  owners: Array String (userId)
 //  permissions: String ('none', 'links', 'all')
 //  title: String,
 //  (whitelist): Array (userId)
@@ -26,11 +26,10 @@ var validator = new Validator();
 var permissionsValues = ['none', 'links', 'all'];
 var backgroundTypes = ['color'];
 
-function getPage(pageIdStr) {
-	return BPromise.try(function() {
-		validator.is(pageIdStr, 'pageId').required().objectId();
+function getPage(pageId) {
+	return Promise.try(function() {
 		validator.throwErrors();
-		return pagesDataAccess.getPage(validator.transformationOutput());
+		return pagesDataAccess.getPage(pageId);
 	})
 	.then(function(page) {
 		return page;
@@ -40,7 +39,7 @@ function getPage(pageIdStr) {
 // isRoot marks this page as the root page. Be careful! There should only be one,
 // and it should only be enabled for extremely privliaged connections (probably not externally at all)
 function createPage(pageParams, isRoot) {
-	return BPromise.try(function() {
+	return Promise.try(function() {
 		validator.is(pageParams, 'pageParams').required().object()
 			.property('creator').required().objectId().back()
 			.property('permissions').required().elementOf(permissionsValues).back()
@@ -50,6 +49,8 @@ function createPage(pageParams, isRoot) {
 		validator.throwErrors();
 		validator.whitelist({ creator: true, background: { data: true } });
 		var sanitizedPageParams = validator.transformationOutput();
+		sanitizedPageParams.creator = new ObjectID(sanitizedPageParams.creator);
+
 		sanitizedPageParams.owners = [sanitizedPageParams.creator];
 		sanitizedPageParams.cursors = [];
 		if(isRoot) {
@@ -66,10 +67,9 @@ function getRootPageId() {
 	return pagesDataAccess.getRootPageId();
 }
 
-function updatePage(pageIdStr, pageParams) {
-	return BPromise.try(function() {
-		validator.is(pageIdStr, 'pageId').required().objectId();
-		var pageId = validator.transformationOutput();
+function updatePage(pageId, pageParams) {
+	return Promise.try(function() {
+		validator.is(pageId, 'pageId').required().objectId();
 		validator.is(pageParams, 'pageParams').required().object()
 			.property('permissions').not.required().elementOf(permissionsValues).back()
 			.property('title').not.required().string().back()
@@ -78,8 +78,15 @@ function updatePage(pageIdStr, pageParams) {
 			.back()
 			.property('owners').not.required().array();
 		validator.throwErrors();
+		//TODO: validate data properly
+		//TODO: validate owners properly
 		validator.whitelist({background: { data: true } });
 		var sanitizedPageParams = validator.transformationOutput();
+		if(sanitizedPageParams.owners) {
+			sanitizedPageParams.owners = sanitizedPageParams.map(function(owner) {
+				return new ObjectID(owner);
+			});
+		}
 		return pagesDataAccess.updatePage(pageId, sanitizedPageParams);
 	})
 	.then(function(page) {

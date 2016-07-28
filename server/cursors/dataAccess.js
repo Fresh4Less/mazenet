@@ -12,7 +12,7 @@ function createCursor(pageId, cursorParams) {
 		.then(function(db) {
 			return db.collection('pages')
 				.findOneAndUpdateAsync(
-					{ '_id': pageId},
+					{ '_id': new MongoDb.ObjectID(pageId)},
 					{ $push: { cursors: cursorParams } },
 					{ projection: { cursors: { $slice: -1 } }, returnOriginal: false });
 		})
@@ -24,7 +24,7 @@ function createCursor(pageId, cursorParams) {
 				console.log(page);
 				throw new CustomErrors.NotFoundError('Add cursor failed: could not find pageId ' + pageId);
 			}
-			return page.value.cursors[0];
+			return db.convertAllObjectIdToString(page.value.cursors[0]);
 		});
 }
 

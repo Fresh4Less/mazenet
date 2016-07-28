@@ -1,4 +1,4 @@
-var BPromise = require('bluebird');
+var Promise = require('bluebird');
 var ObjectID = require('mongodb').ObjectID;
 var CustomErrors = require('../util/custom-errors');
 
@@ -8,33 +8,32 @@ var Validator = require('fresh-validation').Validator;
 // initialze validator
 var validator = new Validator();
 
-var activeCursors = {}; // pageIdStr: { uIdStr: { cursor data } }
+var activeCursors = {}; // pageId: { uId: { cursor data } }
 
-function createActiveCursor(pageIdStr, uIdStr, position) {
-	validator.is(pageIdStr, 'pageId').required().objectId();
-	validator.is(uIdStr, 'uId').required().objectId();
-	var uId = validator.transformationOutput();
+function createActiveCursor(pageId, uId, position) {
+	validator.is(pageId, 'pageId').required().objectId();
+	validator.is(uId, 'uId').required().objectId();
 	validator.is(position, 'position').required().object()
 			.property('x').required().number().back()
 			.property('y').required().number().back();
 	validator.throwErrors();
-	if(activeCursors[pageIdStr] === undefined) {
-		activeCursors[pageIdStr] = {};
+	if(activeCursors[pageId] === undefined) {
+		activeCursors[pageId] = {};
 	}
-	if(activeCursors[pageIdStr][uIdStr] !== undefined) {
-		console.warn('cursors/service: createActiveCursor: Cursor already exists: ' + uIdStr + '. Overwriting.');
+	if(activeCursors[pageId][uId] !== undefined) {
+		console.warn('cursors/service: createActiveCursor: Cursor already exists: ' + uId + '. Overwriting.');
 	}
-	activeCursors[pageIdStr][uIdStr] = { uId: uId, frames: [{ pos: position, t: 0 }] };
+	activeCursors[pageId][uId] = { uId: new ObjectID(uId), frames: [{ pos: position, t: 0 }] };
 }
 
-function addActiveFrame(pageIdStr, uIdStr, frame) {
-	var pageObj = activeCursors[pageIdStr];
+function addActiveFrame(pageId, uId, frame) {
+	var pageObj = activeCursors[pageId];
 	if(pageObj === undefined) {
-		throw new Error('cursors/service: addActiveCursor: No active cursors on page: ' + pageIdStr);
+		throw new Error('cursors/service: addActiveCursor: No active cursors on page: ' + pageId);
 	}
-	var cursorObj = pageObj[uIdStr];
+	var cursorObj = pageObj[uId];
 	if(pageObj === undefined) {
-		throw new Error('cursors/service: addActiveCursor: No active cursor on page: ' + pageIdStr + ' with uId ' + uIdStr);
+		throw new Error('cursors/service: addActiveCursor: No active cursor on page: ' + pageId + ' with uId ' + uId);
 	}
 	validator.is(frame, 'frame').required().object()
 		.property('pos').required().object()
@@ -49,31 +48,30 @@ function addActiveFrame(pageIdStr, uIdStr, frame) {
 }
 
 // commits the active cursor to the database and deletes it
-function commitActiveCursor(pageIdStr, uIdStr) {
-	return BPromise.try(function() {
-		validator.is(pageIdStr, 'pageId').required().objectId();
-		var pageId = validator.transformationOutput();
-		validator.is(uIdStr, 'userId').required().objectId();
+function commitActiveCursor(pageId, uId) {
+	return Promise.try(function() {
+		validator.is(pageId, 'pageId').required().objectId();
+		validator.is(uId, 'userId').required().objectId();
 		validator.throwErrors();
-		var pageObj = activeCursors[pageIdStr];
+		var pageObj = activeCursors[pageId];
 		if(pageObj === undefined) {
-			throw new Error('cursors/service: commitActiveCursor: No active cursors on page: ' + pageIdStr);
+			throw new Error('cursors/service: commitActiveCursor: No active cursors on page: ' + pageId);
 		}
-		var cursorObj = pageObj[uIdStr];
+		var cursorObj = pageObj[uId];
 		if(pageObj === undefined) {
-			throw new Error('cursors/service: commitActiveCursor: No active cursor on page: ' + pageIdStr + ' with uId ' + uIdStr);
+			throw new Error('cursors/service: commitActiveCursor: No active cursor on page: ' + pageId + ' with uId ' + uId);
 		}
-		delete pageObj[uIdStr];
+		delete pageObj[uId];
 		return cursorsDataAccess.createCursor(pageId, cursorObj);
 	});
 }
 
 // returns an object with userIds mapped to {x: curX, y: curY}
-function getActiveCursors(pageIdStr) {
-	validator.is(pageIdStr, 'pageId').required().objectId();
+function getActiveCursors(pageId) {
+	validator.is(pageId, 'pageId').required().objectId();
 	validator.throwErrors();
 	var pageCursors = [];
-	var pageObj = activeCursors[pageIdStr];
+	var pageObj = activeCursors[pageId];
 	// copy each userId and its last frame position
 	for (var userId in pageObj) {
 		if (pageObj.hasOwnProperty(userId)) {
@@ -85,16 +83,17 @@ function getActiveCursors(pageIdStr) {
 	return pageCursors;
 }
 
-function createCursor(pageIdStr, cursorParams) {
-	return BPromise.try(function() {
-		validator.is(pageIdStr, 'pageId').required().objectId();
-		var pageId = validator.transformationOutput();
+function createCursor(pageId, cursorParams) {
+	return Promise.try(function() {
+		validator.is(pageId, 'pageId').required().objectId();
 		validator.is(cursorParams, 'cursorParams').required().object()
 			.property('uId').required().objectId().back()
 			.property('frames').required().array();//.foreach()
 		validator.throwErrors();
 		validator.whitelist();
-		return cursorsDataAccess.createCursor(pageId, validator.transformationOutput());
+		var sanitizedCursorParams = validator.transformationOutput();
+		sanitizedCursorParams.uId = new ObjectID(sanitizedCursorParams.uId);
+		return cursorsDataAccess.createCursor(pageId, sanitizedCursorParams);
 	});
 }
 
