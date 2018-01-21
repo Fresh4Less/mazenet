@@ -1,23 +1,33 @@
-import * as JsonStringifySafe from 'json-stringify-safe';
 /**
- * The logger lets you to log data to a target (stdout) in a specified format (json).
- * Each log has a "level" (e.g. info, warn, error) whose output can be toggled on/off, or use custom target or serializer
- * You can associate data with each level, which will automatically be included in the log.
- * You can dynamically add log levels, or extend the Logger class
+ * Logger
+ * :og data to a target (stdout) in a specified format (json).
+ * Output from each level (info, warn, etc) can be toggled and configured with a custom target and serializer
+ * Specify transformations that extend or modify the log (add timestamp)
+ * Dynamically create new log levels, or extend the Logger class
  */
 
-/**
- */
+import * as JsonStringifySafe from 'json-stringify-safe';
+
 export interface LoggerOptions {
-	includeTimestamp: boolean | string[]; // add timestamp middleware to all/no initial handlers, or specify an array of handler levels
-	target?: LoggerTarget; // override default target for initial handlers
-	serializer?: LoggerSerializer; // override default serializer for initial handlers
+	/** Middleware for each log level
+	 * levels is an array of level names the middleware is applied to.
+	 * if levels is true, it is applied to all levels
+	 */
+	middleware: {mw: LoggerMiddleware, levels: true | string[]}[];
+	target?: LoggerTarget;
+	serializer?: LoggerSerializer;
 }
 
+/** Writes serialized log (e.g. json) to the target (e.g. stdout) */
 export type LoggerTarget = {name: string, write: (serializedData: string) => void};
+/** Serializes log object to a string (e.g. json) */
 export type LoggerSerializer = {name: string, serialize: (data: object) => string};
+/** Transforms the log object.
+ * The return value is piped through all the middlewares, then serialized and written to the target.
+*/
 export type LoggerMiddleware = (data: object) => object;
 
+/** Describes how logs for a level are processed */
 export interface LoggerHandler {
 	target: LoggerTarget;
 	serializer: LoggerSerializer;
@@ -25,14 +35,7 @@ export interface LoggerHandler {
 	enabled: boolean;
 }
 
-export class InvalidLoggerError extends Error {
-	constructor(level: string) {
-		super(`Missing log handler for level "{level}"`);
-		Object.setPrototypeOf(this, InvalidLoggerError.prototype);
-	}
-}
-
-// targets
+/** Standard targets */
 export let Target = {
 	stdout: {
 		name: 'stdout',
@@ -48,7 +51,7 @@ export let Target = {
 	}
 }
 
-// serializers
+/** Standard serializers */
 export let Serializer = {
 	json: {
 		name: 'json',
@@ -58,20 +61,36 @@ export let Serializer = {
 	}
 }
 
+/** Standard middlewares */
 export let Middleware = {
-	addTimestamp: function(data: any): any {
+	timestamp: function(data: any): any {
 		data.timestamp = new Date().toISOString();
 		return data;
-	}
+	},
+	// not recursive
+	fullError: function(data: any): any {
+		Object.keys(data).forEach((p) => {
+			let d = data[p];
+			if(d instanceof Error) {
+				// include these in log
+				Object.defineProperty(d, 'message', {enumerable: true});
+				Object.defineProperty(d, 'stack', {enumerable: true});
+			}
+		});
+
+		return data;
+	},
+
 }
 
-/**
- *
- */
 export class Logger {
 	static readonly defaultOptions = {
-		includeTimestamp: true
+		middleware: [
+			{mw: Middleware.timestamp, levels: true},
+			{mw: Middleware.fullError, levels: true},
+		]
 	};
+
 	static readonly defaultHandlers = new Map<string, LoggerHandler>([
 		['diag',  {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: false}],
 		['trace', {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: false}],
@@ -81,16 +100,18 @@ export class Logger {
 		['fatal', {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: true}],
 	]);
 
-	options: LoggerOptions;
+	protected options: LoggerOptions;
 	handlers: Map<string, LoggerHandler>;
 
 	constructor(options: Partial<LoggerOptions>) {
 		this.options = Object.assign({}, Logger.defaultOptions, options);
+
+		//copy default handlers
 		this.handlers = new Map();
 		for(let item of Logger.defaultHandlers) {
 			let handler = Object.assign({}, item[1]);
 			// don't share middleware array
-			handler.middleware = [];
+			handler.middleware = handler.middleware.slice();
 			this.handlers.set(item[0], handler);
 		}
 
@@ -106,22 +127,14 @@ export class Logger {
 			}
 		}
 
-		if(this.options.includeTimestamp === false) {
-			this.options.includeTimestamp = [];
-		}
-		else if(this.options.includeTimestamp === true) {
-			this.options.includeTimestamp = Array.from(this.handlers.keys());
-		}
-
-		(<string[]>this.options.includeTimestamp).forEach((level) => {
-			let handler = this.handlers.get(level);
-
-			if(handler) {
-				handler.middleware.push(Middleware.addTimestamp);
-			}
+		this.options.middleware.forEach(mw => {
+			this.addMiddleware(mw.mw, mw.levels);
 		});
 	}
 
+	/**
+	 * @param userData - custom properties to log
+	 */
 	logData(level: string, message: string, userData: object = {}): void {
 		let handler = this.handlers.get(level);
 
@@ -170,6 +183,29 @@ export class Logger {
 
 	fatal(message: string, userData?: object): void {
 		this.logData('fatal', message, userData);
+	}
+
+	/**
+	 * @param levels - adds the middleware to handlers for all listed levels. if true, add to all handlers
+	 */
+	public addMiddleware(middleware: LoggerMiddleware, levels: true | string[]) {
+		if(levels === true) {
+			levels = Array.from(this.handlers.keys());
+		}
+
+		(<string[]>levels).forEach((level) => {
+			let handler = this.handlers.get(level);
+			if(handler) {
+				handler.middleware.push(middleware);
+			}
+		});
+	}
+}
+
+export class InvalidLoggerError extends Error {
+	constructor(level: string) {
+		super(`Missing log handler for level "{level}"`);
+		Object.setPrototypeOf(this, InvalidLoggerError.prototype);
 	}
 }
 
