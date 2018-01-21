@@ -244,7 +244,6 @@ Responses:
  - `200`: Room successfully updated. Responds with a [Room](#room) object, containing only fields that were updated.
 Emits a `/rooms/updated` event is to all other users in the rooms.
  - `400`: Invalid request
- - `409`: User not in the room specified in `id`.
 
 ### `/rooms/structures/create`
 
@@ -260,7 +259,6 @@ Responses:
  - `201`: Structure was successfully created. Body contains the new [Structure](#structure).
 Emits a `/rooms/structures/created` event to all other users in the room.
  - `400`: Invalid request
- - `409`: User not in a room containing the structure.
 
 ### `/rooms/structures/update`
 
@@ -270,7 +268,6 @@ Responses:
  - `200`: Structure was successfully updated. Body contains the updated [Structure](#structure).
 Emits a `/rooms/structures/updated` event to all other users in the room.
  - `400`: Invalid request
- - `409`: User not in a room containing the structure.
 
 ### `/rooms/cursor-recordings`
 
