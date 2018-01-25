@@ -5,12 +5,14 @@
         "strict": true,
         "removeComments": true,
         "preserveConstEnums": true,
-        "sourceMap": false
+        "sourceMap": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true
     },
     "include": [
-    	"src/**/*",
-    	"test/**/*"
+    	"src/**/*"
 	],
+	"baseUrl": ".",
 	"paths": {
 		"*": [
 			"node_modules/*",

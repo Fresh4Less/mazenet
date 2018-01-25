@@ -11,8 +11,12 @@
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cookie-parser": "^1.4.3",
+    "fresh-socketio-router": "^0.1.4",
     "json-stringify-safe": "^5.0.1",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "reflect-metadata": "^0.1.12",
+    "socket.io": "^2.0.4",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.19",
@@ -24,6 +28,8 @@
     "@types/json-stringify-safe": "^5.0.0",
     "@types/minimist": "^1.2.0",
     "@types/node": "^9.3.0",
+    "@types/socket.io": "^1.4.31",
+    "@types/uuid": "^3.4.3",
     "gulp": "^3.9.1",
     "gulp-typedoc": "^2.2.0",
     "gulp-typescript": "^4.0.0-alpha.1",

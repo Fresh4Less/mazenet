@@ -91,13 +91,15 @@ export class Logger {
 		]
 	};
 
+	static readonly defaultHandler = {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: true};
+
 	static readonly defaultHandlers = new Map<string, LoggerHandler>([
-		['diag',  {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: false}],
-		['trace', {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: false}],
-		['info',  {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: true}],
-		['warn',  {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: true}],
-		['error', {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: true}],
-		['fatal', {target: Target.stdout, serializer: Serializer.json, middleware: [], enabled: true}],
+		['diag',  Object.assign({}, Logger.defaultHandler, {enabled: false})],
+		['trace', Object.assign({}, Logger.defaultHandler, {enabled: false})],
+		['info',  Logger.defaultHandler],
+		['warn',  Logger.defaultHandler],
+		['error', Logger.defaultHandler],
+		['fatal', Logger.defaultHandler],
 	]);
 
 	protected options: LoggerOptions;
@@ -199,6 +201,16 @@ export class Logger {
 				handler.middleware.push(middleware);
 			}
 		});
+	}
+
+	public addLevel(name: string, handler: Partial<LoggerHandler>) {
+		let h = Object.assign({}, Logger.defaultHandler, handler);
+		if(!handler.middleware) {
+			Logger.defaultOptions.middleware.forEach(mw => {
+				h.middleware.push(mw.mw);
+			});
+		}
+		this.handlers.set(name, h);
 	}
 }
 

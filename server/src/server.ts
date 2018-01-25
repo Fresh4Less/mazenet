@@ -3,12 +3,24 @@ import * as Path from 'path';
 import * as Http from 'http';
 import * as Https from 'https';
 import * as Express from 'express';
+import * as SocketIO from 'socket.io';
 
 import * as Compression from 'compression';
 import * as BodyParser from 'body-parser';
 import * as CookieParser from 'cookie-parser';
 
-import {Config} from './config'
+import {GlobalLogger} from './util/logger'
+
+import * as Mazenet from './mazenet';
+
+export namespace Server {
+	export interface Options {
+		port: number;
+		securePort: number;
+		sslCertPath?: string;
+		env: string;
+	}
+}
 
 interface Certificate {
 	cert: Buffer,
@@ -17,33 +29,34 @@ interface Certificate {
 
 export class Server {
 
-	static readonly defaultConfig = {
+	static readonly defaultOptions = {
 		port:  9090,
-		secureRedirectPort: 9443,
+		securePort: 9443,
 		sslCertPath: null,
+		env: 'dev'
 	};
 
-	config: Config;
+	options: Server.Options;
 	httpServer: Http.Server | Https.Server;
 	secureRedirectServer: Http.Server | null;
 	app: Express.Express;
 
-	constructor(config: Partial<Config>) {
-		this.config = Object.assign({}, Server.defaultConfig, config);
-
-		this.secureRedirectServer = this.makeSecureRedirectServer(this.config.secureRedirectPort);
-		console.log(this.config);
+	constructor(options: Partial<Server.Options>) {
+		this.options = Object.assign({}, Server.defaultOptions, options);
 	}
 
 	start(): void {
+		GlobalLogger.info('Server: configuration', this.options);
 		this.app = Express();
 
 		let sslCert: Certificate | null = null;
-		try {
-			sslCert = this.loadCerts(this.config.sslCertPath);
-		}
-		catch(err) {
-			console.error(err);
+		if(this.options.sslCertPath) {
+			try {
+				sslCert = this.loadCerts(this.options.sslCertPath);
+			}
+			catch(error) {
+				GlobalLogger.error('Failed to load SSL certificates', {error});
+			}
 		}
 
 		if(sslCert) {
@@ -51,26 +64,39 @@ export class Server {
 				cert: sslCert.cert,
 				key: sslCert.key
 			}, this.app);
-			this.secureRedirectServer = this.makeSecureRedirectServer(this.config.secureRedirectPort);
+			this.secureRedirectServer = this.makeSecureRedirectServer(this.options.securePort);
+			this.httpServer.listen(this.options.securePort);
+			this.secureRedirectServer.listen(this.options.port);
+			GlobalLogger.info('Server: bound to port', {port: this.options.securePort, redirectPort: this.options.port, ssl: true});
+
 		}
-		else {
-			console.warn("WARNING: SSL certification path not set. Website is NOT SECURE");
+		else if(this.options.env === 'prod') {
+			GlobalLogger.fatal("SSL must be enabled in production mode. Shutting down...");
+			throw new Error('SSL must be enabled in production mode.');
+		}
+		else
+		{
+			GlobalLogger.warn("WARNING: SSL not enabled. Website is NOT SECURE");
 			this.httpServer = new Http.Server(this.app);
+			this.httpServer.listen(this.options.port);
+			GlobalLogger.info('Server: bound to port', {port: this.options.port, ssl: false});
 		}
 
-		console.log('Start! ' + this.config.port);
 		this.app.use(Compression());
 		this.app.use(BodyParser.json());
 		this.app.use(CookieParser());
 
+		let mazenet = new Mazenet.Mazenet({});
 
+		// socket initialization
+		//let socketServer = SocketIO(this.httpServer);
+		//socketServer.use((socket: SocketIO.Socket, fn) => {
+		//let a = SocketIO.Socket;
+			//socket.
+		//});
 	}
 
-	protected loadCerts(certPath?: string): Certificate | null {
-		if(!certPath) {
-			return null;
-		}
-
+		protected loadCerts(certPath: string): Certificate {
 		return {
 			cert: fs.readFileSync(Path.join(certPath, 'cert.pem')),
 			key: fs.readFileSync(Path.join(certPath, 'key.pem'))
