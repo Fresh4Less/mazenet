@@ -24,6 +24,7 @@ export class Mazenet {
 	}
 
 	protected Init() {
+		//TODO: will need express middleware to convert GET query params to req.body object
 		let userMiddleware = new User.Middleware({});
 		//this.options.socketServer.use((socket: SocketIO.Socket, next) => {
 			//socket.on('hello', (data: any) => {

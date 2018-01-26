@@ -13,9 +13,10 @@ gulp.task('default', function() {
 gulp.task('docs', function() {
 	return gulp.src(['src/**/*.ts'])
 		.pipe(typedoc({
-            module: "commonjs",
-            target: "es6",
-            out: "docs/",
-            name: "Mazenet"
+			module: "commonjs",
+			target: "es6",
+			out: "docs/",
+			name: "Mazenet",
+			ignoreCompilerErrors: true,
 		}));
 });

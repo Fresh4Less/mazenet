@@ -1,4 +1,5 @@
 import * as Logger from '../../src/util/logger';
+//TODO: test adding new level, custom middleware
 
 let logs: string[] = [];
 let target = {name: 'test', write: (serializedData: string) => {

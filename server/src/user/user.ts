@@ -4,50 +4,7 @@ import * as Uuid from 'uuid/v4';
 import * as Validator from '../util/validator';
 import FreshSocketIO = require('../types/fresh-socketio-router');
 import * as Room from '../room/room';
-
-
-export type Id = string;
-export interface User {
-	id: Id;
-}
-
-export interface ActiveUser {
-	userId: Id;
-	username: string;
-	platformData: PlatformData;
-}
-
-export type PlatformData = PlatformData.Desktop | PlatformData.Mobile;
-
-namespace PlatformData {
-	export interface Desktop {
-		pType: "desktop";
-		cursorPos: {
-			x: number;
-			y: number;
-		};
-	}
-	export interface Mobile {
-		pType: "mobile";
-	}
-}
-
-export namespace Api.v1 {
-	export namespace Connect {
-		export namespace Post {
-			export class Request {
-			}
-			export class Response {
-				@Validator.validate()
-				userId: Id;
-				@Validator.validate()
-				rootRoomId: Room.Id;
-				@Validator.validate()
-				fn: () => void;
-			}
-		}
-	}
-}
+import * as Api from '../api/v1';
 
 export interface Options {
 }
@@ -66,11 +23,10 @@ export class Middleware {
 		this.options = Object.assign({}, Middleware.defaultOptions, options);
 		this.router = Express.Router();
 
-		let response: Api.v1.Connect.Post.Response = Validator.validateData({userId: 'user', rootRoomId: 'room', fn: () => {}}, Api.v1.Connect.Post.Response, 'response');
+		let response: Api.Routes.Users.Connect.Post.Response200 = Validator.validateData({userId: 'user', rootRoomId: 'room', fn: () => {}}, Api.Routes.Users.Connect.Post.Response200, 'response');
 
-		this.router.post('/connect', (req: Request, res: Response) => {
-			//TODO: use validation
+		//this.router.post('/connect', (req: Request, res: Response) => {
 			//res.status(200).json({userId: 'user', rootRoomId: 'room'});
-		});
+		//});
 	}
 }
