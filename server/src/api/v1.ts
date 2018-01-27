@@ -12,6 +12,9 @@ export namespace Models {
 	export class User {
 		@Validator.validate()
 		id: User.Id;
+
+		@Validator.validate()
+		username: string;
 	}
 
 	export namespace User {
@@ -22,7 +25,7 @@ export namespace Models {
 	/** Client session of a user */
 	export class ActiveUser {
 		@Validator.validate()
-		userId: ActiveUser.Id;
+		id: ActiveUser.Id;
 		@Validator.validate()
 		username: string;
 		@Validator.validate()
@@ -35,6 +38,10 @@ export namespace Models {
 
 		/** Describes the user client's platform */
 		export type PlatformData = PlatformData.Desktop | PlatformData.Mobile;
+		export enum PlatformDataTypes {
+			Desktop = 'desktop',
+			Mobile = 'mobile'
+		};
 
 		export namespace PlatformData {
 			export class Desktop {
@@ -144,6 +151,20 @@ export namespace Routes {
 	*/
 	export namespace Users {
 		/**
+		 * route: '/users/create'
+		 */
+		export namespace Create {
+			/** Create a new user */
+			export namespace Post {
+				export class Request {
+					@Validator.validate()
+					username: string;
+				}
+				/** Information about the client's user account and the root room id. */
+				export let Response201 = Models.User;
+			}
+		}
+		/**
 		 * route: '/users/connect'
 		 */
 		export namespace Connect {
@@ -152,12 +173,11 @@ export namespace Routes {
 			 * Should be the first event emitted to the server on connection.
 			 */
 			export namespace Post {
-				export class Request {
-				}
+				export let Request = Models.ActiveUser.PlatformData;
 				/** Information about the client's user account and the root room id. */
 				export class Response200 {
 					@Validator.validate()
-					userId: Models.User.Id;
+					activeUser: Models.ActiveUser;
 					@Validator.validate()
 					rootRoomId: Models.Room.Id;
 				}
@@ -170,21 +190,17 @@ export namespace Routes {
 	 */
 	export namespace Rooms {
 		/**
-		 * route: '/rooms/enter'
+		 * route: '/rooms/update'
 		 */
-		export namespace Enter {
+		export namespace Create {
 			export namespace Post {
+				/** Room blueprint  */
 				export class Request {
 					@Validator.validate()
-					id: Models.Room.Id;
+					title: string;
 				}
-				/** Successfully entered the room */
-				export class Response200  {
-					@Validator.validate()
-					room: Models.Room;
-					@Validator.validate()
-					users: {[userId: string]: Models.ActiveUser};
-				}
+				/** Room succesfully updated. Emits a `/rooms/updated` event to all other users in the room. */
+				export let Response200 = Models.Room;
 				export let Response400 = {};
 			}
 		}
@@ -210,6 +226,25 @@ export namespace Routes {
 				export let Response400 = {};
 			}
 		}
+		/**
+		 * route: '/rooms/enter'
+		 */
+		export namespace Enter {
+			export namespace Post {
+				export class Request {
+					@Validator.validate()
+					id: Models.Room.Id;
+				}
+				/** Successfully entered the room */
+				export class Response200  {
+					@Validator.validate()
+					room: Models.Room;
+					@Validator.validate()
+					users: {[userId: string]: Models.ActiveUser};
+				}
+				export let Response400 = {};
+			}
+		}
 
 		/**
 		 * route: '/rooms/structures'
@@ -220,14 +255,23 @@ export namespace Routes {
 			 */
 			export namespace Create {
 				export namespace Post {
+					export class StructureBlueprint {
+						@Validator.validate()
+						pos: Models.Position;
+						@Validator.validate()
+						data: Models.Structure.Data;
+					}
+
 					export class Request {
 						@Validator.validate()
 						roomId: Models.Room.Id;
 						@Validator.validate()
-						structure: Models.Structure;
+						structure: StructureBlueprint;
 					}
 					/** Structure successfully created. Emits a `/rooms/structures/created event to all other users in the room */
+					//export type Response201 = Models.Structure;
 					export let Response201 = Models.Structure;
+					//export type Response201 = {};
 					export let Response400 = {};
 				}
 			}
