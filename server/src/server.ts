@@ -86,7 +86,7 @@ export class Server {
 		this.app.use(BodyParser.json());
 		this.app.use(CookieParser());
 
-		let mazenet = new Mazenet.Mazenet({});
+		let mazenet = new Mazenet.Mazenet(this.app);
 
 		// socket initialization
 		//let socketServer = SocketIO(this.httpServer);
