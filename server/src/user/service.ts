@@ -25,6 +25,7 @@ export class Service {
 	createActiveUser(user: Api.v1.Models.User, platformData: Api.v1.Models.ActiveUser.PlatformData) {
 		let activeUser = new ActiveUser({
 			id: Uuid(),
+			userId: user.id,
 			username: user.username,
 			platformData: platformData
 		});

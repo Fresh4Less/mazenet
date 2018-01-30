@@ -4,8 +4,12 @@
 
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
+import FreshSocketIO = require('fresh-socketio-router');
+
 import * as User from './user';
 import * as Room from './room';
+
+import {ErrorHandler} from './util/middleware';
 
 export namespace Mazenet {
 	export interface Options {
@@ -21,10 +25,10 @@ export class Mazenet {
 	expressApp: Express.Router;
 	socketServer: SocketIO.Server;
 
-	constructor(expressApp: Express.Router, /*socketServer: SocketIO.Server,*/ options?: Partial<Mazenet.Options>) {
+	constructor(expressApp: Express.Router, socketServer: SocketIO.Server, options?: Partial<Mazenet.Options>) {
 		this.options = Object.assign({}, Mazenet.defaultOptions, options);
 		this.expressApp = expressApp;
-		//this.socketServer = socketServer;
+		this.socketServer = socketServer;
 		this.Init();
 	}
 
@@ -38,10 +42,16 @@ export class Mazenet {
 		let userService = new User.Service(userDataStore);
 		let userMiddleware = new User.Middleware(userService);
 
-		this.expressApp.use('rooms', roomMiddleware.router);
-		this.expressApp.use('users', userMiddleware.router);
+		let router = FreshSocketIO.Router();
+		router.use(roomMiddleware.router);
+		router.use(userMiddleware.router);
 
-		//let mazenetIo = this.socketServer.of('/mazenet');
+		let errorHandler = new ErrorHandler();
+		router.use(errorHandler.router);
+
+		this.expressApp.use(router);
+		let mazenetIo = this.socketServer.of('/mazenet');
+		mazenetIo.use(FreshSocketIO(router));
 		//this.socketServer.use((socket: SocketIO.Socket, next) => {
 		//});
 		//this.options.socketServer.use((socket: SocketIO.Socket, next) => {

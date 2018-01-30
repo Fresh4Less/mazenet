@@ -17,19 +17,18 @@ export namespace User {
 
 export class ActiveUser {
 	id: ActiveUser.Id;
+	userId: User.Id;
 	username: string;
 	platformData: ActiveUser.PlatformData;
 
 	constructor(v1: Api.v1.Models.ActiveUser) {
 		Object.assign(this, v1);
-		//this.id = v1.id;
-		//this.username = v1.username;
-		//this.platformData = v1.platformData;
 	}
 
 	toV1(): Api.v1.Models.ActiveUser {
 		return {
 			id: this.id,
+			userId: this.userId,
 			username: this.username,
 			platformData: this.platformData,
 		};

@@ -27,6 +27,8 @@ export namespace Models {
 		@Validator.validate()
 		id: ActiveUser.Id;
 		@Validator.validate()
+		userId: User.Id;
+		@Validator.validate()
 		username: string;
 		@Validator.validate()
 		platformData: ActiveUser.PlatformData;
@@ -190,7 +192,7 @@ export namespace Routes {
 	 */
 	export namespace Rooms {
 		/**
-		 * route: '/rooms/update'
+		 * route: '/rooms/create'
 		 */
 		export namespace Create {
 			export namespace Post {
@@ -398,4 +400,18 @@ export namespace Events {
 			}
 		}
 	}
+}
+
+export class Error {
+	/** HTTP status code */
+	@Validator.validate()
+	code: number;
+	/** A short message describing the error */
+	@Validator.validate()
+	message: string;
+	@Validator.validate(true)
+	data?: Error.Data;
+}
+export namespace Error {
+	export type Data = object;
 }

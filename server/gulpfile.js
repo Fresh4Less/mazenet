@@ -17,6 +17,6 @@ gulp.task('docs', function() {
 			target: "es6",
 			out: "docs/",
 			name: "Mazenet",
-			ignoreCompilerErrors: true,
+			ignoreCompilerErrors: true
 		}));
 });

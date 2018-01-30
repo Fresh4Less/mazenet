@@ -2,7 +2,7 @@ import * as Express from 'express'; // router doesn't have its own type definiti
 import * as SocketIO from 'socket.io';
 
 export = FreshSocketIO
-declare function FreshSocketIO(router: Express.Router, options: FreshSocketIO.Options): (socket: SocketIO.Socket, fn: (err?: any) => void) => void;
+declare function FreshSocketIO(router: Express.Router, options?: FreshSocketIO.Options): (socket: SocketIO.Socket, fn: (err?: any) => void) => void;
 
 declare namespace FreshSocketIO {
 	export type Router = Express.Router;

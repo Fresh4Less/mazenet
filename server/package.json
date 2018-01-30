@@ -17,6 +17,7 @@
     "reflect-metadata": "^0.1.12",
     "rxjs": "^5.5.6",
     "socket.io": "^2.0.4",
+    "socket.io-cookie-parser": "^1.0.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {

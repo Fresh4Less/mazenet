@@ -9,6 +9,8 @@ import * as Compression from 'compression';
 import * as BodyParser from 'body-parser';
 import * as CookieParser from 'cookie-parser';
 
+//import * as SocketIOCookieParser from 'socket.io-cookie-parser';
+
 import {GlobalLogger} from './util/logger'
 
 import * as Mazenet from './mazenet';
@@ -40,6 +42,7 @@ export class Server {
 	httpServer: Http.Server | Https.Server;
 	secureRedirectServer: Http.Server | null;
 	app: Express.Express;
+	socketServer: SocketIO.Server;
 
 	constructor(options: Partial<Server.Options>) {
 		this.options = Object.assign({}, Server.defaultOptions, options);
@@ -86,7 +89,10 @@ export class Server {
 		this.app.use(BodyParser.json());
 		this.app.use(CookieParser());
 
-		let mazenet = new Mazenet.Mazenet(this.app);
+		this.socketServer = SocketIO(this.httpServer);
+		//socketServer.use(SocketIOCookieParser());
+
+		let mazenet = new Mazenet.Mazenet(this.app, this.socketServer);
 
 		// socket initialization
 		//let socketServer = SocketIO(this.httpServer);

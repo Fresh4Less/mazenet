@@ -2,17 +2,15 @@ import {Observable} from 'rxjs/Observable';
 import * as Express from 'express';
 
 import * as Validator from '../util/validator';
-import FreshSocketIO = require('../types/fresh-socketio-router');
+import FreshSocketIO = require('fresh-socketio-router');
 import * as Api from '../api';
+import {Request, Response} from '../common';
 
 import {User, ActiveUser} from './models'
 import {Service} from './service'
 
 // temporary imports, won't be needed later
 import * as Uuid from 'uuid/v4';
-
-type Request = Express.Request | FreshSocketIO.Request;
-type Response = Express.Response | FreshSocketIO.Response;
 
 export class Middleware {
 
@@ -22,8 +20,14 @@ export class Middleware {
 
 	constructor(service: Service) {
 		this.router = Express.Router();
+		this.router.use((req: Request, res: Response) => {
+			//TODO: authenticate based on JWT
+			req.user = new User({id: Uuid(), username: 'anon'});
+			req.activeUser = new ActiveUser({id: Uuid(), userId: req.user.id, username: 'anon', platformData: {pType: 'desktop', cursorPos: {x: 0.5, y: 0.5}}});
+		});
 
-		this.router.post('connect', (req: Request, res: Response) => {
+		let usersRouter = Express.Router();
+		usersRouter.post('connect', (req: Request, res: Response) => {
 			//TODO: get user from req (middleware)
 			let user = new User({id: Uuid(), username: 'test'});
 			//TODO: do this with the validator
@@ -45,6 +49,8 @@ export class Middleware {
 			});
 
 		});
+		
+		this.router.use('users', usersRouter);
 	}
 }
 
