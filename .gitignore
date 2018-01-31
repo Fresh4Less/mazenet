@@ -35,6 +35,8 @@ bower_components
 # Typescript Files
 client/**/*.map
 client/**/*.js
+common/**/*.map
+common/**/*.js
 server/**/*.map
 server/**/*.js
 

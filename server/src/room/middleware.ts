@@ -1,8 +1,8 @@
 import * as Express from 'express';
 
 import FreshSocketIO = require('fresh-socketio-router');
-import * as Validator from '../util/validator';
-import * as Api from '../api';
+import * as Validator from '../../../common/util/validator';
+import * as Api from '../../../common/api';
 
 import { Request, Response } from '../common';
 import { Service } from './service';

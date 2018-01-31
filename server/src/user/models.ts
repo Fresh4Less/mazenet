@@ -1,4 +1,4 @@
-import * as Api from '../api';
+import * as Api from '../../../common/api';
 import { Position } from '../common';
 
 export class User {

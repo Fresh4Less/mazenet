@@ -1,6 +1,6 @@
 /**
  * Logger
- * :og data to a target (stdout) in a specified format (json).
+ * log data to a target (stdout) in a specified format (json).
  * Output from each level (info, warn, etc) can be toggled and configured with a custom target and serializer
  * Specify transformations that extend or modify the log (add timestamp)
  * Dynamically create new log levels, or extend the Logger class

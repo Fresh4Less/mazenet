@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import * as Uuid from 'uuid/v4';
 
-import * as Api from '../api';
+import * as Api from '../../../common/api';
 
 import { DataStore } from './datastore';
 import { User, ActiveUser } from './models';

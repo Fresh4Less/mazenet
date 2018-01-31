@@ -7,7 +7,7 @@ import 'rxjs/add/operator/catch';
 
 import * as Uuid from 'uuid/v4';
 
-import * as Api from '../api';
+import * as Api from '../../../common/api';
 
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';

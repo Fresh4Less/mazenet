@@ -2,11 +2,11 @@ import { Observable } from 'rxjs/Observable';
 import * as Express from 'express';
 
 import { GlobalLogger } from './logger';
-import * as Validator from './validator';
+import * as Validator from '../../../common/util/validator';
 import FreshSocketIO = require('fresh-socketio-router');
 import { Request, Response, BadRequestError, NotFoundError } from '../common';
 
-import * as Api from '../api';
+import * as Api from '../../../common/api';
 
 /** Catches all errors and matches them with the appropriate http response code */
 export class ErrorHandler {

@@ -1,9 +1,9 @@
 import { Observable } from 'rxjs/Observable';
 import * as Express from 'express';
 
-import * as Validator from '../util/validator';
+import * as Validator from '../../../common/util/validator';
 import FreshSocketIO = require('fresh-socketio-router');
-import * as Api from '../api';
+import * as Api from '../../../common/api';
 import { Request, Response } from '../common';
 
 import { User, ActiveUser } from './models';
