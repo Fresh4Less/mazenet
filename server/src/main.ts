@@ -4,13 +4,12 @@ import { Server } from './server';
 
 let commandLine = Minimist(process.argv.slice(2));
 let options: Partial<Server.Options> = {
-    port: parseInt(commandLine.port),
-    securePort: parseInt(commandLine.securePort),
+    port: parseInt(commandLine.port, 10),
+    securePort: parseInt(commandLine.securePort, 10),
     sslCertPath: commandLine.sllCert
 };
 
 options = {};
-
 
 let server = new Server(options);
 server.start();
