@@ -1,82 +1,83 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
-import {IElement} from "../interfaces/IElement";
-import {IBackground} from "./interfaces/IBackground";
-import {AnimatedCursor} from "../cursors/AnimatedCursor";
-import {ColorBgData} from "./ColorBgData";
+import { IElement } from '../interfaces/IElement';
+import { IBackground } from './interfaces/IBackground';
+import { AnimatedCursor } from '../cursors/AnimatedCursor';
+import { ColorBgData } from './ColorBgData';
 
 export class Page {
 
-    public _id:string;
-    public creator:string;
-    public owners:string[];
-    public permissions:string;
-    public title:string;
-    public elements:IElement[];
-    public background:IBackground;
-    public cursors:AnimatedCursor[];
+    public _id: string;
+    public creator: string;
+    public owners: string[];
+    public permissions: string;
+    public title: string;
+    public elements: IElement[];
+    public background: IBackground;
+    public cursors: AnimatedCursor[];
 
     /*client-side only*/
-    public enterTime:number;
+    public enterTime: number;
 
     constructor() {
         this.resetPage();
     }
 
-    public UpdatePage(otherPage:Page) {
-        if(otherPage) {
+    public UpdatePage(otherPage: Page) {
+        if (otherPage) {
             //Id
-            if(otherPage._id != this._id) {
-                throw "cannot UpdatePage with a different page. Use LoadPage instead"
+            if (otherPage._id != this._id) {
+                throw 'cannot UpdatePage with a different page. Use LoadPage instead';
             }
-            if(otherPage.creator) {
+            if (otherPage.creator) {
                 this.creator = otherPage.creator;
             }
-            if(otherPage.permissions) {
+            if (otherPage.permissions) {
                 this.permissions = otherPage.permissions;
             }
-            if(otherPage.title) {
+            if (otherPage.title) {
                 this.title = otherPage.title;
             }
-            if(otherPage.background){
+            if (otherPage.background) {
                 this.background.bType = otherPage.background.bType;
-                if(this.background.bType === 'color') {
-                    let colorData:ColorBgData = new ColorBgData();
+                if (this.background.bType === 'color') {
+                    let colorData: ColorBgData = new ColorBgData();
                     colorData.color = (<any> otherPage.background.data).color;
                     this.background.data = colorData;
                 } else {
                     this.background.data = {...<any>otherPage.background.data};
                 }
             }
-            if(otherPage.owners) {
+            if (otherPage.owners) {
                 this.owners = otherPage.owners;
             }
-            if(otherPage.elements) {
-                for(let e of otherPage.elements) {
+            if (otherPage.elements) {
+                for (let e of otherPage.elements) {
                     this.elements.push(e);
                 }
             }
-            if(otherPage.cursors) {
-                for(let c of otherPage.cursors) {
+            if (otherPage.cursors) {
+                for (let c of otherPage.cursors) {
                     this.cursors.push(c);
                 }
             }
             this.enterTime = (new Date()).getTime();
         } else {
-            throw "cannot UpdatePage undefined page"
+            throw 'cannot UpdatePage undefined page';
         }
     }
-    public LoadPage(otherPage:Page) {
-        if(otherPage) {
-            if(otherPage._id) {
+
+    public LoadPage(otherPage: Page) {
+        if (otherPage) {
+            if (otherPage._id) {
                 this.resetPage();
                 this._id = otherPage._id;
                 this.UpdatePage(otherPage);
             } else {
-                throw "cannot LoadPage page contains no _id"
+                throw 'cannot LoadPage page contains no _id';
             }
         } else {
-            throw "cannot LoadPage page undefined";
+            throw 'cannot LoadPage page undefined';
         }
     }
 
@@ -84,13 +85,13 @@ export class Page {
      * Returns a cloned version of this.
      * The cursor and element data is just a pointer to the same data and not a deep copy.
      */
-    public Clone():Page {
-        let ret:Page = new Page;
+    public Clone(): Page {
+        let ret: Page = new Page;
 
         ret._id = this._id;
-        if(this.background.bType === 'color') {
+        if (this.background.bType === 'color') {
             ret.background.bType = 'color';
-            let colorData:ColorBgData = new ColorBgData();
+            let colorData: ColorBgData = new ColorBgData();
             colorData.color = (<any> this.background.data).color;
             ret.background.data = colorData;
         }
@@ -110,13 +111,13 @@ export class Page {
      * Returns a cloned version of this.
      * The cursor and element data is ommitted
      */
-    public CloneBasic():Page {
-        let ret:Page = new Page;
+    public CloneBasic(): Page {
+        let ret: Page = new Page;
 
         ret._id = this._id;
-        if(this.background.bType === 'color') {
+        if (this.background.bType === 'color') {
             ret.background.bType = 'color';
-            let colorData:ColorBgData = new ColorBgData();
+            let colorData: ColorBgData = new ColorBgData();
             colorData.color = (<any> this.background.data).color;
             ret.background.data = colorData;
         }
@@ -127,7 +128,7 @@ export class Page {
         return ret;
     }
 
-    public GetJSON():any {
+    public GetJSON(): any {
         return {
             id: this._id,
             creator: this.creator,
@@ -141,9 +142,9 @@ export class Page {
         };
     }
 
-    public ContainsLinkElementOfName(name:string):boolean {
+    public ContainsLinkElementOfName(name: string): boolean {
 
-        for(let i = 0; i < this.elements.length; i++) {
+        for (let i = 0; i < this.elements.length; i++) {
             let element = this.elements[i];
             if (element.eType == 'link' && !element.data.isReturnLink && element.data.text == name) {
                 return true;

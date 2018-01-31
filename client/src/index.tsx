@@ -7,7 +7,7 @@ import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 
 ReactDOM.render(
-  <Mazenet />,
-  document.getElementById('root') as HTMLElement
+    <Mazenet/>,
+    document.getElementById('root') as HTMLElement
 );
 registerServiceWorker();

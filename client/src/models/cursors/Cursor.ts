@@ -5,6 +5,6 @@ import { MzPosition } from '../MzPosition';
 export = Cursor;
 
 class Cursor {
-    uId:string;
-    pos:MzPosition;
+    uId: string;
+    pos: MzPosition;
 }

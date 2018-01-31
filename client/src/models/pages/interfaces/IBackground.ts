@@ -1,8 +1,8 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
-import {IBackgroundData} from "./IBackgroundData";
+import { IBackgroundData } from './IBackgroundData';
 
 export class IBackground {
-    bType:string;
-    data:IBackgroundData;
+    bType: string;
+    data: IBackgroundData;
 }

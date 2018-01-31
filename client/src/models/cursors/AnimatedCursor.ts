@@ -3,6 +3,6 @@
 import { CursorFrame } from './CursorFrame';
 
 export class AnimatedCursor {
-    public uId:string;
-    public frames:CursorFrame[];
+    public uId: string;
+    public frames: CursorFrame[];
 }

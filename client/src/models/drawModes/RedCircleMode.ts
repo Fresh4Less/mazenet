@@ -4,7 +4,7 @@ import { IDrawMode } from './interfaces/IDrawMode';
 
 export class RedCircleMode implements IDrawMode {
     public name = 'red circles';
-    public mode =  'shape';
+    public mode = 'shape';
     public playback = 'live';
     public cumulative = true;
     public data = {
@@ -17,6 +17,8 @@ export class RedCircleMode implements IDrawMode {
             alpha: 0.1
         }
     };
-    constructor() {}
+
+    constructor() {
+    }
 
 }

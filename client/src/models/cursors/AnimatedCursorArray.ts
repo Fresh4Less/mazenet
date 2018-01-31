@@ -6,6 +6,7 @@ export class AnimatedCursorArrayDummy {
         Array.apply(this, arguments);
         return new Array();
     }
+
     // we need this, or TS will show an error,
     //XArray["prototype"] = new Array(); will replace with native js arrray function
     //pop(): any { return "" };

@@ -4,7 +4,7 @@ import { IDrawMode } from './interfaces/IDrawMode';
 
 export class StaticRedLinesMode implements IDrawMode {
     public name = 'static red lines';
-    public mode =  'shape';
+    public mode = 'shape';
     public playback = 'static';
     public cumulative = true;
     public data = {
@@ -17,6 +17,8 @@ export class StaticRedLinesMode implements IDrawMode {
             alpha: 0.1
         }
     };
-    constructor() {}
+
+    constructor() {
+    }
 
 }

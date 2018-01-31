@@ -1,6 +1,6 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
-export class PromiseMapper<T> {
+export class PromiseMapper {
 
     private promiseContainer: { [key: string]: { resolve: (value?: {} | PromiseLike<{}>) => void, reject: (reason?: any) => void } };
     private idCounter: number;
@@ -27,7 +27,10 @@ export class PromiseMapper<T> {
         return p;
     }
 
-    SetPromiseForId(id: string, resolverContainer: { resolve: (value?: {} | PromiseLike<{}>) => void, reject: (reason?: any) => void }): void {
+    SetPromiseForId(id: string, resolverContainer: {
+        resolve: (value?: {} | PromiseLike<{}>) => void,
+        reject: (reason?: any) => void
+    }): void {
         if (this.promiseContainer[id]) {
             throw new Error('Promise already exist for given ID');
         } else {

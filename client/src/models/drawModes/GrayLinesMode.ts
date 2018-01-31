@@ -4,7 +4,7 @@ import { IDrawMode } from './interfaces/IDrawMode';
 
 export class GrayLinesMode implements IDrawMode {
     public name = 'gray lines';
-    public mode =  'shape';
+    public mode = 'shape';
     public playback = 'live';
     public cumulative = true;
     public data = {
@@ -17,6 +17,8 @@ export class GrayLinesMode implements IDrawMode {
             alpha: 0.2
         }
     };
-    constructor() {}
+
+    constructor() {
+    }
 
 }

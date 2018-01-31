@@ -1,6 +1,6 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
-import {IBackgroundData} from "./interfaces/IBackgroundData";
+import { IBackgroundData } from './interfaces/IBackgroundData';
 
 export class ColorBgData implements IBackgroundData {
 
@@ -26,7 +26,7 @@ export class ColorBgData implements IBackgroundData {
                 this._color = col;
             }
 
-            this.setBlackOrWhiteFromYIQ(colHex)
+            this.setBlackOrWhiteFromYIQ(colHex);
 
         }
     }
@@ -41,7 +41,7 @@ export class ColorBgData implements IBackgroundData {
 
     }
 
-    private setBlackOrWhiteFromYIQ(hexColor: string):void {
+    private setBlackOrWhiteFromYIQ(hexColor: string): void {
 
         let r = parseInt(hexColor.substr(0, 2), 16);
         let g = parseInt(hexColor.substr(2, 2), 16);
