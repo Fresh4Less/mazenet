@@ -1,0 +1,44 @@
+{
+  "name": "mazenet-server",
+  "version": "0.0.1",
+  "description": "mazenet backend",
+  "main": "build/main.js",
+  "scripts": {
+    "test": "jest --coverage --verbose"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.2",
+    "compression": "^1.7.1",
+    "cookie-parser": "^1.4.3",
+    "fresh-socketio-router": "^0.1.4",
+    "json-stringify-safe": "^5.0.1",
+    "minimist": "^1.2.0",
+    "reflect-metadata": "^0.1.12",
+    "rxjs": "^5.5.6",
+    "socket.io": "^2.0.4",
+    "socket.io-cookie-parser": "^1.0.0",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/bluebird": "^3.5.19",
+    "@types/body-parser": "^1.16.8",
+    "@types/compression": "0.0.35",
+    "@types/cookie-parser": "^1.4.1",
+    "@types/express": "^4.11.0",
+    "@types/jest": "^22.0.1",
+    "@types/json-stringify-safe": "^5.0.0",
+    "@types/minimist": "^1.2.0",
+    "@types/node": "^9.3.0",
+    "@types/socket.io": "^1.4.31",
+    "@types/uuid": "^3.4.3",
+    "gulp": "^3.9.1",
+    "gulp-typedoc": "^2.2.0",
+    "gulp-typescript": "^4.0.0-alpha.1",
+    "jest": "^22.1.4",
+    "moment": "^2.20.1",
+    "ts-jest": "^22.0.1",
+    "typedoc": "^0.9.0",
+    "typescript": "^2.6.2"
+  }
+}
