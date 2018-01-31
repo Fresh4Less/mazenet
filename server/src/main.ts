@@ -1,12 +1,12 @@
-import * as Minimist from "minimist";
+import * as Minimist from 'minimist';
 
-import {Server} from './server';
+import { Server } from './server';
 
 let commandLine = Minimist(process.argv.slice(2));
 let options: Partial<Server.Options> = {
-	port: parseInt(commandLine.port),
-	securePort: parseInt(commandLine.securePort),
-	sslCertPath: commandLine.sllCert
+    port: parseInt(commandLine.port),
+    securePort: parseInt(commandLine.securePort),
+    sslCertPath: commandLine.sllCert
 };
 
 options = {};

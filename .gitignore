@@ -35,12 +35,12 @@ bower_components
 # Typescript Files
 client/**/*.map
 client/**/*.js
-test/client/**/*.map
-test/client/**/*.js
-typings
+server/**/*.map
+server/**/*.js
+
+!server/gulpfile.js
+!server/jest.config.js
 
 # SASS stuff
 client/**/*.css
 
-#Client test code coverage
-coverage

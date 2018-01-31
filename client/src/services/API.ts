@@ -32,7 +32,7 @@ class API {
 
         /* Setup the Observable feeds */
         this.pageEnterObservable = new Observable((observer: Observer<Page>) => {
-            this.socket.on('/rooms/enter', ())
+            this.socket.on('/rooms/enter', ()=>{});
         }).share();
 
         this.socket.on('/users/connect', this.connectedCallback.bind(this));
