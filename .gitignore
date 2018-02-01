@@ -46,3 +46,4 @@ server/**/*.js
 # SASS stuff
 client/**/*.css
 
+coverage/

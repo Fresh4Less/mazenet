@@ -1,4 +1,4 @@
-import * as Validator from '../../../common/util/validator';
+import * as Validator from '../common/util/validator';
 
 //TODO: test Optional, test functions
 

@@ -1,0 +1,17 @@
+{
+  "name": "mazenet",
+  "version": "0.0.1",
+  "description": "mazenet",
+  "scripts": {
+    "test": "jest --coverage --verbose"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.12"
+  },
+  "devDependencies": {
+    "@types/jest": "^22.1.1",
+    "jest": "^22.1.4",
+    "ts-jest": "^22.0.2",
+    "typescript": "^2.7.1"
+  }
+}
