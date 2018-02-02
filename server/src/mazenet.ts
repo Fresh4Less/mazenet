@@ -9,7 +9,8 @@ import FreshSocketIO = require('fresh-socketio-router');
 import * as User from './user';
 import * as Room from './room';
 
-import { ErrorHandler } from './util/middleware';
+import {ErrorHandler} from './util/middleware';
+import {GlobalLogger} from './util/logger';
 
 export namespace Mazenet {
     export interface Options {
@@ -33,6 +34,7 @@ export class Mazenet {
     }
 
     protected Init() {
+        GlobalLogger.trace('Initializing mazenet');
         //TODO: will need express middleware to convert GET query params to req.body object
         let roomDataStore = new Room.DataStore.InMemoryDataStore();
         let roomService = new Room.Service(roomDataStore);
@@ -43,23 +45,15 @@ export class Mazenet {
         let userMiddleware = new User.Middleware(userService);
 
         let router = FreshSocketIO.Router();
+        router.use(userMiddleware.router); // must be used first, to authenticate user
         router.use(roomMiddleware.router);
-        router.use(userMiddleware.router);
 
         let errorHandler = new ErrorHandler();
-        router.use(errorHandler.router);
+        router.use(errorHandler.middleware);
 
         this.expressApp.use(router);
         let mazenetIo = this.socketServer.of('/mazenet');
         mazenetIo.use(FreshSocketIO(router));
-        //this.socketServer.use((socket: SocketIO.Socket, next) => {
-        //});
-        //this.options.socketServer.use((socket: SocketIO.Socket, next) => {
-        //socket.on('hello', (data: any) => {
-        //console.log('hello!', data);
-        ////let id: User.Id;
-        //});
-        //});
     }
 }
 

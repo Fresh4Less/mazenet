@@ -12,7 +12,7 @@ import * as Api from '../../../common/api';
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
 import { Room, Structure } from './models';
-import { User } from '../user/models';
+import { User, ActiveUser } from '../user/models';
 
 export class Service {
     dataStore: DataStore;
@@ -45,6 +45,10 @@ export class Service {
             });
     }
 
+    getRoom(roomId: Room.Id): Observable<Room> {
+        return this.dataStore.getRoom(roomId);
+    }
+
     createRoom(user: User, roomBlueprint: Api.v1.Routes.Rooms.Create.Post.Request): Observable<Room> {
         let room = new Room({
             id: Uuid(),
@@ -74,5 +78,26 @@ export class Service {
         }).mergeMap(([structure, room]: [Structure, Room]) => {
             return Observable.of(structure);
         });
+    }
+
+    enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
+        return this.exitRoom(activeUser)
+        .mergeMap(() => {
+            return this.dataStore.insertActiveUserToRoom(roomId, activeUser);
+        });
+    }
+
+    exitRoom(activeUser: ActiveUser): Observable<null> {
+        return this.dataStore.getActiveUserRoomId(activeUser.id)
+        .mergeMap((roomId: Room.Id | undefined) => {
+            if(roomId) {
+                return this.dataStore.deleteActiveUserFromRoom(roomId, activeUser.id);
+            }
+            return Observable.of(null);
+        });
+    }
+
+    getActiveUsersInRoom(roomId: Room.Id): Observable<Map<ActiveUser.Id, ActiveUser>> {
+        return this.dataStore.getActiveUsersInRoom(roomId);
     }
 }

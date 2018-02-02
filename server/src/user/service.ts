@@ -22,7 +22,7 @@ export class Service {
         return this.dataStore.insertUser(user);
     }
 
-    createActiveUser(user: Api.v1.Models.User, platformData: Api.v1.Models.ActiveUser.PlatformData) {
+    createActiveUser(sessionId: string, user: Api.v1.Models.User, platformData: Api.v1.Models.ActiveUser.PlatformData) {
         let activeUser = new ActiveUser({
             id: Uuid(),
             userId: user.id,
@@ -30,6 +30,17 @@ export class Service {
             platformData: platformData
         });
 
-        return this.dataStore.insertActiveUser(activeUser);
+        return this.dataStore.insertActiveUser(activeUser)
+            .map((activeUser: ActiveUser) => {
+                return this.dataStore.insertActiveUserFromSession(sessionId, activeUser);
+            });
+    }
+
+    getActiveUserFromSession(sessionId: string): ActiveUser | undefined {
+        return this.dataStore.getActiveUserFromSession(sessionId);
+    }
+
+    onUserDisconnect(sessionId: string): void {
+        this.dataStore.deleteActiveUserFromSession(sessionId);
     }
 }

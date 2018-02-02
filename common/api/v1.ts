@@ -257,6 +257,7 @@ export namespace Routes {
                 }
 
                 export let Response400 = {};
+                export let Response404 = {};
             }
         }
 

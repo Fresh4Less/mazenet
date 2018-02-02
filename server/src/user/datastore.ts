@@ -10,15 +10,21 @@ export interface DataStore {
 
     getActiveUser: (activeUserId: ActiveUser.Id) => Observable<ActiveUser>;
     insertActiveUser: (activeUser: ActiveUser) => Observable<ActiveUser>;
+
+    getActiveUserFromSession: (sessionId: string) => ActiveUser | undefined;
+    insertActiveUserFromSession: (sessionId: string, activeUser: ActiveUser) => ActiveUser;
+    deleteActiveUserFromSession: (sessionId: string) => void;
 }
 
 export class InMemoryDataStore implements DataStore {
     users: Map<User.Id, User>;
     activeUsers: Map<ActiveUser.Id, ActiveUser>;
+    activeUserSessions: Map<string, ActiveUser>;
 
     constructor() {
         this.users = new Map<User.Id, User>();
-        this.activeUsers = new Map<User.Id, ActiveUser>();
+        this.activeUsers = new Map<ActiveUser.Id, ActiveUser>();
+        this.activeUserSessions = new Map<string, ActiveUser>();
     }
 
     getUser(userId: User.Id) {
@@ -55,5 +61,22 @@ export class InMemoryDataStore implements DataStore {
 
         this.activeUsers.set(activeUser.id, activeUser);
         return Observable.of(activeUser);
+    }
+
+    getActiveUserFromSession(sessionId: string) {
+        return this.activeUserSessions.get(sessionId);
+    }
+
+    insertActiveUserFromSession(sessionId: string, activeUser: ActiveUser) {
+        if (this.activeUserSessions.has(sessionId)) {
+            throw new AlreadyExistsError(`Session '${sessionId}' already has an ActiveUser`);
+        }
+
+        this.activeUsers.set(sessionId, activeUser);
+        return activeUser;
+    }
+
+    deleteActiveUserFromSession(sessionId: string) {
+        this.activeUserSessions.delete(sessionId);
     }
 }

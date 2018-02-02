@@ -49,6 +49,7 @@ export class Server {
     }
 
     start(): void {
+        //TODO: add server info to the logger (instance id, pid, etc)
         GlobalLogger.info('Server: configuration', this.options);
         this.app = Express();
 
