@@ -48,6 +48,7 @@ export class Server {
         this.options = Object.assign({}, Server.defaultOptions, options);
     }
 
+    //TODO: return a promise that is resolved when setup is ready (wait for server 'listening' event is emitted)
     start(): void {
         //TODO: add server info to the logger (instance id, pid, etc)
         GlobalLogger.info('Server: configuration', this.options);
@@ -63,6 +64,7 @@ export class Server {
             }
         }
 
+        //TODO: logs the wrong port number when options.port === 0 (using port 0 lets the OS choose a port)
         if (sslCert) {
             this.httpServer = Https.createServer({
                 cert: sslCert.cert,
