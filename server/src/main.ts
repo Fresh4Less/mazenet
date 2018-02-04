@@ -12,7 +12,8 @@ let options: Partial<Server.Options> = {
 options = {};
 
 let server = new Server(options);
-server.start();
+server.start().subscribe(() => {
+});
 
 /*
 var path = require('path');

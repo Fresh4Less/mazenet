@@ -30,7 +30,7 @@ export class InMemoryDataStore implements DataStore {
     getUser(userId: User.Id) {
         let user = this.users.get(userId);
         if (!user) {
-            throw new NotFoundError(`User '${userId}' not found`);
+            return Observable.throw(new NotFoundError(`User '${userId}' not found`));
         }
 
         return Observable.of(user);
@@ -38,7 +38,7 @@ export class InMemoryDataStore implements DataStore {
 
     insertUser(user: User) {
         if (this.users.has(user.id)) {
-            throw new AlreadyExistsError(`User with id '${user.id}' already exists`);
+            return Observable.throw(new AlreadyExistsError(`User with id '${user.id}' already exists`));
         }
 
         this.users.set(user.id, user);
@@ -48,7 +48,7 @@ export class InMemoryDataStore implements DataStore {
     getActiveUser(activeUserId: ActiveUser.Id) {
         let activeUser = this.activeUsers.get(activeUserId);
         if (!activeUser) {
-            throw new NotFoundError(`ActiveUser '${activeUserId}' not found`);
+            return Observable.throw(new NotFoundError(`ActiveUser '${activeUserId}' not found`));
         }
 
         return Observable.of(activeUser);
@@ -56,7 +56,7 @@ export class InMemoryDataStore implements DataStore {
 
     insertActiveUser(activeUser: ActiveUser) {
         if (this.activeUsers.has(activeUser.id)) {
-            throw new AlreadyExistsError(`ActiveUser with id '${activeUser.id}' already exists`);
+            return Observable.throw(new AlreadyExistsError(`ActiveUser with id '${activeUser.id}' already exists`));
         }
 
         this.activeUsers.set(activeUser.id, activeUser);
@@ -69,7 +69,7 @@ export class InMemoryDataStore implements DataStore {
 
     insertActiveUserFromSession(sessionId: string, activeUser: ActiveUser) {
         if (this.activeUserSessions.has(sessionId)) {
-            throw new AlreadyExistsError(`Session '${sessionId}' already has an ActiveUser`);
+            return Observable.throw(new AlreadyExistsError(`Session '${sessionId}' already has an ActiveUser`));
         }
 
         this.activeUsers.set(sessionId, activeUser);

@@ -42,7 +42,7 @@ export class Mazenet {
 
         let userDataStore = new User.DataStore.InMemoryDataStore();
         let userService = new User.Service(userDataStore);
-        let userMiddleware = new User.Middleware(userService);
+        let userMiddleware = new User.Middleware(userService, roomService);
 
         let router = FreshSocketIO.Router();
         router.use(userMiddleware.router); // must be used first, to authenticate user
@@ -53,6 +53,8 @@ export class Mazenet {
 
         this.expressApp.use(router);
         let mazenetIo = this.socketServer.of('/mazenet');
+        mazenetIo.use(userMiddleware.socketMiddleware);
+        mazenetIo.use(roomMiddleware.socketMiddleware);
         mazenetIo.use(FreshSocketIO(router));
     }
 }

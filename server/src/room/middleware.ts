@@ -42,7 +42,7 @@ export class Middleware {
         let router = Express.Router();
 
         let roomsRouter = Express.Router();
-        roomsRouter.post('enter', (req: Request, res: Response, next: Express.NextFunction) => {
+        roomsRouter.post('/enter', (req: Request, res: Response, next: Express.NextFunction) => {
             if(!req.activeUser) {
                 throw new ConflictError('No ActiveUser. You must `POST /users/connect` before you can enter a room');
             }
@@ -69,7 +69,7 @@ export class Middleware {
             });
         });
 
-        roomsRouter.post('strutures/create', (req: Request, res: Response, next: Express.NextFunction) => {
+        roomsRouter.post('/strutures/create', (req: Request, res: Response, next: Express.NextFunction) => {
             let body: Api.v1.Routes.Rooms.Structures.Create.Post.Request = Validator.validateData(req.body, Api.v1.Routes.Rooms.Structures.Create.Post.Request, 'body');
             //TODO: get user from req (middleware)
             let user = new User({id: Uuid(), username: 'test'});
@@ -81,7 +81,7 @@ export class Middleware {
         });
 
 
-        router.use('rooms', roomsRouter);
+        router.use('/rooms', roomsRouter);
         return router;
     }
 }
