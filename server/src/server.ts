@@ -1,4 +1,5 @@
 import {Observable, Observer} from 'rxjs';
+import { EventTargetLike } from 'rxjs/observable/FromEventObservable';
 import * as fs from 'fs';
 import * as Path from 'path';
 import * as Http from 'http';
@@ -10,7 +11,7 @@ import * as Compression from 'compression';
 import * as BodyParser from 'body-parser';
 import * as CookieParser from 'cookie-parser';
 
-import * as SocketIOCookieParser from 'socket.io-cookie-parser';
+//import * as SocketIOCookieParser from 'socket.io-cookie-parser';
 
 import { GlobalLogger } from './util/logger';
 
@@ -52,8 +53,8 @@ export class Server {
     }
 
     //TODO: return a promise that is resolved when setup is ready (wait for server 'listening' event is emitted)
-    start(): Observable<null> {
-        let listeningObservable: Observable<null>;
+    start(): Observable<void> {
+        let listeningObservable: Observable<void>;
         try {
             //TODO: add server info to the logger (instance id, pid, etc)
             GlobalLogger.info('Server: configuration', this.options);
@@ -80,18 +81,19 @@ export class Server {
                 this.usingSsl = true;
                 listeningObservable = Observable.race(
                     Observable.forkJoin(
-                        Observable.fromEvent(this.httpServer, 'listening').first(),
-                        Observable.fromEvent(this.secureRedirectServer, 'listening').first()),
-                    Observable.fromEvent(this.httpServer, 'error').map((err: any) => {
+                        // Don't love these type assertions but it works
+                        Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'listening').first(),
+                        Observable.fromEvent(<EventTargetLike><any>this.secureRedirectServer, 'listening').first()),
+                    Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'error').map((err: any) => {
                         throw err;
                     }).first(),
-                    Observable.fromEvent(this.secureRedirectServer, 'error').map((err: any) => {
+                    Observable.fromEvent(<EventTargetLike><any>this.secureRedirectServer, 'error').map((err: any) => {
                         throw err;
                     })
                 ).map(() => {
                     GlobalLogger.info('Server: bound to port', {
                         port: this.httpServer.address().port,
-                        redirectPort: this.secureRedirectServer.address().port,
+                        redirectPort: this.secureRedirectServer!.address().port,
                         ssl: this.usingSsl
                     });
                 });
@@ -108,8 +110,8 @@ export class Server {
                 this.usingSsl = false;
                 this.httpServer = new Http.Server(this.app);
                 listeningObservable = Observable.race(
-                    Observable.fromEvent(this.httpServer, 'listening').first(),
-                    Observable.fromEvent(this.httpServer, 'error').map((err: any) => {
+                    Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'listening').first(),
+                    Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'error').map((err: any) => {
                         throw err;
                     }).first(),
                 ).map(() => {
@@ -126,13 +128,15 @@ export class Server {
             this.app.use(BodyParser.json());
             this.app.use(CookieParser());
 
-            this.socketServer = SocketIO(this.httpServer);
-            this.socketServer.use(SocketIOCookieParser());
+            // setting wsEngine prevents crash when starting more than one websocket instance (e.g. in tests)
+            // https://github.com/socketio/engine.io/issues/521
+            this.socketServer = SocketIO(this.httpServer, <SocketIO.ServerOptions>{wsEngine: 'ws'});
+            //this.socketServer.use(SocketIOCookieParser());
 
             let mazenet = new Mazenet.Mazenet(this.app, this.socketServer);
         }
-        catch(error: any) {
-            return Observable.throw(error);
+        catch(error) {
+            return <Observable<void>>Observable.throw(error);
         }
 
         return listeningObservable;

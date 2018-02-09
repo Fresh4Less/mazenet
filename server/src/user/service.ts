@@ -22,7 +22,7 @@ export class Service {
         return this.dataStore.insertUser(user);
     }
 
-    createActiveUser(sessionId: string, user: Api.v1.Models.User, platformData: Api.v1.Models.ActiveUser.PlatformData) {
+    createActiveUser(sessionId: string, user: Api.v1.Models.User, platformData: Api.v1.Models.PlatformData) {
         let activeUser = new ActiveUser({
             id: Uuid(),
             userId: user.id,

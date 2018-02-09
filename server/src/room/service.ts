@@ -11,7 +11,7 @@ import * as Api from '../../../common/api';
 
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
-import { Room, Structure } from './models';
+import { Room, Structure, StructureData } from './models';
 import { User, ActiveUser } from '../user/models';
 
 export class Service {
@@ -27,10 +27,20 @@ export class Service {
             username: 'mazenet'
         };
 
-        return this.createRoom(rootUser, {title: 'mazenet'})
+        return this.createRoom(rootUser, Uuid(), {title: 'mazenet'})
             .mergeMap((room: Room) => {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
             }).mergeMap(([room]: [Room, null]) => {
+                let enterTunnel: Api.v1.Models.Structure.Blueprint = {
+                    pos: {x: 0.5, y: 0.5},
+                    data: {
+                        sType: 'tunnel',
+                        sourceText: 'enter',
+                        targetText: 'welcome to the mazenet'
+                    }
+                };
+                return Observable.forkJoin(Observable.of(room), this.createStructure(rootUser, room.id, enterTunnel));
+            }).mergeMap(([room]: [Room, Structure]) => {
                 return Observable.of(room);
             });
     }
@@ -49,12 +59,12 @@ export class Service {
         return this.dataStore.getRoom(roomId);
     }
 
-    createRoom(user: User, roomBlueprint: Api.v1.Routes.Rooms.Create.Post.Request): Observable<Room> {
+    createRoom(user: User, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
         let room = new Room({
-            id: Uuid(),
+            id: roomId,
             creator: user.id,
             title: roomBlueprint.title,
-            owners: {[user.id]: user},
+            owners: [user.id],
             structures: {},
             stylesheet: ''
         });
@@ -62,16 +72,28 @@ export class Service {
         return this.dataStore.insertRoom(room);
     }
 
-    createStructure(user: User, roomId: Api.v1.Models.Room.Id, structureBlueprint: Api.v1.Routes.Rooms.Structures.Create.Post.StructureBlueprint): Observable<Structure> {
+    createStructure(user: User, roomId: Api.v1.Models.Room.Id, structureBlueprint: Api.v1.Models.Structure.Blueprint): Observable<Structure> {
         return this.dataStore.getRoom(roomId).mergeMap((room: Room) => {
+            //TODO: make this logic a dispatch
+            let initStructureDataObservable;
+            switch(structureBlueprint.data.sType) {
+                case 'tunnel':
+                    initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
+                    break;
+                default:
+                    throw new Error(`Failed to create ${structureBlueprint.data.sType}. Unrecognized structure type: '${structureBlueprint.data.sType}'`);
+            }
+            return Observable.forkJoin(initStructureDataObservable, Observable.of(room));
+        }).mergeMap(([structureData, room]: [StructureData, Room]) => {
             let structure = new Structure({
                 id: Uuid(),
                 creator: user.id,
                 pos: structureBlueprint.pos,
-                data: structureBlueprint.data,
+                data: structureData,
             });
 
-            room.structures[structure.id] = structure;
+            //TODO: isolate the room-structure relation within the data store
+            room.structures.set(structure.id, structure);
             return Observable.forkJoin(this.dataStore.insertStructure(structure), Observable.of(room));
         }).mergeMap(([structure, room]: [Structure, Room]) => {
             return Observable.forkJoin(Observable.of(structure), this.dataStore.updateRoom(room));
@@ -99,5 +121,22 @@ export class Service {
 
     getActiveUsersInRoom(roomId: Room.Id): Observable<Map<ActiveUser.Id, ActiveUser>> {
         return this.dataStore.getActiveUsersInRoom(roomId);
+    }
+
+    /** Creates a new room and returns the data for a tunnel that leads to it */
+    protected initTunnel(user: User, roomId: Room.Id, tunnelBlueprintData: Api.v1.Models.StructureDataBlueprint.Tunnel): Observable<StructureData.Tunnel> {
+        let tunnelData = new StructureData.Tunnel({
+            sType: tunnelBlueprintData.sType,
+            sourceId: roomId,
+            targetId: Uuid(),
+            sourceText: tunnelBlueprintData.sourceText,
+            targetText: tunnelBlueprintData.targetText,
+        });
+
+        return this.createRoom(user, tunnelData.targetId, {
+            title: tunnelBlueprintData.sourceText
+        }).map((room: Room) => {
+            return tunnelData;
+        });
     }
 }

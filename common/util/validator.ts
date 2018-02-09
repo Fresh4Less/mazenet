@@ -45,26 +45,42 @@ interface Constructor<T> {
 
 export interface TypeInfo {
     typeConstructor: Constructor<any>;
+    /** if true, null/undefined values will not throw a TypeError */
     optional?: boolean;
+    /** if annotating an array, this must be the type array element type */
     arrayType?: Constructor<any>;
-    /** allow null elements in the array */
+    /* if annotating an array and this argument is true, null/undefined elements of the array will not throw a TypeError */
     arrayOptional?: boolean;
+    /** if this property is a discriminated union, you must provide extra information */
+    union?: UnionTypeInfo;
+}
+
+export interface UnionTypeInfo {
+    /** discriminant property name */
+    discriminant: string;
+    /** mapping from discriminant value to typeConstructor
+     * NOTE: with a little work the implementation could be changed so 'kind' doesn't need to be specified for each constructor. */
+    types: {[kind: string]: Constructor<any>};
 }
 
 /**
  * Method decorator factory
- * @param optional - if true, null/undefined values will not throw a TypeError
- * @param arrayType - if annotating an array, this must be the array element type
- * @param arrayOptional - if annotating an array and this argument is true, null/undefined elements of the array will not throw a TypeError
+ * @param options - a TypeInfo object with extra information about the data type.
+ *   For convenience, this can be a boolean specifying if this property is optional
+ * @param arrayType - if options is boolean andthe annotated type is an array, this must be provided to specify the array element type
+ *   If options is a TypeInfo object, this parameter is ignored and the arrayType must be specified in options
  */
-export function validate(optional?: boolean, arrayType?: Constructor<any>, arrayOptional?: boolean) {
+export function validate(options?: Partial<TypeInfo> | boolean, arrayType?: Constructor<any>) {
     return (target: any, propertyKey: string) => {
+        if(typeof options === 'boolean') {
+            options = {optional: options, arrayType};
+        }
         let typeConstructor = Reflect.getMetadata('design:type', target, propertyKey);
         if (!target[validateProps]) {
             target[validateProps] = new Map<string, TypeInfo>();
         }
 
-        target[validateProps].set(propertyKey, {typeConstructor, optional, arrayType, arrayOptional});
+        target[validateProps].set(propertyKey, Object.assign({typeConstructor}, options));
     };
 }
 
@@ -124,7 +140,23 @@ export function validateData<T, C extends Constructor<T>>(data: any, expected: C
                 }
 
                 for (let [pName, pTypeData] of propertyTypeMap) {
-                    validateData(data[pName], pTypeData, `${variableName}.${pName}`);
+                    if(pTypeData.union) {
+                        // union type, check that we have a valid union type, then validate its properties recursively
+                        let validated = Object.keys(pTypeData.union.types).reduce((validated, unionTypeName) => {
+                            if(data[pName] && data[pName][pTypeData.union!.discriminant] === unionTypeName) {
+                                let typeData = Object.assign({}, pTypeData, {typeConstructor: pTypeData.union!.types[unionTypeName]});
+                                validateData(data[pName], typeData, `${variableName}.${pName}`);
+                                return true;
+                            }
+                            return validated;
+                        }, false);
+                        if(!validated) {
+                            throw new TypeError(`property ${variableName} is a discriminated union, but the descriminant ${variableName}.${pTypeData.union.discriminant} is an unknown value ${data[pName] && data[pName][pTypeData.union.discriminant]}`);
+                        }
+                    }
+                    else {
+                        validateData(data[pName], pTypeData, `${variableName}.${pName}`);
+                    }
                 }
             }
             break;

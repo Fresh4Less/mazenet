@@ -10,7 +10,7 @@ import { Request, Response, Socket, BadRequestError, UnauthorizedError } from '.
 import { User, ActiveUser } from './models';
 import { Room } from '../room/models';
 import { Service } from './service';
-import { RoomService } from '../room/service';
+import { Service as RoomService } from '../room/service';
 
 // temporary imports, won't be needed later
 import * as Uuid from 'uuid/v4';
@@ -62,22 +62,11 @@ export class Middleware {
             if(!req.user) {
                 throw new UnauthorizedError('User must be logged in');
             }
-            //TODO: do this with the validator
-            let pType: Api.v1.Models.ActiveUser.PlatformDataTypes = req.body && req.body.pType;
-            let body: Api.v1.Models.ActiveUser.PlatformData;
+            let body: Api.v1.Models.PlatformData;
             try {
-                switch (pType) {
-                    case 'desktop':
-                        body = Validator.validateData(req.body, Api.v1.Routes.Users.Connect.Post.Request.Desktop, 'body');
-                        break;
-                    case 'mobile':
-                        body = Validator.validateData(req.body, Api.v1.Routes.Users.Connect.Post.Request.Mobile, 'body');
-                        break;
-                    default:
-                        throw new TypeError(`invalid pType '${pType}'`);
-                }
+                body = Validator.validateData(req.body, Api.v1.Routes.Users.Connect.Post.Request.Desktop, 'body');
             }
-            catch(err: Error) {
+            catch(err) {
                 throw new BadRequestError(err.message);
             }
 

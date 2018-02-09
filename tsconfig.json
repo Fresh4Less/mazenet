@@ -8,5 +8,10 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
-  }
+  },
+
+  "include": [
+	"common/**/*",
+	"test/**/*"
+  ]
 }

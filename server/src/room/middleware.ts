@@ -8,7 +8,7 @@ import * as Validator from '../../../common/util/validator';
 import * as Api from '../../../common/api';
 import {GlobalLogger} from '../util/logger';
 
-import { Request, Response, Socket, ConflictError } from '../common';
+import { Request, Response, Socket, BadRequestError, UnauthorizedError, ConflictError } from '../common';
 import { Service } from './service';
 import { Room, Structure } from './models';
 import { User, ActiveUser } from '../user/models';
@@ -43,16 +43,26 @@ export class Middleware {
 
         let roomsRouter = Express.Router();
         roomsRouter.post('/enter', (req: Request, res: Response, next: Express.NextFunction) => {
-            if(!req.activeUser) {
+            if(!(<Socket>req.socket).mazenet) {
+                throw new BadRequestError('Only websocket sessions can /enter the Mazenet');
+            }
+
+            if(!(<Socket>req.socket).mazenet!.activeUser) {
                 throw new ConflictError('No ActiveUser. You must `POST /users/connect` before you can enter a room');
             }
 
-            let body: Api.v1.Routes.Rooms.Enter.Post.Request = Validator.validateData(req.body, Api.v1.Routes.Rooms.Enter.Post.Request, 'body');
+            let body: Api.v1.Routes.Rooms.Enter.Post.Request;
+            try {
+                body = Validator.validateData(req.body, Api.v1.Routes.Rooms.Enter.Post.Request, 'body');
+            }
+            catch(err) {
+                throw new BadRequestError(err.message);
+            }
 
             return Observable.forkJoin(this.service.getRoom(body.id), this.service.getActiveUsersInRoom(body.id))
             .mergeMap(([room, activeUsers]: [Room, Map<ActiveUser.Id, ActiveUser>]) => {
                 // enter room after getting the room and active users
-                return Observable.forkJoin(Observable.of(room), Observable.of(activeUsers), this.service.enterRoom(body.id, req.activeUser!));
+                return Observable.forkJoin(Observable.of(room), Observable.of(activeUsers), this.service.enterRoom(body.id, (<Socket>req.socket).mazenet!.activeUser!));
             }).subscribe(([room, activeUsers]: [Room, Map<ActiveUser.Id, ActiveUser>, null]) => {
                 // construct response
                 let activeUsersObj: {[activeUserId: string]: Api.v1.Models.ActiveUser} = {};
@@ -60,7 +70,7 @@ export class Middleware {
                     activeUsersObj[id] = activeUser.toV1();
                 }
                 let response: Api.v1.Routes.Rooms.Enter.Post.Response200 = {
-                    room: room,
+                    room: room.toV1(),
                     users: activeUsersObj
                 };
                 return res.status(200).json(response);
@@ -70,16 +80,23 @@ export class Middleware {
         });
 
         roomsRouter.post('/strutures/create', (req: Request, res: Response, next: Express.NextFunction) => {
-            let body: Api.v1.Routes.Rooms.Structures.Create.Post.Request = Validator.validateData(req.body, Api.v1.Routes.Rooms.Structures.Create.Post.Request, 'body');
-            //TODO: get user from req (middleware)
-            let user = new User({id: Uuid(), username: 'test'});
-            return service.createStructure(user, body.roomId, body.structure).subscribe((structure: Structure) => {
+            if(!req.user) {
+                // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
+                throw new UnauthorizedError('You must be authenticated to create a structure');
+            }
+            let body: Api.v1.Routes.Rooms.Structures.Create.Post.Request;
+            try {
+                body = Validator.validateData(req.body, Api.v1.Routes.Rooms.Structures.Create.Post.Request, 'body');
+            }
+            catch(err) {
+                throw new BadRequestError(err.message);
+            }
+            return service.createStructure(req.user, body.roomId, body.structure).subscribe((structure: Structure) => {
                 return res.status(201).json(structure.toV1());
             }, (err: Error) => {
                 return next(err);
             });
         });
-
 
         router.use('/rooms', roomsRouter);
         return router;

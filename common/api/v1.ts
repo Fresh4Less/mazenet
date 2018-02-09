@@ -23,6 +23,23 @@ export namespace Models {
         export type Id = string;
     }
 
+    /** Describes the user client's platform */
+    export type PlatformData = PlatformData.Desktop | PlatformData.Mobile;
+
+    export namespace PlatformData {
+        export class Desktop {
+            @Validator.validate()
+            pType: 'desktop';
+            @Validator.validate()
+            cursorPos: Position;
+        }
+
+        export class Mobile {
+            @Validator.validate()
+            pType: 'mobile';
+        }
+    }
+
     /** Client session of a user */
     export class ActiveUser {
         @Validator.validate()
@@ -31,35 +48,16 @@ export namespace Models {
         userId: User.Id;
         @Validator.validate()
         username: string;
-        @Validator.validate()
-        platformData: ActiveUser.PlatformData;
+        @Validator.validate({union: {discriminant: 'pType', types: {
+            'desktop': PlatformData.Desktop,
+            'mobile': PlatformData.Mobile,
+        }}})
+        platformData: PlatformData;
     }
 
     export namespace ActiveUser {
         /** 128-bit UUID/v4 */
         export type Id = string;
-
-        /** Describes the user client's platform */
-        export type PlatformData = PlatformData.Desktop | PlatformData.Mobile;
-
-        export enum PlatformDataTypes {
-            Desktop = 'desktop',
-            Mobile = 'mobile'
-        };
-
-        export namespace PlatformData {
-            export class Desktop {
-                @Validator.validate()
-                pType: 'desktop';
-                @Validator.validate()
-                cursorPos: Position;
-            }
-
-            export class Mobile {
-                @Validator.validate()
-                pType: 'mobile';
-            }
-        }
     }
 
 
@@ -72,9 +70,9 @@ export namespace Models {
         creator: User.Id;
         @Validator.validate()
         title: string;
-        /** map of users who are owners of this room */
-        @Validator.validate()
-        owners: { [userId: string]: User };
+        /** set of owners of this room */
+        @Validator.validate(false, String)
+        owners: User.Id[];
         /** map of structures in the room */
         @Validator.validate()
         structures: { [structureId: string]: Structure };
@@ -88,6 +86,61 @@ export namespace Models {
         export type Id = string;
     }
 
+    /** Data specific to each type of structure */
+    export type StructureData = StructureData.Tunnel | StructureData.Text;
+
+    export namespace StructureData {
+        export class Tunnel {
+            @Validator.validate()
+            sType: 'tunnel';
+            /** Id of the room that created the tunnel */
+            @Validator.validate()
+            sourceId: Room.Id;
+            /** Id of the room this tunnel leads to */
+            @Validator.validate()
+            targetId: Room.Id;
+            /** display text when viewed from the source room */
+            @Validator.validate()
+            sourceText: string;
+            /** display text when viewed from the target room */
+            @Validator.validate()
+            targetText: string;
+        }
+
+        export class Text {
+            @Validator.validate()
+            sType: 'text';
+            @Validator.validate()
+            text: string;
+            @Validator.validate()
+            size: Position;
+        }
+    }
+
+    export type StructureDataBlueprint = StructureDataBlueprint.Tunnel | StructureDataBlueprint.Text;
+
+    export namespace StructureDataBlueprint {
+        export class Tunnel {
+            @Validator.validate()
+            sType: 'tunnel';
+            /** Id of the room that created the tunnel */
+            @Validator.validate()
+            sourceText: string;
+            /** display text when viewed from the target room */
+            @Validator.validate()
+            targetText: string;
+        }
+
+        export class Text {
+            @Validator.validate()
+            sType: 'text';
+            @Validator.validate()
+            text: string;
+            @Validator.validate()
+            size: Position;
+        }
+    }
+
     /* Structures like links and images that can be placed in a room */
     export class Structure {
         @Validator.validate()
@@ -97,34 +150,22 @@ export namespace Models {
         creator: User.Id;
         @Validator.validate()
         pos: Position;
-        @Validator.validate()
-        data: Structure.Data;
+        @Validator.validate({union: {discriminant: 'sType', types: {
+            'tunnel': StructureData.Tunnel,
+            'text': StructureData.Text,
+        }}})
+        data: StructureData;
     }
 
     export namespace Structure {
         /** 128-bit UUID/v4 */
         export type Id = string;
-        /** Data specific to each type of structure */
-        export type Data = Data.Tunnel;
 
-
-        export namespace Data {
-            export class Tunnel {
-                @Validator.validate()
-                sType: 'tunnel';
-                /** Id of the room that created the tunnel */
-                @Validator.validate()
-                sourceId: Room.Id;
-                /** Id of the room this tunnel leads to */
-                @Validator.validate()
-                targetId: Room.Id;
-                /** display text when viewed from the source room */
-                @Validator.validate()
-                sourceText: string;
-                /** display text when viewed from the target room */
-                @Validator.validate()
-                targetText: string;
-            }
+        export class Blueprint {
+            @Validator.validate()
+            pos: Models.Position;
+            @Validator.validate()
+            data: Models.StructureDataBlueprint;
         }
     }
 
@@ -182,7 +223,7 @@ export namespace Routes {
              * Should be the first event emitted to the server on connection.
              */
             export namespace Post {
-                export let Request = Models.ActiveUser.PlatformData;
+                export let Request = Models.PlatformData;
 
                 /** Information about the client's user account and the root room id. */
                 export class Response200 {
@@ -199,23 +240,6 @@ export namespace Routes {
      * route: '/rooms'
      */
     export namespace Rooms {
-        /**
-         * route: '/rooms/create'
-         */
-        export namespace Create {
-            export namespace Post {
-                /** Room blueprint  */
-                export class Request {
-                    @Validator.validate()
-                    title: string;
-                }
-
-                /** Room succesfully updated. Emits a `/rooms/updated` event to all other users in the room. */
-                export let Response200 = Models.Room;
-                export let Response400 = {};
-            }
-        }
-
         /**
          * route: '/rooms/update'
          */
@@ -253,7 +277,7 @@ export namespace Routes {
                     @Validator.validate()
                     room: Models.Room;
                     @Validator.validate()
-                    users: { [userId: string]: Models.ActiveUser };
+                    users: { [activeUserId: string]: Models.ActiveUser };
                 }
 
                 export let Response400 = {};
@@ -270,18 +294,11 @@ export namespace Routes {
              */
             export namespace Create {
                 export namespace Post {
-                    export class StructureBlueprint {
-                        @Validator.validate()
-                        pos: Models.Position;
-                        @Validator.validate()
-                        data: Models.Structure.Data;
-                    }
-
                     export class Request {
                         @Validator.validate()
                         roomId: Models.Room.Id;
                         @Validator.validate()
-                        structure: StructureBlueprint;
+                        structure: Models.Structure.Blueprint;
                     }
 
                     /** Structure successfully created. Emits a `/rooms/structures/created event to all other users in the room */
@@ -304,7 +321,7 @@ export namespace Routes {
                         pos?: Models.Position;
                         //@Validator.validate()
                         // TODO: add validator support to allow all child properties to be optional
-                        data?: Models.Structure.Data;
+                        data?: Models.StructureData;
                     }
 
                     export let Response200 = Models.Structure;
