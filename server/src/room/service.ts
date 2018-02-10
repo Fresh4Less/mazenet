@@ -11,7 +11,7 @@ import * as Api from '../../../common/api';
 
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
-import { Room, Structure, StructureData } from './models';
+import { RoomDocument, Room, Structure, StructureData } from './models';
 import { User, ActiveUser } from '../user/models';
 
 export class Service {
@@ -59,13 +59,16 @@ export class Service {
         return this.dataStore.getRoom(roomId);
     }
 
+    getRoomDocument(room: Room): Observable<RoomDocument> {
+        return this.dataStore.getRoomDocument(room);
+    }
+
     createRoom(user: User, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
         let room = new Room({
             id: roomId,
             creator: user.id,
             title: roomBlueprint.title,
-            owners: [user.id],
-            structures: {},
+            owners: new Set<User.Id>([user.id]),
             stylesheet: ''
         });
 
@@ -92,13 +95,7 @@ export class Service {
                 data: structureData,
             });
 
-            //TODO: isolate the room-structure relation within the data store
-            room.structures.set(structure.id, structure);
-            return Observable.forkJoin(this.dataStore.insertStructure(structure), Observable.of(room));
-        }).mergeMap(([structure, room]: [Structure, Room]) => {
-            return Observable.forkJoin(Observable.of(structure), this.dataStore.updateRoom(room));
-        }).mergeMap(([structure, room]: [Structure, Room]) => {
-            return Observable.of(structure);
+            return this.dataStore.insertStructure(structure);
         });
     }
 

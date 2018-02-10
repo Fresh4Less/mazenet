@@ -1,44 +1,51 @@
 import * as Api from '../../../common/api';
 
-import { Position } from '../common';
+import { Position, mapToObject, objectToMap } from '../common';
 import { User } from '../user/models';
 
+/** Room and structures that can be serialized into an API room. */
+export class RoomDocument {
+    room: Room;
+    structures: Map<Structure.Id, Structure>;
+    constructor(room: Room, structures: Map<Structure.Id, Structure>) {
+        this.room = room;
+        this.structures = structures;
+    }
+
+    toV1(): Api.v1.Models.Room {
+        return {
+            id: this.room.id,
+            creator: this.room.creator,
+            title: this.room.title,
+            owners: Array.from(this.room.owners),
+            structures: mapToObject(this.structures, (s:Structure) => s.toV1()),
+            stylesheet: this.room.stylesheet
+        };
+    }
+}
+
+export interface RoomOptions {
+    id: Room.Id;
+    creator: User.Id;
+    title: string;
+    owners: Set<User.Id>;
+    stylesheet: string;
+}
+
+/** Room. has no structure data */
 export class Room {
     id: Room.Id;
     creator: User.Id;
     title: string;
     owners: Set<User.Id>;
-    //TODO: remove this from Room, create a new "Room document" class which contains both a room and structures (reflects shape of data in db)
-    structures: Map<Structure.Id, Structure>;
     stylesheet: string;
 
-    constructor(v1: Api.v1.Models.Room) {
-        this.id = v1.id;
-        this.creator = v1.creator;
-        this.title = v1.title;
-        this.owners = new Set<User.Id>(v1.owners);
-        this.structures = Object.keys(v1.structures).reduce((map: Map<Structure.Id, Structure>, sId: Structure.Id) => {
-            map.set(sId, new Structure(v1.structures[sId]));
-            return map;
-        }, new Map<Structure.Id, Structure>());
-        this.stylesheet = v1.stylesheet;
-    }
-
-    toV1(): Api.v1.Models.Room {
-        return {
-            id: this.id,
-            creator: this.creator,
-            title: this.title,
-            owners: Array.from(this.owners),
-            structures: (() => {
-                let o: {[structureId: string]: Api.v1.Models.Structure} = {};
-                for(let [sId, s] of this.structures) {
-                    o[sId] = s.toV1();
-                }
-                return o;
-            })(),
-            stylesheet: this.stylesheet
-        };
+    constructor(options: RoomOptions) {
+        this.id = options.id;
+        this.creator = options.creator;
+        this.title = options.title;
+        this.owners = options.owners;
+        this.stylesheet = options.stylesheet;
     }
 }
 

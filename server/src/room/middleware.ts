@@ -8,9 +8,9 @@ import * as Validator from '../../../common/util/validator';
 import * as Api from '../../../common/api';
 import {GlobalLogger} from '../util/logger';
 
-import { Request, Response, Socket, BadRequestError, UnauthorizedError, ConflictError } from '../common';
+import { Request, Response, Socket, BadRequestError, UnauthorizedError, ConflictError, mapToObject } from '../common';
 import { Service } from './service';
-import { Room, Structure } from './models';
+import { RoomDocument, Room, Structure } from './models';
 import { User, ActiveUser } from '../user/models';
 
 // temporary imports, won't be needed later
@@ -62,16 +62,11 @@ export class Middleware {
             return Observable.forkJoin(this.service.getRoom(body.id), this.service.getActiveUsersInRoom(body.id))
             .mergeMap(([room, activeUsers]: [Room, Map<ActiveUser.Id, ActiveUser>]) => {
                 // enter room after getting the room and active users
-                return Observable.forkJoin(Observable.of(room), Observable.of(activeUsers), this.service.enterRoom(body.id, (<Socket>req.socket).mazenet!.activeUser!));
-            }).subscribe(([room, activeUsers]: [Room, Map<ActiveUser.Id, ActiveUser>, null]) => {
-                // construct response
-                let activeUsersObj: {[activeUserId: string]: Api.v1.Models.ActiveUser} = {};
-                for(let [id, activeUser] of activeUsers) {
-                    activeUsersObj[id] = activeUser.toV1();
-                }
+                return Observable.forkJoin(this.service.getRoomDocument(room), Observable.of(activeUsers), this.service.enterRoom(body.id, (<Socket>req.socket).mazenet!.activeUser!));
+            }).subscribe(([roomDoc, activeUsers]: [RoomDocument, Map<ActiveUser.Id, ActiveUser>, null]) => {
                 let response: Api.v1.Routes.Rooms.Enter.Post.Response200 = {
-                    room: room.toV1(),
-                    users: activeUsersObj
+                    room: roomDoc.toV1(),
+                    users: mapToObject(activeUsers, (a: ActiveUser) => a.toV1())
                 };
                 return res.status(200).json(response);
             }, (err: Error) => {
@@ -79,7 +74,7 @@ export class Middleware {
             });
         });
 
-        roomsRouter.post('/strutures/create', (req: Request, res: Response, next: Express.NextFunction) => {
+        roomsRouter.post('/structures/create', (req: Request, res: Response, next: Express.NextFunction) => {
             if(!req.user) {
                 // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
                 throw new UnauthorizedError('You must be authenticated to create a structure');
