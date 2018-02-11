@@ -15,8 +15,9 @@ gulp.task('docs', function () {
         .pipe(typedoc({
             module: "commonjs",
             target: "es6",
-            out: "docs/",
+            out: "docs/html",
             name: "Mazenet",
+            theme: 'docs/mazenet-theme',
             ignoreCompilerErrors: true
         }));
 });

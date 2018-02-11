@@ -1,0 +1,17 @@
+{{#ifCond name "===" "Get"}}
+    {{#> api-route-method}}
+        {{> @partial-block}}
+    {{/api-route-method}}
+{{else}}
+    {{#ifCond name "===" "Post"}}
+        {{#> api-route-method}}
+            {{> @partial-block}}
+        {{/api-route-method}}
+    {{else}}
+        {{#each children}}
+            {{#> api-route}}
+                {{parent.name}}/{{> @partial-block}}
+            {{/api-route}}
+        {{/each}}
+    {{/ifCond}}
+{{/ifCond}}
