@@ -15,7 +15,7 @@ class Primitives {
 class PrimitivesArray {
     @Validator.validate(false, Boolean)
     flags: boolean[];
-    @Validator.validate(false, Number, true)
+    @Validator.validate({arrayType: Number, arrayOptional:true})
     counts: number[];
     @Validator.validate(false, String)
     names: string[];
@@ -140,7 +140,7 @@ describe('validate primitives', () => {
                 },
                 {
                     name: 'montlake', librarian: {
-                        name: [] degrees: [
+                        name: [], degrees: [
                             {subject: 'cs', year: 2017}, {subject: 'mba', year: 2024}]
                     }
                 },
@@ -165,6 +165,72 @@ describe('validate primitives', () => {
                     Validator.validateData(input, Library, 'input');
                 }).toThrow(TypeError);
             });
+        });
+    });
+});
+
+class Apple {
+    @Validator.validate()
+    kind: 'apple';
+    @Validator.validate()
+    name: string;
+}
+
+class Banana {
+    @Validator.validate()
+    kind: 'banana';
+    @Validator.validate()
+    count: number;
+}
+
+class Coconut {
+    @Validator.validate()
+    kind: 'coconut';
+    @Validator.validate()
+    cracked: boolean;
+}
+
+type Fruit = Apple | Banana | Coconut;
+
+class FruitBasket {
+    @Validator.validate()
+    color: string;
+    @Validator.validate({union: {discriminant: 'kind', types: {
+        'apple': Apple,
+        'banana': Banana,
+        'coconut': Coconut,
+    }}})
+    fruit: Fruit;
+}
+
+describe('discriminated union', () => {
+    test('valid union types are accepted', () => {
+        let inputs = [
+            {color: 'red', fruit: {kind: 'apple', name: 'granny smith'}},
+            {color: 'yellow', fruit: {kind: 'banana', count: 4}},
+            {color: 'brown', fruit: {kind: 'coconut', cracked: false}},
+        ];
+
+        inputs.forEach((input) => {
+            let fruitBasket: FruitBasket = Validator.validateData(input, FruitBasket, 'input');
+            expect(fruitBasket).toBe(input);
+        });
+    });
+
+    test('invalid union types', () => {
+        let inputs = [
+            {color: 'red', fruit: {kind: 'apple', name: 123}},
+            {color: 'yellow', fruit: {kind: 'apple', count: 4}},
+            {color: 'brown', fruit: {cracked: false}},
+            {color: null, fruit: {kind: 'apple', name: 'granny smith'}},
+            {color: 'orange', fruit: undefined},
+            {color: 'green', fruit: {kind: 'lettuce'}},
+        ];
+
+        inputs.forEach((input) => {
+            expect(() => {
+                Validator.validateData(input, FruitBasket, 'input');
+            }).toThrow(TypeError);
         });
     });
 });

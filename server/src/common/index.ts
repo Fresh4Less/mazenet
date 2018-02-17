@@ -81,6 +81,28 @@ interface MazenetSocket {
 }
 export type Socket = SocketIO.Socket & MazenetSocket;
 
+
+export function mapToObject<T, V, M extends Map<string,T>>(map: M, transform?: (t: T) => V): {[id: string]: V} {
+    if(!transform) {
+        transform = (t: T) => <V><any>t;
+    }
+    let obj: {[key: string]: V} = {};
+    for(let [key, value] of map) {
+        obj[key] = transform(value);
+    }
+    return obj;
+}
+
+export function objectToMap<T, V>(obj: {[key: string]: T}, transform?: (t: T) => V): Map<string,V> {
+    if(!transform) {
+        transform = (t: T) => <V><any>t;
+    }
+    return Object.keys(obj).reduce((map: Map<string,V>, key: string) => {
+        map.set(key, transform!(obj[key]));
+        return map;
+    }, new Map<string,V>());
+}
+
 //TODO: use this instead of checking in each route handler. come up with a better name
 /** Method Decorator for middlewares that throws an error if the user is not authenticated */
 /*

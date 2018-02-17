@@ -7,11 +7,13 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*",
-    "../common/**/*"
+    "../common/**/*",
+    "test/**/*"
   ],
   "baseUrl": ".",
   "paths": {

@@ -33,6 +33,7 @@ export class ErrorHandler {
             GlobalLogger.error(`Unhandled ${err.constructor.name} in request handler'`, {
                 errorType: err.constructor.name,
                 message: err.message,
+                stack: err.stack,
                 data: errorOut.data
             });
         }

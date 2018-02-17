@@ -1,3 +1,5 @@
+import {Observable, Observer} from 'rxjs';
+import { EventTargetLike } from 'rxjs/observable/FromEventObservable';
 import * as fs from 'fs';
 import * as Path from 'path';
 import * as Http from 'http';
@@ -43,69 +45,101 @@ export class Server {
     secureRedirectServer: Http.Server | null;
     app: Express.Express;
     socketServer: SocketIO.Server;
+    usingSsl: boolean;
 
     constructor(options: Partial<Server.Options>) {
         this.options = Object.assign({}, Server.defaultOptions, options);
+        this.usingSsl = false;
     }
 
     //TODO: return a promise that is resolved when setup is ready (wait for server 'listening' event is emitted)
-    start(): void {
-        //TODO: add server info to the logger (instance id, pid, etc)
-        GlobalLogger.info('Server: configuration', this.options);
-        this.app = Express();
+    start(): Observable<void> {
+        let listeningObservable: Observable<void>;
+        try {
+            //TODO: add server info to the logger (instance id, pid, etc)
+            GlobalLogger.info('Server: configuration', this.options);
+            this.app = Express();
 
-        let sslCert: Certificate | null = null;
-        if (this.options.sslCertPath) {
-            try {
-                sslCert = this.loadCerts(this.options.sslCertPath);
+            let sslCert: Certificate | null = null;
+            if (this.options.sslCertPath) {
+                try {
+                    sslCert = this.loadCerts(this.options.sslCertPath);
+                }
+                catch (error) {
+                    GlobalLogger.error('Failed to load SSL certificates', {error});
+                }
             }
-            catch (error) {
-                GlobalLogger.error('Failed to load SSL certificates', {error});
+
+            //TODO: logs the wrong port number when options.port === 0 (using port 0 lets the OS choose a port)
+            if (sslCert) {
+                this.httpServer = Https.createServer({
+                    cert: sslCert.cert,
+                    key: sslCert.key
+                }, this.app);
+                this.secureRedirectServer = this.makeSecureRedirectServer(this.options.securePort);
+                // succeed if both listening events are fired, but error if an error event is fired first
+                this.usingSsl = true;
+                listeningObservable = Observable.race(
+                    Observable.forkJoin(
+                        // Don't love these type assertions but it works
+                        Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'listening').first(),
+                        Observable.fromEvent(<EventTargetLike><any>this.secureRedirectServer, 'listening').first()),
+                    Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'error').map((err: any) => {
+                        throw err;
+                    }).first(),
+                    Observable.fromEvent(<EventTargetLike><any>this.secureRedirectServer, 'error').map((err: any) => {
+                        throw err;
+                    })
+                ).map(() => {
+                    GlobalLogger.info('Server: bound to port', {
+                        port: this.httpServer.address().port,
+                        redirectPort: this.secureRedirectServer!.address().port,
+                        ssl: this.usingSsl
+                    });
+                });
+
+                this.httpServer.listen(this.options.securePort);
+                this.secureRedirectServer.listen(this.options.port);
             }
+            else if (this.options.env === 'prod') {
+                GlobalLogger.fatal('SSL must be enabled in production mode. Shutting down...');
+                throw new Error('SSL must be enabled in production mode.');
+            }
+            else {
+                GlobalLogger.warn('WARNING: SSL not enabled. Website is NOT SECURE');
+                this.usingSsl = false;
+                this.httpServer = new Http.Server(this.app);
+                listeningObservable = Observable.race(
+                    Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'listening').first(),
+                    Observable.fromEvent(<EventTargetLike><any>this.httpServer, 'error').map((err: any) => {
+                        throw err;
+                    }).first(),
+                ).map(() => {
+                    GlobalLogger.info('Server: bound to port', {
+                        port: this.httpServer.address().port,
+                        ssl: this.usingSsl
+                    });
+                });
+
+                this.httpServer.listen(this.options.port);
+            }
+
+            this.app.use(Compression());
+            this.app.use(BodyParser.json());
+            this.app.use(CookieParser());
+
+            // setting wsEngine prevents crash when starting more than one websocket instance (e.g. in tests)
+            // https://github.com/socketio/engine.io/issues/521
+            this.socketServer = SocketIO(this.httpServer, <SocketIO.ServerOptions>{wsEngine: 'ws'});
+            //this.socketServer.use(SocketIOCookieParser());
+
+            let mazenet = new Mazenet.Mazenet(this.app, this.socketServer);
+        }
+        catch(error) {
+            return <Observable<void>>Observable.throw(error);
         }
 
-        //TODO: logs the wrong port number when options.port === 0 (using port 0 lets the OS choose a port)
-        if (sslCert) {
-            this.httpServer = Https.createServer({
-                cert: sslCert.cert,
-                key: sslCert.key
-            }, this.app);
-            this.secureRedirectServer = this.makeSecureRedirectServer(this.options.securePort);
-            this.httpServer.listen(this.options.securePort);
-            this.secureRedirectServer.listen(this.options.port);
-            GlobalLogger.info('Server: bound to port', {
-                port: this.options.securePort,
-                redirectPort: this.options.port,
-                ssl: true
-            });
-
-        }
-        else if (this.options.env === 'prod') {
-            GlobalLogger.fatal('SSL must be enabled in production mode. Shutting down...');
-            throw new Error('SSL must be enabled in production mode.');
-        }
-        else {
-            GlobalLogger.warn('WARNING: SSL not enabled. Website is NOT SECURE');
-            this.httpServer = new Http.Server(this.app);
-            this.httpServer.listen(this.options.port);
-            GlobalLogger.info('Server: bound to port', {port: this.options.port, ssl: false});
-        }
-
-        this.app.use(Compression());
-        this.app.use(BodyParser.json());
-        this.app.use(CookieParser());
-
-        this.socketServer = SocketIO(this.httpServer);
-        //socketServer.use(SocketIOCookieParser());
-
-        let mazenet = new Mazenet.Mazenet(this.app, this.socketServer);
-
-        // socket initialization
-        //let socketServer = SocketIO(this.httpServer);
-        //socketServer.use((socket: SocketIO.Socket, fn) => {
-        //let a = SocketIO.Socket;
-        //socket.
-        //});
+        return listeningObservable;
     }
 
     protected loadCerts(certPath: string): Certificate {
