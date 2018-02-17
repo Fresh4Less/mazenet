@@ -21,7 +21,7 @@ export class PageStyles {
         this.stringified = '';
 
         if (this.background.bType === 'color') {
-            this.canvasStringified = 'background : ' + (<ColorBgData>this.background.data).color;
+            this.canvasStringified = 'background : ' + (<ColorBgData> this.background.data).color;
         }
     }
 }

@@ -17,8 +17,4 @@ export class GrayLinesMode implements IDrawMode {
             alpha: 0.2
         }
     };
-
-    constructor() {
-    }
-
 }

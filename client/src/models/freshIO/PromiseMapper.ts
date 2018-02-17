@@ -2,7 +2,8 @@
 
 export class PromiseMapper {
 
-    private promiseContainer: { [key: string]: { resolve: (value?: {} | PromiseLike<{}>) => void, reject: (reason?: any) => void } };
+    private promiseContainer: { [key: string]: { resolve: (value?: {} | PromiseLike<{}>) => void,
+            reject: (reason?: any) => void } };
     private idCounter: number;
 
     constructor() {

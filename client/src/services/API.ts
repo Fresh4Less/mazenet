@@ -10,8 +10,7 @@ import { CursorFrame } from '../models/cursors/CursorFrame';
 import { WebResponse } from '../models/freshIO/WebResponse';
 import { UserData } from '../models/UserData';
 import { PeerData } from '../models/PeerData';
-import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
+import { Observable, Observer } from 'rxjs';
 
 class API {
 
@@ -32,7 +31,9 @@ class API {
 
         /* Setup the Observable feeds */
         this.pageEnterObservable = new Observable((observer: Observer<Page>) => {
-            this.socket.on('/rooms/enter', ()=>{});
+            this.socket.on('/rooms/enter', (res: WebResponse) => {
+                console.log(res);
+            });
         }).share();
 
         this.socket.on('/users/connect', this.connectedCallback.bind(this));
@@ -105,25 +106,25 @@ class API {
         // TODO
         // this.peerService.UpdatePeer(peer);
     }
-
-    private userEnterPageCallback(response: WebResponse): void {
-        // TODO
-        // let promise = self.pageEnterPromiseMapper.GetPromiseForId(response.headers['X-Fresh-Request-Id']);
-        //
-        // if (promise) { //Check if somehow we got a response that we didn't ask for.
-        //     if (response.status == 200) {
-        //         let page: Page = response.body.page;
-        //         let peers: PeerData[] = response.body.users;
-        //         self.pageService.SetActivePage(page);
-        //         self.peerService.SetPeers(peers);
-        //         promise.resolve(page);
-        //     } else {
-        //         promise.reject(response.body);
-        //     }
-        // } else {
-        //     console.error('userEnterPageCallback', 'Got response we did not ask for:', response);
-        // }
-    }
+    //
+    // private userEnterPageCallback(response: WebResponse): void {
+    //     // TODO
+    //     // let promise = self.pageEnterPromiseMapper.GetPromiseForId(response.headers['X-Fresh-Request-Id']);
+    //     //
+    //     // if (promise) { //Check if somehow we got a response that we didn't ask for.
+    //     //     if (response.status == 200) {
+    //     //         let page: Page = response.body.page;
+    //     //         let peers: PeerData[] = response.body.users;
+    //     //         self.pageService.SetActivePage(page);
+    //     //         self.peerService.SetPeers(peers);
+    //     //         promise.resolve(page);
+    //     //     } else {
+    //     //         promise.reject(response.body);
+    //     //     }
+    //     // } else {
+    //     //     console.error('userEnterPageCallback', 'Got response we did not ask for:', response);
+    //     // }
+    // }
 
     private elementCreateCallback(response: WebResponse): void {
 

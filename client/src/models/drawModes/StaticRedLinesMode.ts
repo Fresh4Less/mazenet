@@ -17,8 +17,4 @@ export class StaticRedLinesMode implements IDrawMode {
             alpha: 0.1
         }
     };
-
-    constructor() {
-    }
-
 }

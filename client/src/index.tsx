@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import Mazenet from './Mazenet';
+import Mazenet from './mazenet';
 import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 

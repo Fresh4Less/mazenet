@@ -17,8 +17,4 @@ export class RedCircleMode implements IDrawMode {
             alpha: 0.1
         }
     };
-
-    constructor() {
-    }
-
 }

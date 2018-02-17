@@ -18,7 +18,7 @@ export class ColorBgData implements IBackgroundData {
         if (isHex) {
             /* Turn 3 digit hexes to 6 digit hexes e.g. #123 to #112233 */
             let colHex: string;
-            if (col.length == 4) {
+            if (col.length === 4) {
                 colHex = col[1] + col[1] + col[2] + col[2] + col[3] + col[3];
                 this._color = '#' + colHex;
             } else {
@@ -41,6 +41,12 @@ export class ColorBgData implements IBackgroundData {
 
     }
 
+    public GetJSON(): any {
+        return {
+            color: this._color
+        };
+    }
+
     private setBlackOrWhiteFromYIQ(hexColor: string): void {
 
         let r = parseInt(hexColor.substr(0, 2), 16);
@@ -49,11 +55,5 @@ export class ColorBgData implements IBackgroundData {
         let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
 
         this._bwYIQContrast = (yiq >= 128) ? '#000000' : '#ffffff';
-    }
-
-    public GetJSON(): any {
-        return {
-            color: this._color
-        };
     }
 }

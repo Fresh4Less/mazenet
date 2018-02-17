@@ -2,9 +2,7 @@
 
 import { MzPosition } from '../MzPosition';
 
-export = Cursor;
-
-class Cursor {
+export class Cursor {
     uId: string;
     pos: MzPosition;
 }

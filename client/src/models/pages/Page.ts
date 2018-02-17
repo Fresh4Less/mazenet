@@ -25,8 +25,7 @@ export class Page {
 
     public UpdatePage(otherPage: Page) {
         if (otherPage) {
-            //Id
-            if (otherPage._id != this._id) {
+            if (otherPage._id !== this._id) {
                 throw 'cannot UpdatePage with a different page. Use LoadPage instead';
             }
             if (otherPage.creator) {
@@ -45,7 +44,7 @@ export class Page {
                     colorData.color = (<any> otherPage.background.data).color;
                     this.background.data = colorData;
                 } else {
-                    this.background.data = {...<any>otherPage.background.data};
+                    this.background.data = {...<any> otherPage.background.data};
                 }
             }
             if (otherPage.owners) {
@@ -146,7 +145,7 @@ export class Page {
 
         for (let i = 0; i < this.elements.length; i++) {
             let element = this.elements[i];
-            if (element.eType == 'link' && !element.data.isReturnLink && element.data.text == name) {
+            if (element.eType === 'link' && !element.data.isReturnLink && element.data.text === name) {
                 return true;
             }
         }
@@ -154,10 +153,9 @@ export class Page {
         return false;
     }
 
-
     private resetPage() {
         this._id = '0';
-        this.creator = null;
+        this.creator = '';
         this.permissions = 'all';
         this.title = 'loading...';
         this.background = {

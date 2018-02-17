@@ -1,6 +1,6 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
-//TODO: This could probably be refactored remove. Smelly.
+// TODO: This could probably be refactored remove. Smelly.
 export class WebRequest {
 
     public method: string;
@@ -29,8 +29,9 @@ export class WebRequest {
 
         if (additionalHeaders) {
             for (let property in additionalHeaders) {
-                if (additionalHeaders.hasOwnProperty(property))
+                if (additionalHeaders.hasOwnProperty(property)) {
                     this.headers[property] = additionalHeaders[property];
+                }
             }
         }
 

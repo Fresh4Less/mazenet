@@ -15,7 +15,7 @@ export class JensenMode implements IDrawMode {
     };
 
     constructor() {
-        var self = this;
+        const self = this;
         this.data.sprite.src = 'images/cursors/peter_jensen.png';
         this.data.sprite.onload = function () {
             self.data.ready = true;

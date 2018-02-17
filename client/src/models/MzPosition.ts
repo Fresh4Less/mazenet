@@ -4,11 +4,18 @@ export class MzPosition {
     x: number;
     y: number;
 
+    static IsZero(pos: MzPosition): boolean {
+        return pos.x === 0 && pos.y === 0;
+    }
+
+    static IsEdged(pos: MzPosition): boolean {
+        return (pos.x === 0 || pos.x === 1) || (pos.y === 0 || pos.y === 1);
+    }
+
     constructor(x?: number, y?: number) {
         if (x) {
             this.x = x;
-        }
-        else {
+        } else {
             this.x = 0;
         }
         if (y) {
@@ -16,13 +23,5 @@ export class MzPosition {
         } else {
             this.y = 0;
         }
-    }
-
-    public static IsZero(pos: MzPosition): boolean {
-        return pos.x == 0 && pos.y == 0;
-    }
-
-    public static IsEdged(pos: MzPosition): boolean {
-        return (pos.x == 0 || pos.x == 1) || (pos.y == 0 || pos.y == 1);
     }
 }
