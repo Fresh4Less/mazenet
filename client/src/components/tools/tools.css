@@ -1,0 +1,15 @@
+#Tools {
+    line-height: 30px;
+    height: 30px;
+    background-color: #00b0e8;
+}
+
+#Tools #Title {
+    padding-left: 10px;
+    font-weight: bold;
+}
+
+#Tools #User {
+    float: right;
+    padding-right: 10px;
+}
