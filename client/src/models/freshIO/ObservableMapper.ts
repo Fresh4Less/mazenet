@@ -4,13 +4,13 @@ import { Observable } from 'rxjs';
 
 export class ObservableMapper<T> {
 
-    private observableContainer: { [key: string]: Observable<T> };
-    private idCounter: number;
-
     constructor() {
         this.observableContainer = {};
         this.idCounter = 0;
     }
+
+    private observableContainer: { [key: string]: Observable<T> };
+    private idCounter: number;
 
     GetNewId() {
         this.idCounter++;

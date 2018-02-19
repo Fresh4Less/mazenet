@@ -1,6 +1,7 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
 import * as SocketIo from 'socket.io-client';
+import * as API from '../../../common/api/v1';
 import Socket = SocketIOClient.Socket;
 import { MzPosition } from '../models/MzPosition';
 import { WebRequest } from '../models/freshIO/WebRequest';
@@ -8,13 +9,17 @@ import { Page } from '../models/pages/Page';
 import { IElement } from '../models/interfaces/IElement';
 import { CursorFrame } from '../models/cursors/CursorFrame';
 import { WebResponse } from '../models/freshIO/WebResponse';
-import { UserData } from '../models/UserData';
 import { PeerData } from '../models/PeerData';
+import { ErrorService } from './ErrorService';
+
 import { Observable, Observer } from 'rxjs';
 
-class API {
+export class SocketAPI {
 
-    readonly pageEnterObservable: Observable<Page>;
+    private static _instance: SocketAPI;
+
+    readonly connectedObservable: Observable<API.Routes.Users.Connect.Post.Response200>;
+    readonly pageEnterObservable: Observable<API.Routes.Rooms.Enter.Post.Response200>;
     readonly pageUpdatedObservable: Observable<Page>;
 
     private socket: Socket;
@@ -23,20 +28,37 @@ class API {
     * Constructor for the API singleton service.
     * Performs all the Socket IO communications with the server.
     */
-    constructor() {
-        console.log('Constructing Socket API');
-
+    private constructor() {
         const loc = window.location;
-        this.socket = SocketIo(`${loc.protocol}//${loc.hostname}/mazenet`);
+        const serverPort = 9090; // TODO Edit when server serves front end.
+        this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${serverPort}/mazenet`);
 
         /* Setup the Observable feeds */
-        this.pageEnterObservable = new Observable((observer: Observer<Page>) => {
+        this.connectedObservable = new Observable<API.Routes.Users.Connect.Post.Response200>(
+            (observer: Observer<API.Routes.Users.Connect.Post.Response200>) => {
+                this.socket.on('/users/connect', (res: WebResponse) => {
+                    if (res.status === 200) {
+                        const res200 = (res.body as API.Routes.Users.Connect.Post.Response200);
+                        observer.next(res200);
+                        this.socket.emit('/rooms/enter',
+                            new WebRequest('POST', {id: res200.rootRoomId}, '1'));
+                        observer.complete();
+                    } else {
+                        ErrorService.Fatal('Could not connect to the server.', res);
+                    }
+                });
+        }).publishReplay().refCount();
+
+        this.pageEnterObservable =
+            new Observable((observer: Observer<API.Routes.Rooms.Enter.Post.Response200>) => {
             this.socket.on('/rooms/enter', (res: WebResponse) => {
-                console.log(res);
+                if (res.status === 200) {
+                    observer.next(res.body as API.Routes.Rooms.Enter.Post.Response200);
+                } else {
+                    ErrorService.Warning('Error entering room.',  res);
+                }
             });
         }).share();
-
-        this.socket.on('/users/connect', this.connectedCallback.bind(this));
         this.socket.on('/pages/userEntered', this.peerEnteredCallback.bind(this));
         this.socket.on('/pages/userLeft', this.peerLeftCallback.bind(this));
         this.socket.on('/pages/cursors/moved', this.peerMovedCursorCallback.bind(this));
@@ -45,8 +67,13 @@ class API {
         this.socket.on('/pages/update', this.pageUpdateCallback.bind(this));
         this.socket.on('/pages/updated', this.pageUpdatedCallback.bind(this));
 
-        this.socket.emit('/users/connect', new WebRequest('GET', {}, '1'));
+        const device: API.Models.PlatformData.Desktop = {pType: 'desktop', cursorPos: {x: 0, y: 0}};
+        this.socket.emit('/users/connect', new WebRequest('POST', device, '1'));
 
+    }
+
+    public static get Instance() {
+        return this._instance || (this._instance = new this());
     }
 
     public EnterPage(pageId: string, entryPosition: MzPosition): void {
@@ -73,24 +100,6 @@ class API {
     }
 
     /* ********** Event Handlers ********** */
-
-    private connectedCallback(response: WebResponse): void {
-        if (response.status === 200) {
-            let user = new UserData();
-            user.uId = response.body.uId;
-            user.RootPageId = response.body.rootPageId;
-            user.HomePageId = response.body.homePageId;
-
-            // TODO
-            // this.userService.SetUserData(user);
-            // this.pageService.SetRootPages(new RootPages(user.RootPageId, user.HomePageId));
-
-            this.loadInitialPage();
-
-        } else {
-            // TODO error
-        }
-    }
 
     private peerEnteredCallback(peer: PeerData): void {
         // TODO
@@ -196,40 +205,36 @@ class API {
         // };
     }
 
-    private loadInitialPage() {
-        // TODO
-        // let self = this;
-        //
-        // let successCallback = (page: Page) => {
-        //     console.log('Welcome to Mazenet.', self.userService.GetUserData());
-        // };
-        //
-        // let failureCallback = (error: any) => {
-        //     console.error('Could not enter page... redirecting to root.');
-        //     self.EnterPage(error.rootPageId, {x: 0, y: 0}).then(successCallback, function (error) {
-        //         console.error('Error loading root page. The Mazenet is dead.');
-        //     });
-        // };
-        //
-        // if (!!self.pageService.GetRootPage().url) {
-        //     self.EnterPage(self.pageService.GetRootPage().url, {x: 0.5, y: 0.5})
-        // .then(successCallback, failureCallback);
-        // } else if (!!self.pageService.GetRootPage().homepage) {
-        //     self.EnterPage(self.pageService.GetRootPage().homepage, {
-        //         x: 0.5,
-        //         y: 0.5
-        //     }).then(successCallback, failureCallback);
-        // } else if (!!self.pageService.GetRootPage().root) {
-        //     self.EnterPage(self.pageService.GetRootPage().root, {
-        //         x: 0.5,
-        //         y: 0.5
-        //     }).then(successCallback, failureCallback);
-        // } else {
-        //     console.error('No root page, homepage, or url page defined.');
-        // }
-    }
+    // private loadInitialPage() {
+    //     TODO
+    //     let self = this;
+    //
+    //     let successCallback = (page: Page) => {
+    //         console.log('Welcome to Mazenet.', self.userService.GetUserData());
+    //     };
+    //
+    //     let failureCallback = (error: any) => {
+    //         console.error('Could not enter page... redirecting to root.');
+    //         self.EnterPage(error.rootPageId, {x: 0, y: 0}).then(successCallback, function (error) {
+    //             console.error('Error loading root page. The Mazenet is dead.');
+    //         });
+    //     };
+    //
+    //     if (!!self.pageService.GetRootPage().url) {
+    //         self.EnterPage(self.pageService.GetRootPage().url, {x: 0.5, y: 0.5})
+    //     .then(successCallback, failureCallback);
+    //     } else if (!!self.pageService.GetRootPage().homepage) {
+    //         self.EnterPage(self.pageService.GetRootPage().homepage, {
+    //             x: 0.5,
+    //             y: 0.5
+    //         }).then(successCallback, failureCallback);
+    //     } else if (!!self.pageService.GetRootPage().root) {
+    //         self.EnterPage(self.pageService.GetRootPage().root, {
+    //             x: 0.5,
+    //             y: 0.5
+    //         }).then(successCallback, failureCallback);
+    //     } else {
+    //         console.error('No root page, homepage, or url page defined.');
+    //     }
+    // }
 }
-
-let instance = new API();
-
-export default instance;
