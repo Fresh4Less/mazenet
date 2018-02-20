@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as API from '../../../common/api/v1';
-import Tools from './tools/tools';
+import Toolbar from './toolbar/toolbar';
 
 import './mazenet.css';
 import ActiveRoom from './activeRoom/activeRoom';
@@ -19,11 +19,20 @@ export default class Mazenet extends React.Component<any, MazenetState> {
         this.state = {
           activeRoom: null
         };
-        SocketAPI.Instance.pageEnterObservable.subscribe((value => {
+
+        SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
             this.setState({
                 activeRoom: value.room
             });
         }));
+
+        SocketAPI.Instance.structureCreatedObservable.subscribe(value => {
+            const room = Object.assign({}, this.state.activeRoom);
+            room.structures[value.id] = value;
+            this.setState({
+                activeRoom: room
+            });
+        });
     }
     render() {
         let activeRoom = <div>Loading...</div>;
@@ -32,7 +41,7 @@ export default class Mazenet extends React.Component<any, MazenetState> {
         }
         return (
             <div id={'Mazenet'}>
-                <Tools/>
+                <Toolbar/>
                 <div id={'BelowToolbar'}>
                     {activeRoom}
                 </div>

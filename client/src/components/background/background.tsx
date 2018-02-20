@@ -12,7 +12,7 @@ export default class Background extends React.Component<any, BackgroundState> {
 
     constructor(props: any) {
         super(props);
-        SocketAPI.Instance.pageEnterObservable.subscribe((value => {
+        SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
             console.log('Background', value);
         }));
 

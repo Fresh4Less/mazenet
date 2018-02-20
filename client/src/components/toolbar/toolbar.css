@@ -9,7 +9,18 @@
     font-weight: bold;
 }
 
-#Tools #User {
+#Tools .right {
     float: right;
     padding-right: 10px;
+}
+
+#Tools .tool {
+    cursor: pointer;
+}
+#Tools .tool:hover {
+    text-shadow: 0 0 6px white;
+}
+#Tools .disabled {
+    filter: grayscale(100%);
+    cursor: not-allowed;
 }

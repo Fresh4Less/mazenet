@@ -22,6 +22,8 @@ body {
 #BelowToolbar {
     /* Change this value with the above value. */
     height: calc(100% - 30px);
+    /* Allows absolute positioning within. */
+    position: relative;
 }
 
 .noselect {
