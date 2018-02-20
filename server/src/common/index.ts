@@ -1,4 +1,5 @@
 import * as Express from 'express';
+import * as SocketIO from 'socket.io';
 import FreshSocketIO = require('fresh-socketio-router');
 
 import { User, ActiveUser } from '../user/models';
@@ -8,8 +9,9 @@ export interface Position {
     y: number;
 }
 
+/** Http Errors */
 export class BadRequestError extends Error {
-    static httpCode = 400;
+    httpCode = 400;
 
     constructor(message: string) {
         super(message);
@@ -18,7 +20,7 @@ export class BadRequestError extends Error {
 }
 
 export class UnauthorizedError extends Error {
-    static httpCode = 401;
+    httpCode = 401;
 
     constructor(message: string) {
         super(message);
@@ -27,7 +29,7 @@ export class UnauthorizedError extends Error {
 }
 
 export class ForbiddenError extends Error {
-    static httpCode = 403;
+    httpCode = 403;
 
     constructor(message: string) {
         super(message);
@@ -36,7 +38,7 @@ export class ForbiddenError extends Error {
 }
 
 export class NotFoundError extends Error {
-    static httpCode = 404;
+    httpCode = 404;
 
     constructor(message: string) {
         super(message);
@@ -45,7 +47,7 @@ export class NotFoundError extends Error {
 }
 
 export class ConflictError extends Error {
-    static httpCode = 409;
+    httpCode = 409;
 
     constructor(message: string) {
         super(message);
@@ -55,6 +57,7 @@ export class ConflictError extends Error {
 
 export let HttpErrors = [BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, ConflictError];
 
+/** Other errors */
 export class AlreadyExistsError extends Error {
     constructor(message: string) {
         super(message);

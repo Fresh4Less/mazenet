@@ -1,5 +1,6 @@
 import {Observable} from 'rxjs';
 import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/mergeMap';
 
@@ -9,6 +10,11 @@ import * as SocketIOClient from 'socket.io-client';
 import {Server} from '../src/server';
 import * as Api from '../../common/api';
 import {GlobalLogger, LoggerHandler} from '../src/util/logger';
+
+//interface Emit {
+    //eventName: string;
+    //data: any;
+//}
 
 interface Request {
     route: string;
@@ -25,6 +31,7 @@ interface Response {
 
 /** Connects a SocketIO client and records request/response for each transaction. Provides helper functions for issuing and validating transactions
  * user and activeUser properties are automatically set after using connectSocket() or connectAndEnter()
+ * TODO: multi-client tests, emit history
  * */
 class Client {
     client: SocketIOClient.Socket;
@@ -36,11 +43,15 @@ class Client {
     res: Response;
     //user?: Api.v1.Models.User;
     activeUser?: Api.v1.Models.ActiveUser;
-
+    /** after emitting an event, record heard events */
+    //emitHistory: [Emit, Emit[]][];
+    /** last event emitted */
+    //lastEmitted: [Emit, Emit[]];
 
     constructor(baseUrl: string) {
         this.client = SocketIOClient(baseUrl);
         this.transactions = [];
+        //this.emitHistory = [];
     }
 
     emitTransaction(method: string, route: string, body: any): Observable<Client> {
@@ -58,6 +69,23 @@ class Client {
             return this;
         });
     }
+
+    //emit(emitEvent: string, body: any, listenEvent: string): Observable<Client> {
+        //let obs: Observable<Response> = Observable.fromEvent(this.client, listenEvent);
+        //this.client.emit(emitEvent, body);
+        //let eventRecord: Emit[] = [
+            //{eventName: emitEvent, data: body},
+            //[]
+        //];
+
+        //this.emitHistory.push(eventRecord);
+        //return obs.map((res) => {
+            //// mutate the eventRecord in emitHistory
+            //eventRecord[1].push({eventName: listenEvent, data: res});
+            //this.lastEmitted = eventRecord;
+            //return this;
+        //});
+    //}
 
     /** Handle initial /users/connect call */
     connectSocket(): Observable<Client> {
@@ -97,6 +125,8 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
         handler.enabled = false;
     }
 });
+
+//GlobalLogger.handlers.get('request')!.enabled = true;
 
 beforeEach(() => {
     server = new Server({
@@ -217,6 +247,68 @@ describe('rooms', () => {
                     expect(tunnel.id).toBe(client.transactions[2][1].body.id);
                 }).first().toPromise();
             });
+        });
+    });
+
+    describe('cursors', () => {
+        test('cursor recording on disconnect', () => {
+            let client = new Client(baseUrl);
+            let client2 = new Client(baseUrl);
+            return client.connectAndEnter().mergeMap(() => {
+                client.client.emit(
+                    '/rooms/active-users/desktop/cursor-moved',
+                    {pos: {x: 0.1, y: 0.1}});
+                return Observable.timer(1000/30).take(1);
+            }).mergeMap(() => {
+                client.client.emit(
+                    '/rooms/active-users/desktop/cursor-moved',
+                    {pos: {x: 0.2, y: 0.2}});
+                return Observable.timer(10).take(1);
+            }).mergeMap(() => {
+                client.client.close();
+                return Observable.timer(10).take(1);
+            }).mergeMap(() => {
+                return client2.connectAndEnter();
+            }).mergeMap(() => {
+                let res = client2.res;
+                return client2.emitTransaction('GET', '/rooms/cursor-recordings', {
+                    roomId: res.body.room.id
+                });
+            }).map(() => {
+                let res = client2.res;
+                expect(res.status).toBe(200);
+                expect(Object.keys(res.body.cursorRecordings)).toHaveLength(1);
+
+                let recording = res.body.cursorRecordings[Object.keys(res.body.cursorRecordings)[0]];
+                expect(typeof recording.id).toBe('string');
+                expect(recording.activeUserId).toBe(client.activeUser!.id);
+
+                expect(Array.isArray(recording.frames)).toBe(true);
+                expect(recording.frames).toHaveLength(2);
+
+                expect(recording.frames[0].pos).toEqual({x: 0.1, y: 0.1});
+                expect(typeof recording.frames[0].t).toBe('number');
+                expect(recording.frames[1].pos).toEqual({x: 0.2, y: 0.2});
+                expect(typeof recording.frames[1].t).toBe('number');
+                expect(recording.frames[1].t).toBeGreaterThan(recording.frames[0].t);
+            }).first().toPromise();
+        });
+        // TODO: set up multi-client tests
+        test('cursor movement', () => {
+            //let client = new Client(baseUrl);
+            //return client.connectAndEnter().mergeMap(() => {
+                //return client.client.emit(
+                    //'/rooms/active-users/desktop/cursor-moved',
+                    //{pos: {x: 0.1, y: 0.1}},
+                    //'/rooms/active-users/desktop/cursor-moved'
+                //).take(1);
+            //}).mergeMap(() => {
+                //let data = client.lastEmitted[1][0].data;
+                //expect(client.lastEmitted[1].eventName).toBe('/rooms/active-users/desktop/cursor-moved');
+
+                //expect(typeof data.activeUserId).toBe('string');
+                //expect(data.pos).toEqual({x: 0.1, y: 0.1});
+            //}).first().toPromise();
         });
     });
 });

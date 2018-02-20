@@ -340,10 +340,10 @@ export namespace Routes {
                     roomId: Models.Room.Id;
                     /** Only get the n most recent recordings */
                     @Validator.validate(true)
-                    cursorRecordingLimit?: number;
+                    limit?: number;
                     /** Specifies the response format */
-                    @Validator.validate()
-                    format: 'json' | 'binary'; //TODO: test this validates correctly
+                    @Validator.validate(true)
+                    format?: 'json' | 'binary'; //TODO: test this validates correctly
                 }
 
                 export class Response200 {
@@ -409,7 +409,7 @@ export namespace Events {
                      */
                     export class CursorMoved {
                         @Validator.validate()
-                        userId: Models.User.Id;
+                        activeUserId: Models.ActiveUser.Id;
                         @Validator.validate()
                         pos: Models.Position;
                     }

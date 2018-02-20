@@ -80,6 +80,10 @@ export let Middleware = {
 
         return data;
     },
+    pid: function(data: any): any {
+        data.pid = process.pid;
+        return data;
+    }
 
 };
 
@@ -88,6 +92,7 @@ export class Logger {
         middleware: [
             {mw: Middleware.timestamp, levels: true},
             {mw: Middleware.fullError, levels: true},
+            {mw: Middleware.pid, levels: true},
         ]
     };
 
@@ -101,6 +106,7 @@ export class Logger {
     static readonly defaultHandlers = new Map<string, LoggerHandler>([
         ['diag', Object.assign({}, Logger.defaultHandler, {enabled: false})],
         ['trace', Object.assign({}, Logger.defaultHandler, {enabled: false})],
+        ['request', Object.assign({}, Logger.defaultHandler, {enabled: false})],
         ['info', Logger.defaultHandler],
         ['warn', Logger.defaultHandler],
         ['error', Logger.defaultHandler],
@@ -174,6 +180,10 @@ export class Logger {
 
     trace(message: string, userData?: object): void {
         this.logData('trace', message, userData);
+    }
+
+    request(message: string, userData?: object): void {
+        this.logData('request', message, userData);
     }
 
     info(message: string, userData?: object): void {

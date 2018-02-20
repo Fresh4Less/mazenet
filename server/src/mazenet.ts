@@ -8,8 +8,9 @@ import FreshSocketIO = require('fresh-socketio-router');
 
 import * as User from './user';
 import * as Room from './room';
+import * as CursorRecording from './cursor-recording';
 
-import {ErrorHandler} from './util/middleware';
+import {ErrorHandler, RequestLogger} from './util/middleware';
 import {GlobalLogger} from './util/logger';
 
 export namespace Mazenet {
@@ -36,15 +37,21 @@ export class Mazenet {
     protected Init() {
         GlobalLogger.trace('Initializing mazenet');
         //TODO: will need express middleware to convert GET query params to req.body object
+        let cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
+        let cursorService = new CursorRecording.Service(cursorDataStore);
+
         let roomDataStore = new Room.DataStore.InMemoryDataStore();
-        let roomService = new Room.Service(roomDataStore);
-        let roomMiddleware = new Room.Middleware(roomService);
+        let roomService = new Room.Service(roomDataStore, cursorService);
+        let roomMiddleware = new Room.Middleware(roomService, cursorService);
 
         let userDataStore = new User.DataStore.InMemoryDataStore();
         let userService = new User.Service(userDataStore);
         let userMiddleware = new User.Middleware(userService, roomService);
 
         let router = FreshSocketIO.Router();
+        let requestLogger = new RequestLogger();
+        router.use(requestLogger.middleware);
+
         router.use(userMiddleware.router); // must be used first, to authenticate user
         router.use(roomMiddleware.router);
 
@@ -55,7 +62,9 @@ export class Mazenet {
         let mazenetIo = this.socketServer.of('/mazenet');
         mazenetIo.use(userMiddleware.socketMiddleware);
         mazenetIo.use(roomMiddleware.socketMiddleware);
-        mazenetIo.use(FreshSocketIO(router));
+        mazenetIo.use(FreshSocketIO(router, {
+            ignoreList: ['/rooms/active-users/desktop/cursor-moved']
+        }));
     }
 }
 

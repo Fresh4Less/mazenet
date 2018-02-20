@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
-import { RoomDocument, Room, Structure } from './models';
+import { RoomDocument, Room, Structure, ActiveUserRoomData } from './models';
 import {ActiveUser} from '../user/models';
 import { NotFoundError, AlreadyExistsError } from '../common';
 
@@ -19,10 +19,10 @@ export interface DataStore {
 
     getRoomDocument: (room: Room) => Observable<RoomDocument>;
 
-    getActiveUsersInRoom: (roomId: Room.Id) => Observable<Map<ActiveUser.Id, ActiveUser>>;
-    getActiveUserRoomId: (activeUserId: ActiveUser.Id) => Observable<Room.Id | undefined>;
-    insertActiveUserToRoom: (roomId: Room.Id, activeUser: ActiveUser) => Observable<null>;
+    getActiveUserRoomData: (activeUserId: ActiveUser.Id) => Observable<ActiveUserRoomData | undefined>;
+    insertActiveUserToRoom: (roomId: Room.Id, activeUser: ActiveUserRoomData) => Observable<null>;
     deleteActiveUserFromRoom: (roomId: Room.Id, activeUserId: ActiveUser.Id) => Observable<null>;
+    getActiveUsersInRoom: (roomId: Room.Id) => Observable<Map<ActiveUser.Id, ActiveUserRoomData>>;
 }
 
 export class InMemoryDataStore implements DataStore {
@@ -32,8 +32,8 @@ export class InMemoryDataStore implements DataStore {
 
     structuresInRoom: Map<Room.Id, Set<Structure.Id>>;
 
-    activeUserRooms: Map<ActiveUser.Id, Room.Id>;
-    roomActiveUsers: Map<Room.Id, Map<ActiveUser.Id, ActiveUser>>;
+    activeUserRoomData: Map<ActiveUser.Id, ActiveUserRoomData>;
+    roomActiveUsers: Map<Room.Id, Map<ActiveUser.Id, ActiveUserRoomData>>;
 
     constructor() {
         this.rooms = new Map<Room.Id, Room>();
@@ -41,8 +41,8 @@ export class InMemoryDataStore implements DataStore {
 
         this.structuresInRoom = new Map<Room.Id, Set<Structure.Id>>();
 
-        this.activeUserRooms = new Map<ActiveUser.Id, Room.Id>();
-        this.roomActiveUsers = new Map<Room.Id, Map<ActiveUser.Id, ActiveUser>>();
+        this.activeUserRoomData = new Map<ActiveUser.Id, ActiveUserRoomData>();
+        this.roomActiveUsers = new Map<Room.Id, Map<ActiveUser.Id, ActiveUserRoomData>>();
 
     }
 
@@ -139,27 +139,27 @@ export class InMemoryDataStore implements DataStore {
     getActiveUsersInRoom(roomId: Room.Id) {
         let roomActiveUsers = this.roomActiveUsers.get(roomId);
         if(!roomActiveUsers) {
-            roomActiveUsers = new Map<ActiveUser.Id, ActiveUser>();
+            roomActiveUsers = new Map<ActiveUser.Id, ActiveUserRoomData>();
         }
         return Observable.of(roomActiveUsers);
     }
 
-    getActiveUserRoomId(activeUserId: ActiveUser.Id) {
-        let roomId = this.activeUserRooms.get(activeUserId);
-        return Observable.of(roomId);
+    getActiveUserRoomData(activeUserId: ActiveUser.Id) {
+        let activeUserRoomData = this.activeUserRoomData.get(activeUserId);
+        return Observable.of(activeUserRoomData);
     }
 
-    insertActiveUserToRoom(roomId: Room.Id, activeUser: ActiveUser) {
+    insertActiveUserToRoom(roomId: Room.Id, activeUserRoomData: ActiveUserRoomData) {
         if(!this.roomActiveUsers.has(roomId)) {
-            this.roomActiveUsers.set(roomId, new Map<ActiveUser.Id, ActiveUser>());
+            this.roomActiveUsers.set(roomId, new Map<ActiveUser.Id, ActiveUserRoomData>());
         }
 
         let roomActiveUsers = this.roomActiveUsers.get(roomId);
-        if(roomActiveUsers!.has(activeUser.id)) {
-            return <Observable<null>>Observable.throw(new AlreadyExistsError(`ActiveUser '${activeUser.id}' is already in room '${roomId}'`));
+        if(roomActiveUsers!.has(activeUserRoomData.activeUser.id)) {
+            return <Observable<null>>Observable.throw(new AlreadyExistsError(`ActiveUser '${activeUserRoomData.activeUser.id}' is already in room '${roomId}'`));
         }
-        roomActiveUsers!.set(activeUser.id, activeUser);
-        this.activeUserRooms.set(activeUser.id, roomId);
+        roomActiveUsers!.set(activeUserRoomData.activeUser.id, activeUserRoomData);
+        this.activeUserRoomData.set(activeUserRoomData.activeUser.id, activeUserRoomData);
         return Observable.of(null);
     }
 
@@ -169,7 +169,10 @@ export class InMemoryDataStore implements DataStore {
             return <Observable<null>>Observable.throw(new NotFoundError(`ActiveUser '${activeUserId}' is not in room '${roomId}'`));
         }
         roomActiveUsers.delete(activeUserId);
-        this.activeUserRooms.delete(activeUserId);
+        if(roomActiveUsers.size === 0) {
+            this.roomActiveUsers.delete(roomId);
+        }
+        this.activeUserRoomData.delete(activeUserId);
         return Observable.of(null);
     }
 }
