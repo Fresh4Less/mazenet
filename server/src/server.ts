@@ -34,8 +34,8 @@ interface Certificate {
 export class Server {
 
     static readonly defaultOptions = {
-        port: 9090,
-        securePort: 9443,
+        port: 8080,
+        securePort: 8443,
         sslCertPath: null,
         env: 'dev'
     };
@@ -48,6 +48,14 @@ export class Server {
     usingSsl: boolean;
 
     constructor(options: Partial<Server.Options>) {
+        // TODO: put this in util
+        // delete null/undefined options so Object.assign doesn't copy them
+        Object.keys(options).forEach((optName: string) => {
+            if((<any>options)[optName] == null) {
+                delete (<any>options)[optName];
+            }
+        });
+
         this.options = Object.assign({}, Server.defaultOptions, options);
         this.usingSsl = false;
     }

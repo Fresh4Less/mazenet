@@ -2,8 +2,9 @@
   "name": "mazenet-server",
   "version": "0.0.1",
   "description": "mazenet backend",
-  "main": "build/main.js",
+  "main": "build/server/src/main.js",
   "scripts": {
+    "start": "node build/server/src/main.js",
     "test": "jest --coverage --verbose"
   },
   "dependencies": {
