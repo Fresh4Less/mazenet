@@ -7,7 +7,7 @@ export namespace Models {
         x: number;
         @Validator.validate()
         y: number;
-    };
+    }
 
     /** Mazenet user */
     export class User {
@@ -59,7 +59,6 @@ export namespace Models {
         /** 128-bit UUID/v4 */
         export type Id = string;
     }
-
 
     /** Room that users can create and occupy */
     export class Room {
@@ -301,10 +300,13 @@ export namespace Routes {
                         structure: Models.Structure.Blueprint;
                     }
 
-                    /** Structure successfully created. Emits a `/rooms/structures/created event to all other users in the room */
-                        //export type Response201 = Models.Structure;
+                    /**
+                     * Structure successfully created. Emits a `/rooms/structures/created event to all other users in
+                     * the room
+                     */
+                    // export type Response201 = Models.Structure;
                     export let Response201 = Models.Structure;
-                    //export type Response201 = {};
+                    // export type Response201 = {};
                     export let Response400 = {};
                 }
             }
@@ -319,7 +321,7 @@ export namespace Routes {
                         id: Models.Structure.Id;
                         @Validator.validate(true)
                         pos?: Models.Position;
-                        //@Validator.validate()
+                        // @Validator.validate()
                         // TODO: add validator support to allow all child properties to be optional
                         data?: Models.StructureData;
                     }
@@ -343,7 +345,7 @@ export namespace Routes {
                     limit?: number;
                     /** Specifies the response format */
                     @Validator.validate(true)
-                    format?: 'json' | 'binary'; //TODO: test this validates correctly
+                    format?: 'json' | 'binary'; // TODO: test this validates correctly
                 }
 
                 export class Response200 {

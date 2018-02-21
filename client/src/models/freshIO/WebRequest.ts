@@ -7,7 +7,7 @@ export class WebRequest {
     public headers: any;
     public body: any;
 
-    private validMethods: string[] = ['GET'];
+    private validMethods: string[] = ['GET', 'POST'];
 
     constructor(method: string, body: any, requestId: string, additionalHeaders?: any) {
 

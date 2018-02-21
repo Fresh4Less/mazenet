@@ -1,0 +1,26 @@
+#Tools {
+    line-height: 30px;
+    height: 30px;
+    background-color: #00b0e8;
+}
+
+#Tools #Title {
+    padding-left: 10px;
+    font-weight: bold;
+}
+
+#Tools .right {
+    float: right;
+    padding-right: 10px;
+}
+
+#Tools .tool {
+    cursor: pointer;
+}
+#Tools .tool:hover {
+    text-shadow: 0 0 6px white;
+}
+#Tools .disabled {
+    filter: grayscale(100%);
+    cursor: not-allowed;
+}

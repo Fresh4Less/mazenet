@@ -43,7 +43,4 @@ server/**/*.js
 !server/gulpfile.js
 !server/jest.config.js
 
-# SASS stuff
-client/**/*.css
-
 coverage/

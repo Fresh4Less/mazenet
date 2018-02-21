@@ -49,7 +49,8 @@ export interface TypeInfo {
     optional?: boolean;
     /** if annotating an array, this must be the type array element type */
     arrayType?: Constructor<any>;
-    /* if annotating an array and this argument is true, null/undefined elements of the array will not throw a TypeError */
+    /* if annotating an array and this argument is true, null/undefined elements of the array will not throw a
+     * TypeError */
     arrayOptional?: boolean;
     /** if this property is a discriminated union, you must provide extra information */
     union?: UnionTypeInfo;
@@ -58,21 +59,25 @@ export interface TypeInfo {
 export interface UnionTypeInfo {
     /** discriminant property name */
     discriminant: string;
-    /** mapping from discriminant value to typeConstructor
-     * NOTE: with a little work the implementation could be changed so 'kind' doesn't need to be specified for each constructor. */
-    types: {[kind: string]: Constructor<any>};
+    /**
+     * mapping from discriminant value to typeConstructor
+     * NOTE: with a little work the implementation could be changed so 'kind' doesn't need to be specified
+     * for each constructor.
+     */
+    types: { [kind: string]: Constructor<any> };
 }
 
 /**
  * Method decorator factory
  * @param options - a TypeInfo object with extra information about the data type.
  *   For convenience, this can be a boolean specifying if this property is optional
- * @param arrayType - if options is boolean andthe annotated type is an array, this must be provided to specify the array element type
- *   If options is a TypeInfo object, this parameter is ignored and the arrayType must be specified in options
+ * @param arrayType - if options is boolean andthe annotated type is an array, this must be provided to specify the
+ *   array element type. If options is a TypeInfo object, this parameter is ignored and the arrayType must be specified
+ *   in options
  */
 export function validate(options?: Partial<TypeInfo> | boolean, arrayType?: Constructor<any>) {
     return (target: any, propertyKey: string) => {
-        if(typeof options === 'boolean') {
+        if (typeof options === 'boolean') {
             options = {optional: options, arrayType};
         }
         let typeConstructor = Reflect.getMetadata('design:type', target, propertyKey);
@@ -95,15 +100,17 @@ export function validate(options?: Partial<TypeInfo> | boolean, arrayType?: Cons
 export function validateData<T, C extends Constructor<T>>(data: any, expected: C | TypeInfo, variableName: string): T {
     // if expected is missing typeConstructor, is must be of  type C--create a TypeInfo based on it
     if (data == null) {
-        if (expected && (<any>expected).optional) {
+        if (expected && (<any> expected).optional) {
             return data;
         }
 
-        let expectedTypeName = (<C>expected).name || ((<TypeInfo>expected).typeConstructor && (<TypeInfo>expected).typeConstructor.name);
+        let expectedTypeName = (<C> expected).name ||
+            ((<TypeInfo> expected).typeConstructor && (<TypeInfo> expected).typeConstructor.name);
         throw new TypeError(`required property ${variableName} is null; expected ${expectedTypeName}`);
     }
 
-    let expectedTypeData: TypeInfo = (<any>expected).typeConstructor ? <TypeInfo>expected : {typeConstructor: <C>expected};
+    let expectedTypeData: TypeInfo =
+        (<any> expected).typeConstructor ? <TypeInfo> expected : {typeConstructor: <C> expected};
 
     switch (typeof data) {
         case 'boolean':
@@ -111,28 +118,31 @@ export function validateData<T, C extends Constructor<T>>(data: any, expected: C
         case 'string':
         case 'function':
             if (data.constructor !== expectedTypeData.typeConstructor) {
-                throw new TypeError(`property ${variableName} is ${data.constructor.name}; expected ${expectedTypeData.typeConstructor.name}`);
+                throw new TypeError(`property ${variableName} is ${
+                    data.constructor.name}; expected ${expectedTypeData.typeConstructor.name}`);
             }
             break;
         case 'object':
             if (data.constructor === Array) {
                 if (data.constructor !== expectedTypeData.typeConstructor) {
-                    throw new TypeError(`property ${variableName} is ${data.constructor.name}; expected ${expectedTypeData.typeConstructor.name}`);
+                    throw new TypeError(`property ${variableName} is ${
+                        data.constructor.name}; expected ${expectedTypeData.typeConstructor.name}`);
                 }
 
                 // check array elements
                 if (!expectedTypeData.arrayType) {
-                    throw new MissingTypeDataError(`property ${variableName} is an array, but no array type data was provided (to fix this error, add the expected type of the array to the @validate decorator. array of 'any' is not currently supported).`);
+                    throw new MissingTypeDataError(`property ${variableName} is an array, but no array type data was ` +
+                        `provided (to fix this error, add the expected type of the array to the @validate decorator. ` +
+                        `array of 'any' is not currently supported).`);
                 }
 
                 data.forEach((element: any, i: number) => {
                     validateData(element, {
                         typeConstructor: expectedTypeData.arrayType!,
                         optional: expectedTypeData.arrayOptional
-                    }, `${variableName}[${i}]`);
+                    },           `${variableName}[${i}]`);
                 });
-            }
-            else {
+            } else {
                 let propertyTypeMap: Map<string, TypeInfo> = expectedTypeData.typeConstructor.prototype[validateProps];
                 if (!propertyTypeMap) {
                     // no @validate properties
@@ -140,21 +150,24 @@ export function validateData<T, C extends Constructor<T>>(data: any, expected: C
                 }
 
                 for (let [pName, pTypeData] of propertyTypeMap) {
-                    if(pTypeData.union) {
+                    if (pTypeData.union) {
                         // union type, check that we have a valid union type, then validate its properties recursively
                         let validated = Object.keys(pTypeData.union.types).reduce((validated, unionTypeName) => {
-                            if(data[pName] && data[pName][pTypeData.union!.discriminant] === unionTypeName) {
-                                let typeData = Object.assign({}, pTypeData, {typeConstructor: pTypeData.union!.types[unionTypeName]});
+                            if (data[pName] && data[pName][pTypeData.union!.discriminant] === unionTypeName) {
+                                let typeData = Object.assign({}, pTypeData,
+                                                             {typeConstructor: pTypeData.union!.types[unionTypeName]});
                                 validateData(data[pName], typeData, `${variableName}.${pName}`);
                                 return true;
                             }
                             return validated;
-                        }, false);
-                        if(!validated) {
-                            throw new TypeError(`property ${variableName} is a discriminated union, but the descriminant ${variableName}.${pTypeData.union.discriminant} is an unknown value ${data[pName] && data[pName][pTypeData.union.discriminant]}`);
+                        },                                                        false);
+                        if (!validated) {
+                            throw new TypeError(`property ${
+                                variableName} is a discriminated union, but the descriminant ${
+                                variableName}.${pTypeData.union.discriminant} is an unknown value ${
+                                data[pName] && data[pName][pTypeData.union.discriminant]}`);
                         }
-                    }
-                    else {
+                    } else {
                         validateData(data[pName], pTypeData, `${variableName}.${pName}`);
                     }
                 }
