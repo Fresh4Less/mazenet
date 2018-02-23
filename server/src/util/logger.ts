@@ -78,6 +78,9 @@ export let Middleware = {
             }
         });
 
+        if(data instanceof Error) {
+            (<any>data).errorType = data.constructor.name;
+        }
         return data;
     },
     pid: function(data: any): any {

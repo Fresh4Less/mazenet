@@ -7,8 +7,8 @@ import * as Https from 'https';
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
 
-import * as Compression from 'compression';
 import * as BodyParser from 'body-parser';
+import * as Compression from 'compression';
 import * as CookieParser from 'cookie-parser';
 
 //import * as SocketIOCookieParser from 'socket.io-cookie-parser';
@@ -18,10 +18,15 @@ import { GlobalLogger } from './util/logger';
 import * as Mazenet from './mazenet';
 
 export namespace Server {
+    /** Server constructor options */
     export interface Options {
+        /** Insecure HTTP port, if 0, let OS pick */
         port: number;
+        /** HTTPS port, if 0, let OS pick */
         securePort: number;
+        /** path to a directory containing key.pem and cert.pem cert files*/
         sslCertPath?: string;
+        /** if set to 'prod', use stricter settings (SSL required) */
         env: string;
     }
 }
@@ -31,6 +36,9 @@ interface Certificate {
     key: Buffer
 }
 
+/**
+ * Set up HTTP/HTTPS server and socket.io server and start Mazenet
+ */
 export class Server {
 
     static readonly defaultOptions = {
@@ -60,7 +68,10 @@ export class Server {
         this.usingSsl = false;
     }
 
-    //TODO: return a promise that is resolved when setup is ready (wait for server 'listening' event is emitted)
+    /**
+     * Start the HTTP/HTTPS and Socket.io servers and initialize mazenet.
+     * @return Observable<void> when servers are listening and ready for traffic
+     */
     start(): Observable<void> {
         let listeningObservable: Observable<void>;
         try {
@@ -78,7 +89,6 @@ export class Server {
                 }
             }
 
-            //TODO: logs the wrong port number when options.port === 0 (using port 0 lets the OS choose a port)
             if (sslCert) {
                 this.httpServer = Https.createServer({
                     cert: sslCert.cert,
@@ -172,8 +182,7 @@ export class Server {
                 res.end();
             }
             catch (err) {
-                console.error(err);
-                console.log(req.headers);
+                GlobalLogger.error(`secure redirect error`, err);
                 res.writeHead(500);
                 res.end();
             }

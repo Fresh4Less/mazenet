@@ -5,11 +5,15 @@ import { GlobalLogger, LoggerHandler } from './util/logger';
 
 let commandLine = Minimist(process.argv.slice(2));
 let options: Partial<Server.Options> = {
-    port: parseInt(commandLine.port, 10) || undefined,
-    securePort: parseInt(commandLine.securePort, 10) || undefined,
+    port: parseInt(commandLine.port, 10),
+    securePort: parseInt(commandLine.securePort, 10),
     sslCertPath: commandLine.sllCert
 }
 
+options.port = (isNaN(<number>options.port)) ? undefined : options.port;
+options.securePort = (isNaN(<number>options.securePort)) ? undefined : options.securePort;
+
+// enable logs based on command line args
 GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
     // capitalize level name - 'logInfo', etc.
     let optName = 'log' + level.charAt(0).toUpperCase() + level.slice(1);
@@ -27,7 +31,7 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
 
 
 let server = new Server(options);
-server.start().subscribe(() => {
+    server.start().subscribe(() => {
 });
 
 /*

@@ -9,7 +9,7 @@ import { Request, Response, HttpErrors} from '../common';
 
 import * as Api from '../../../common/api';
 
-/** Catches all errors and matches them with the appropriate http response code */
+/** Catches all errors and responds with correct http code */
 export class ErrorHandler {
     constructor() {
         Object.bind(this, this.middleware);
@@ -26,18 +26,22 @@ export class ErrorHandler {
         };
 
         if (errorOut.code >= 500) {
-            GlobalLogger.error(`Unhandled ${err.constructor.name} in request handler'`, {
-                errorType: err.constructor.name,
-                message: err.message,
-                stack: err.stack,
-                data: errorOut.data
-            });
+            GlobalLogger.error(`Unhandled ${err.constructor.name} in request handler'`, err);
         }
         res.status(errorOut.code).json(errorOut);
     }
 }
 
-/** Logs information about request */
+/** Logs information about request
+ * - method - http method
+ * - url
+ * - ip - client ip
+ * - transport - http or ws
+ * - responseLength - length of response body in bytes
+ * - responseCode - http response code
+ * - responseDuration - response latency in milliseconds
+ * - connectionDuration - if socket was closed unexpectedly, duration of the conneciton. if this is set, responseXXX fields are undefined
+ */
 export class RequestLogger {
     constructor() {
         Object.bind(this, this.middleware);
@@ -54,7 +58,7 @@ export class RequestLogger {
         };
         res.on('close', () => {
             GlobalLogger.request('closed', Object.assign(data, {
-                connectionTime: new Date().valueOf() - startTime,
+                connectionDuration: new Date().valueOf() - startTime,
             }));
         });
         res.on('finish', () => {
@@ -69,7 +73,7 @@ export class RequestLogger {
 
             GlobalLogger.request('complete', Object.assign(data, {
                 responseCode: res.statusCode,
-                responseTime: new Date().valueOf() - startTime,
+                responseDuration: new Date().valueOf() - startTime,
                 responseLength: responseLength
             }));
         });

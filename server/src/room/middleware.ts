@@ -148,6 +148,7 @@ export class Middleware {
                     Observable.of(activeUsers),
                     this.service.enterRoom(body.id, (<Socket>req.socket).mazenet!.activeUser!));
             }).subscribe(([roomDoc, activeUsers]: [RoomDocument, Map<ActiveUser.Id, ActiveUserRoomData>, null]) => {
+                //(<Socket>req.socket).emit('/rooms/active-users/entered', (<Socket>req.socket).mazenet!.activeUser);
                 let response: Api.v1.Routes.Rooms.Enter.Post.Response200 = {
                     room: roomDoc.toV1(),
                     users: mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1())

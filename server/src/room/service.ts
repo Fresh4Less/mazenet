@@ -9,6 +9,7 @@ import * as Uuid from 'uuid/v4';
 
 import * as Api from '../../../common/api';
 
+import { GlobalLogger } from '../util/logger';
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
 import { RoomDocument, Room, Structure, StructureData, ActiveUserRoomData } from './models';
@@ -44,6 +45,7 @@ export class Service {
                 };
                 return Observable.forkJoin(Observable.of(room), this.createStructure(rootUser, room.id, enterTunnel));
             }).mergeMap(([room]: [Room, Structure]) => {
+                GlobalLogger.trace('init root room', {room});
                 return Observable.of(room);
             });
     }
@@ -75,7 +77,10 @@ export class Service {
             stylesheet: ''
         });
 
-        return this.dataStore.insertRoom(room);
+        return this.dataStore.insertRoom(room).map((room) => {
+            GlobalLogger.trace('create room', {room});
+            return room;
+        });
     }
 
     createStructure(user: User, roomId: Api.v1.Models.Room.Id, structureBlueprint: Api.v1.Models.Structure.Blueprint): Observable<Structure> {
@@ -99,6 +104,9 @@ export class Service {
             });
 
             return this.dataStore.insertStructure(structure);
+        }).map((structure) => {
+            GlobalLogger.trace('create structure', {structure});
+            return structure;
         });
     }
 
@@ -114,6 +122,7 @@ export class Service {
                 this.dataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
                 this.cursorService.startCursorRecording(activeUser.id, roomId));
         }).map(() => {
+            GlobalLogger.trace('enter room', {roomId, activeUser});
             return null;
         });
     }
@@ -126,6 +135,7 @@ export class Service {
                     this.dataStore.deleteActiveUserFromRoom(activeUserRoomData.roomId, activeUserId),
                     this.cursorService.endCursorRecording(activeUserId))
                 .map(() => {
+                    GlobalLogger.trace('exit room', {roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
                     return null;
                 });
             }

@@ -127,6 +127,7 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
 });
 
 //GlobalLogger.handlers.get('request')!.enabled = true;
+//GlobalLogger.handlers.get('trace')!.enabled = true;
 
 beforeEach(() => {
     server = new Server({

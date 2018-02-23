@@ -9,6 +9,7 @@ import * as Uuid from 'uuid/v4';
 
 import * as Api from '../../../common/api';
 
+import { GlobalLogger } from '../util/logger';
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
 import { CursorRecording, CursorRecordingFrame } from './models';
@@ -42,6 +43,9 @@ export class Service {
                 frames: frames
             });
             return this.dataStore.insertCursorRecording(roomId, cursorRecording);
+        }).map((cursorRecording) => {
+            GlobalLogger.trace('cursor recording', {id: cursorRecording.id, activeUserId: cursorRecording.activeUserId});
+            return cursorRecording;
         });
     }
 

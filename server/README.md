@@ -19,6 +19,11 @@ npm start
 npm start -- --port 80
 ```
 
+Run the server with pretty, colorful formatted log:
+```bash
+./start.sh --port 80
+```
+
 ## Command line arguments
 ### `--port [number]`
 Port the HTTP server is bound to. If 0, let the OS select the port.  

@@ -15,8 +15,6 @@ import {GlobalLogger} from './util/logger';
 
 export namespace Mazenet {
     export interface Options {
-        //app: Express.Router;
-        //socketServer: SocketIO.Server;
     }
 }
 

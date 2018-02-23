@@ -11,6 +11,7 @@ export interface DataStore {
     getActiveUser: (activeUserId: ActiveUser.Id) => Observable<ActiveUser>;
     insertActiveUser: (activeUser: ActiveUser) => Observable<ActiveUser>;
 
+    /** local store, return immediately **/
     getActiveUserFromSession: (sessionId: string) => ActiveUser | undefined;
     insertActiveUserFromSession: (sessionId: string, activeUser: ActiveUser) => ActiveUser;
     deleteActiveUserFromSession: (sessionId: string) => void;
