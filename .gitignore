@@ -37,10 +37,5 @@ client/**/*.map
 client/**/*.js
 common/**/*.map
 common/**/*.js
-server/**/*.map
-server/**/*.js
-
-!server/gulpfile.js
-!server/jest.config.js
 
 coverage/
