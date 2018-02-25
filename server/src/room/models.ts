@@ -180,7 +180,7 @@ export interface ExitRoomEvent {
 export interface StructureCreateEvent {
     event: 'structure-create';
     roomId: Room.Id;
+    user: User;
     structure: Structure;
-
 }
 

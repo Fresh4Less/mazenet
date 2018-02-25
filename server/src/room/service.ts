@@ -115,6 +115,7 @@ export class Service {
             this.eventObserver.next({
                 event: 'structure-create',
                 roomId: roomId,
+                user: user,
                 structure: structure
             });
             GlobalLogger.trace('create structure', {structure});

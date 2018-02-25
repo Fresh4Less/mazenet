@@ -216,12 +216,12 @@ export class Middleware {
 
     onEnterRoom(event: EnterRoomEvent) {
         let data: Api.v1.Events.Server.Rooms.ActiveUsers.Entered = event.activeUser.toV1();
-        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/entered', data).subscribe();
+        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/entered', data, event.activeUser.id).subscribe();
     }
 
     onExitRoom(event: ExitRoomEvent) {
         let data: Api.v1.Events.Server.Rooms.ActiveUsers.Exited = event.activeUser.toV1();
-        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/exited', data).subscribe();
+        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/exited', data, event.activeUser.id).subscribe();
     }
 
     onCursorMoved(event: CursorMoveEvent) {
@@ -229,17 +229,25 @@ export class Middleware {
             activeUserId: event.activeUser.id,
             pos: event.pos
         };
-        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/desktop/cursor-moved', data).subscribe();
+        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/desktop/cursor-moved', data, event.activeUser.id).subscribe();
     }
 
     onCreateStructure(event: StructureCreateEvent) {
         let data: Api.v1.Events.Server.Rooms.Structures.Created = event.structure.toV1();
-        this.emitToSocketsInRoom(event.roomId, '/rooms/structures/created', data).subscribe();
+        this.emitToSocketsInRoom(event.roomId, '/rooms/structures/created', data, event.user.id, true).subscribe();
     }
 
-    private emitToSocketsInRoom(roomId: Room.Id, route: string, data: any) {
+    private emitToSocketsInRoom(roomId: Room.Id, route: string, data: any, ignoreUser: ActiveUser.Id | User.Id, ignoreUserNonActive?: boolean) {
         return this.service.getActiveUsersInRoom(roomId).map((activeUsers) => {
             for(let [activeUserId, activeUserRoomData] of activeUsers) {
+                if(ignoreUserNonActive) {
+                    if(ignoreUser === activeUserRoomData.activeUser.userId) {
+                        continue;
+                    }
+                }
+                else if(activeUserId === ignoreUser) {
+                    continue;
+                }
                 let userSocketId = this.userService.getSessionFromActiveUser(activeUserId);
                 if(userSocketId) {
                     this.socketNamespace.to(userSocketId).emit(route, data);
