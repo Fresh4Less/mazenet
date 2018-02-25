@@ -7,6 +7,7 @@ import Toolbar from './toolbar/toolbar';
 import './mazenet.css';
 import ActiveRoom from './activeRoom/activeRoom';
 import { SocketAPI } from '../services/SocketAPI';
+import MouseCanvas from './background/mouseCanvas';
 
 interface MazenetState {
     activeRoom: API.Models.Room | null;
@@ -33,6 +34,8 @@ export default class Mazenet extends React.Component<any, MazenetState> {
                 activeRoom: room
             });
         });
+
+        console.log('TODO The user entered and exited callbacks work now! Use those!');
     }
     render() {
         let activeRoom = <div>Loading...</div>;
@@ -43,6 +46,7 @@ export default class Mazenet extends React.Component<any, MazenetState> {
             <div id={'Mazenet'}>
                 <Toolbar/>
                 <div id={'BelowToolbar'}>
+                    <MouseCanvas/>
                     {activeRoom}
                 </div>
             </div>

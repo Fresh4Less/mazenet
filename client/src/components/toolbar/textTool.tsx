@@ -5,7 +5,7 @@ interface TextToolProps {
     room: Models.Room;
 }
 
-export default class TextTool extends React.Component<TextToolProps, any> {
+export default class TextTool extends React.PureComponent<TextToolProps, any> {
     render() {
         const tunnelToolIcon = '📝';
         return  (

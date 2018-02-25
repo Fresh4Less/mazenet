@@ -5,11 +5,11 @@ import { Events, Models, Routes } from '../../../common/api/v1';
 import Socket = SocketIOClient.Socket;
 import { WebRequest } from '../models/freshIO/WebRequest';
 import { Page } from '../models/pages/Page';
-import { CursorFrame } from '../models/cursors/CursorFrame';
 import { WebResponse } from '../models/freshIO/WebResponse';
 import { ErrorService } from './ErrorService';
 
 import { Observable, Observer } from 'rxjs';
+import TransactionManager from './TransactionManager';
 
 export class SocketAPI {
 
@@ -26,6 +26,12 @@ export class SocketAPI {
     readonly activeUserDesktopCursorMovedObservable: Observable<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>;
 
     private socket: Socket;
+    private uniqueIdCounter: number;
+    private cursorRecordingTransactionManager: TransactionManager;
+
+    /*
+     * Managers for transactional SocketIO requests. Maps callbacks
+     */
 
     /*
     * Constructor for the API singleton service.
@@ -35,6 +41,8 @@ export class SocketAPI {
         const loc = window.location;
         const serverPort = 8080; // TODO Edit when server serves front end.
         this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${serverPort}/mazenet`);
+        this.uniqueIdCounter = 0;
+        this.cursorRecordingTransactionManager = new TransactionManager(this.socket, '/rooms/cursor-recordings');
 
         /* Setup the Observable feeds */
         this.connectedObservable = this.initConnectedObservable();
@@ -43,14 +51,16 @@ export class SocketAPI {
         // TODO roomUpdatedObservable
         this.structureCreatedObservable = this.initStructureCreatedObservable();
         // TODO structureUpdatedObservable
-        // TODO activeUser... Observables
+        this.activeUserEnteredObservable = this.initActiveUserEnteredObservable();
+        this.activeUserExitedObservable = this.initActiveUserExitedObservable();
+        this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
 
         const device: Models.PlatformData.Desktop = {pType: 'desktop', cursorPos: {x: 0, y: 0}};
         this.socket.emit('/users/connect', new WebRequest('POST', device, '1'));
 
     }
 
-    public static get Instance() {
+    public static get Instance(): SocketAPI {
         return this._instance || (this._instance = new this());
     }
 
@@ -70,8 +80,26 @@ export class SocketAPI {
         }, '1'));
     }
 
-    public CursorMove(cursor: CursorFrame): void {
-        this.socket.emit('/pages/cursors/moved', cursor);
+    public CursorMove(cursor: Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved): void {
+        this.socket.emit('/rooms/active-users/desktop/cursor-moved', cursor);
+    }
+
+    public GetRecordingForRoom(roomId: string): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
+        return new Observable<Routes.Rooms.CursorRecordings.Get.Response200>(
+            (observer: Observer<Routes.Rooms.CursorRecordings.Get.Response200>) => {
+                const uniqueId = `id-${++this.uniqueIdCounter}`;
+                this.cursorRecordingTransactionManager.AddTransactionListener(uniqueId, (res: WebResponse) => {
+                    if (res.status === 200) {
+                        observer.next(res.body as Routes.Rooms.CursorRecordings.Get.Response200);
+                    } else {
+                        ErrorService.Warning(`Could not get recording for room: ${roomId}`, res);
+                    }
+                    observer.complete();
+                });
+                this.socket.emit('/rooms/cursor-recordings', new WebRequest('GET', {
+                    roomId: roomId
+                }, uniqueId));
+            });
     }
 
     /* ********** Private ********** */
@@ -88,6 +116,8 @@ export class SocketAPI {
                         observer.complete();
                     } else {
                         ErrorService.Fatal('Could not connect to the server.', res);
+                        observer.error(res.body);
+                        observer.complete();
                     }
                 });
             }).publishReplay().refCount();
@@ -100,6 +130,7 @@ export class SocketAPI {
                     observer.next(res.body as Routes.Rooms.Enter.Post.Response200);
                 } else {
                     ErrorService.Warning('Error entering room.',  res);
+                    observer.error(res.body);
                 }
             });
         }).share();
@@ -113,10 +144,36 @@ export class SocketAPI {
                    observer.next(struct);
                }  else {
                    ErrorService.Warning('Could not create structure.', res);
+                   observer.error(res.body);
                }
             });
             this.socket.on('/rooms/structures/created', (structure: Models.Structure) => {
                 observer.next(structure);
+            });
+        }).share();
+    }
+
+    private initActiveUserEnteredObservable() {
+        return new Observable((observer: Observer<Models.ActiveUser>) => {
+            this.socket.on('/rooms/active-users/entered', (user: Models.ActiveUser) => {
+                observer.next(user);
+            });
+        }).share();
+    }
+
+    private initActiveUserExitedObservable() {
+        return new Observable((observer: Observer<Models.ActiveUser>) => {
+            this.socket.on('/rooms/active-users/exited', (user: Models.ActiveUser) => {
+                observer.next(user);
+            });
+        }).share();
+    }
+
+    private initActiveUserDesktopCursorMovedObservable() {
+        return new Observable((observer: Observer<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>) => {
+            this.socket.on('/rooms/active-users/desktop/cursor-moved',
+                (cursor: Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved) => {
+                observer.next(cursor);
             });
         }).share();
     }

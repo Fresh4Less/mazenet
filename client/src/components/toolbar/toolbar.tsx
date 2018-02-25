@@ -13,7 +13,7 @@ interface ToolbarState {
     username: string;
 }
 
-export default class Toolbar extends React.Component<any, ToolbarState> {
+export default class Toolbar extends React.PureComponent<any, ToolbarState> {
 
     constructor(props: any) {
         super(props);

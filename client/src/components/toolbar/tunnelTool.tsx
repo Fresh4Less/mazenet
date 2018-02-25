@@ -7,7 +7,7 @@ interface TunnelToolProps {
     room: Models.Room;
 }
 
-export default class TunnelTool extends React.Component<TunnelToolProps, any> {
+export default class TunnelTool extends React.PureComponent<TunnelToolProps, any> {
 
     constructor(props: TunnelToolProps) {
         super(props);
