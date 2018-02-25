@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs/Observable';
+import { Observer } from 'rxjs/Observer';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
@@ -12,7 +13,7 @@ import * as Api from '../../../common/api';
 import { GlobalLogger } from '../util/logger';
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
-import { CursorRecording, CursorRecordingFrame } from './models';
+import { CursorRecording, CursorRecordingFrame, CursorEvent } from './models';
 
 import { Room, ActiveUserRoomData } from '../room/models';
 import { User, ActiveUser } from '../user/models';
@@ -21,8 +22,16 @@ import { Position } from '../common';
 export class Service {
     dataStore: DataStore;
 
+    events: Observable<CursorEvent>;
+
+    private eventObserver: Observer<CursorEvent>;
+
     constructor(dataStore: DataStore) {
         this.dataStore = dataStore;
+
+        this.events = Observable.create((observer: Observer<CursorEvent>) => {
+            this.eventObserver = observer;
+        }).share();
     }
 
     getCursorRecordings(roomId: Room.Id, limit: number): Observable<Map<CursorRecording.Id, CursorRecording>> {
@@ -57,6 +66,14 @@ export class Service {
             pos: pos,
             t: Math.floor((new Date().valueOf() - new Date(activeUserRoomData.enterTime).valueOf())/30)
         };
-        return this.dataStore.addCursorRecordingFrame(activeUserRoomData.activeUser.id, frame);
+        return this.dataStore.addCursorRecordingFrame(activeUserRoomData.activeUser.id, frame).map(() => {;
+            this.eventObserver.next({
+                event: 'move',
+                roomId: activeUserRoomData.roomId,
+                activeUser: activeUserRoomData.activeUser,
+                pos: pos
+            });
+            return null;
+        });
     }
 }

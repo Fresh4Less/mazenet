@@ -50,6 +50,10 @@ export class Service {
         return this.dataStore.getActiveUserFromSession(sessionId);
     }
 
+    getSessionFromActiveUser(activeUserId: ActiveUser.Id): string | undefined {
+        return this.dataStore.getSessionFromActiveUser(activeUserId);
+    }
+
     onUserDisconnect(sessionId: string): void {
         this.dataStore.deleteActiveUserFromSession(sessionId);
     }

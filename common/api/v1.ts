@@ -395,12 +395,12 @@ export namespace Events {
                  * route: '/rooms/active-users/entered'
                  * An ActiveUser entered the client's current room
                  */
-                export let Entered = Models.ActiveUser;
+                export type Entered = Models.ActiveUser;
                 /**
                  * route: '/rooms/active-users/exited'
                  * An ActiveUser exited the client's current room
                  */
-                export let Exited = Models.ActiveUser;
+                export type Exited = Models.ActiveUser;
                 /**
                  * route: '/rooms/active-users/desktop'
                  */

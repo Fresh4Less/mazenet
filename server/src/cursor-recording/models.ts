@@ -2,6 +2,7 @@ import * as Api from '../../../common/api';
 
 import { Position, mapToObject, objectToMap } from '../common';
 import { ActiveUser } from '../user/models';
+import { Room } from '../room/models';
 
 export class CursorRecording {
     id: CursorRecording.Id;
@@ -28,4 +29,13 @@ export interface CursorRecordingFrame {
 
 export namespace CursorRecording {
     export type Id = string;
+}
+
+export type CursorEvent = CursorMoveEvent;
+
+export interface CursorMoveEvent {
+    event: 'move';
+    roomId: Room.Id;
+    activeUser: ActiveUser;
+    pos: Position;
 }

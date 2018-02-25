@@ -34,16 +34,20 @@ export class Mazenet {
 
     protected Init() {
         GlobalLogger.trace('Initializing mazenet');
+
+        let mazenetIo = this.socketServer.of('/mazenet');
+
         //TODO: will need express middleware to convert GET query params to req.body object
         let cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
         let cursorService = new CursorRecording.Service(cursorDataStore);
 
-        let roomDataStore = new Room.DataStore.InMemoryDataStore();
-        let roomService = new Room.Service(roomDataStore, cursorService);
-        let roomMiddleware = new Room.Middleware(roomService, cursorService);
-
         let userDataStore = new User.DataStore.InMemoryDataStore();
         let userService = new User.Service(userDataStore);
+
+        let roomDataStore = new Room.DataStore.InMemoryDataStore();
+        let roomService = new Room.Service(roomDataStore, cursorService);
+
+        let roomMiddleware = new Room.Middleware(roomService, userService, cursorService, mazenetIo);
         let userMiddleware = new User.Middleware(userService, roomService);
 
         let router = FreshSocketIO.Router();
@@ -57,7 +61,6 @@ export class Mazenet {
         router.use(errorHandler.middleware);
 
         this.expressApp.use(router);
-        let mazenetIo = this.socketServer.of('/mazenet');
         mazenetIo.use(userMiddleware.socketMiddleware);
         mazenetIo.use(roomMiddleware.socketMiddleware);
         mazenetIo.use(FreshSocketIO(router, {

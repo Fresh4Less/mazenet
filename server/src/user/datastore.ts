@@ -15,17 +15,20 @@ export interface DataStore {
     getActiveUserFromSession: (sessionId: string) => ActiveUser | undefined;
     insertActiveUserFromSession: (sessionId: string, activeUser: ActiveUser) => ActiveUser;
     deleteActiveUserFromSession: (sessionId: string) => void;
+    getSessionFromActiveUser: (activeUserId: ActiveUser.Id) => string | undefined;
 }
 
 export class InMemoryDataStore implements DataStore {
     users: Map<User.Id, User>;
     activeUsers: Map<ActiveUser.Id, ActiveUser>;
-    activeUserSessions: Map<string, ActiveUser>;
+    sessionActiveUsers: Map<string, ActiveUser>;
+    activeUserSessions: Map<ActiveUser.Id, string>;
 
     constructor() {
         this.users = new Map<User.Id, User>();
         this.activeUsers = new Map<ActiveUser.Id, ActiveUser>();
-        this.activeUserSessions = new Map<string, ActiveUser>();
+        this.sessionActiveUsers = new Map<string, ActiveUser>();
+        this.activeUserSessions = new Map<ActiveUser.Id, string>();
     }
 
     getUser(userId: User.Id) {
@@ -65,19 +68,28 @@ export class InMemoryDataStore implements DataStore {
     }
 
     getActiveUserFromSession(sessionId: string) {
-        return this.activeUserSessions.get(sessionId);
+        return this.sessionActiveUsers.get(sessionId);
     }
 
     insertActiveUserFromSession(sessionId: string, activeUser: ActiveUser) {
-        if (this.activeUserSessions.has(sessionId)) {
+        if (this.sessionActiveUsers.has(sessionId)) {
             throw new AlreadyExistsError(`Session '${sessionId}' already has an ActiveUser`);
         }
 
-        this.activeUsers.set(sessionId, activeUser);
+        this.sessionActiveUsers.set(sessionId, activeUser);
+        this.activeUserSessions.set(activeUser.id, sessionId);
         return activeUser;
     }
 
     deleteActiveUserFromSession(sessionId: string) {
-        this.activeUserSessions.delete(sessionId);
+        let activeUser = this.sessionActiveUsers.get(sessionId);
+        if(activeUser) {
+            this.activeUserSessions.delete(activeUser.id);
+        }
+        this.sessionActiveUsers.delete(sessionId);
+    }
+
+    getSessionFromActiveUser(activeUserId: ActiveUser.Id) {
+        return this.activeUserSessions.get(activeUserId);
     }
 }

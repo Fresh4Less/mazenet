@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs/Observable';
+import { Observer } from 'rxjs/Observer';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
@@ -12,17 +13,23 @@ import * as Api from '../../../common/api';
 import { GlobalLogger } from '../util/logger';
 import { NotFoundError } from '../common';
 import { DataStore } from './datastore';
-import { RoomDocument, Room, Structure, StructureData, ActiveUserRoomData } from './models';
+import { RoomDocument, Room, Structure, StructureData, ActiveUserRoomData, RoomEvent } from './models';
 import { Service as CursorService} from '../cursor-recording/service';
 import { User, ActiveUser} from '../user/models';
 
 export class Service {
     dataStore: DataStore;
     cursorService: CursorService;
+    events: Observable<RoomEvent>;
+
+    private eventObserver: Observer<RoomEvent>;
 
     constructor(dataStore: DataStore, cursorService: CursorService) {
         this.dataStore = dataStore;
         this.cursorService = cursorService;
+        this.events = Observable.create((observer: Observer<RoomEvent>) => {
+            this.eventObserver = observer;
+        }).share();
     }
 
     initRootRoom(): Observable<Room> {
@@ -122,6 +129,7 @@ export class Service {
                 this.dataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
                 this.cursorService.startCursorRecording(activeUser.id, roomId));
         }).map(() => {
+            this.eventObserver.next({event: 'enter', roomId, activeUser});
             GlobalLogger.trace('enter room', {roomId, activeUser});
             return null;
         });
@@ -135,6 +143,7 @@ export class Service {
                     this.dataStore.deleteActiveUserFromRoom(activeUserRoomData.roomId, activeUserId),
                     this.cursorService.endCursorRecording(activeUserId))
                 .map(() => {
+                    this.eventObserver.next({event: 'exit', roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
                     GlobalLogger.trace('exit room', {roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
                     return null;
                 });
