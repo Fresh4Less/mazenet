@@ -82,11 +82,9 @@
                 {{#each children}}
                     <section class="tsd-index-section {{cssClasses}}">
                         <h3>{{name}}</h3>
-                        <ul class="tsd-index-list">
-                            {{#> api-route}}
-                                {{name}}
-                            {{/api-route}}
-                        </ul>
+                        {{!-- <ul class="tsd-index-list"> --}}
+                        {{!-- </ul> --}}
+						{{> api-route}}
                     </section>
                 {{/each}}
                 </div>

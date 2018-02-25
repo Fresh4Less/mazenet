@@ -1,17 +1,13 @@
 {{#ifCond name "===" "Get"}}
-    {{#> api-route-method}}
-        {{> @partial-block}}
-    {{/api-route-method}}
+    {{> api-route-method}}
 {{else}}
     {{#ifCond name "===" "Post"}}
-        {{#> api-route-method}}
-            {{> @partial-block}}
-        {{/api-route-method}}
+        {{> api-route-method}}
     {{else}}
-        {{#each children}}
-            {{#> api-route}}
-                {{parent.name}}/{{> @partial-block}}
-            {{/api-route}}
-        {{/each}}
+		<div style="a::before { content: '{{name}}'; }">
+			{{#each children}}
+				{{> api-route}}
+			{{/each}}
+		</div>
     {{/ifCond}}
 {{/ifCond}}
