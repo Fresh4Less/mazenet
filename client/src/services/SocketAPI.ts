@@ -33,7 +33,7 @@ export class SocketAPI {
     */
     private constructor() {
         const loc = window.location;
-        const serverPort = 9090; // TODO Edit when server serves front end.
+        const serverPort = 8080; // TODO Edit when server serves front end.
         this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${serverPort}/mazenet`);
 
         /* Setup the Observable feeds */
