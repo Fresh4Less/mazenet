@@ -2,8 +2,8 @@ import * as Api from '../../../common/api';
 import { Position } from '../common';
 
 export class User {
-    id: User.Id;
-    username: string;
+    public id: User.Id;
+    public username: string;
 
     constructor(v1: Api.v1.Models.User) {
         this.id = v1.id;
@@ -16,21 +16,21 @@ export namespace User {
 }
 
 export class ActiveUser {
-    id: ActiveUser.Id;
-    userId: User.Id;
-    username: string;
-    platformData: ActiveUser.PlatformData;
+    public id: ActiveUser.Id;
+    public userId: User.Id;
+    public username: string;
+    public platformData: ActiveUser.PlatformData;
 
     constructor(v1: Api.v1.Models.ActiveUser) {
         Object.assign(this, v1);
     }
 
-    toV1(): Api.v1.Models.ActiveUser {
+    public toV1(): Api.v1.Models.ActiveUser {
         return {
             id: this.id,
+            platformData: this.platformData,
             userId: this.userId,
             username: this.username,
-            platformData: this.platformData,
         };
     }
 }
@@ -43,7 +43,7 @@ export namespace ActiveUser {
     export namespace PlatformData {
         export interface Desktop {
             pType: 'desktop';
-            cursorPos: Position
+            cursorPos: Position;
         }
 
         export interface Mobile {

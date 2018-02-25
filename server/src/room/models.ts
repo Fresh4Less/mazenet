@@ -1,25 +1,25 @@
 import * as Api from '../../../common/api';
 
-import { Position, mapToObject, objectToMap } from '../common';
-import { User, ActiveUser } from '../user/models';
+import { mapToObject, objectToMap, Position } from '../common';
+import { ActiveUser, User } from '../user/models';
 
 /** Room and structures that can be serialized into an API room. */
 export class RoomDocument {
-    room: Room;
-    structures: Map<Structure.Id, Structure>;
+    public room: Room;
+    public structures: Map<Structure.Id, Structure>;
     constructor(room: Room, structures: Map<Structure.Id, Structure>) {
         this.room = room;
         this.structures = structures;
     }
 
-    toV1(): Api.v1.Models.Room {
+    public toV1(): Api.v1.Models.Room {
         return {
-            id: this.room.id,
             creator: this.room.creator,
-            title: this.room.title,
+            id: this.room.id,
             owners: Array.from(this.room.owners),
-            structures: mapToObject(this.structures, (s:Structure) => s.toV1()),
-            stylesheet: this.room.stylesheet
+            structures: mapToObject(this.structures, (s: Structure) => s.toV1()),
+            stylesheet: this.room.stylesheet,
+            title: this.room.title,
         };
     }
 }
@@ -34,11 +34,11 @@ export interface RoomOptions {
 
 /** Room. has no structure data */
 export class Room {
-    id: Room.Id;
-    creator: User.Id;
-    title: string;
-    owners: Set<User.Id>;
-    stylesheet: string;
+    public id: Room.Id;
+    public creator: User.Id;
+    public title: string;
+    public owners: Set<User.Id>;
+    public stylesheet: string;
 
     constructor(options: RoomOptions) {
         this.id = options.id;
@@ -60,52 +60,51 @@ export type StructureData = StructureData.Tunnel | StructureData.Text;
 
 export namespace StructureData {
     export class Tunnel {
-        readonly sType = 'tunnel';
-        sourceId: Room.Id;
-        targetId: Room.Id;
-        sourceText: string;
-        targetText: string;
+        public readonly sType = 'tunnel';
+        public sourceId: Room.Id;
+        public targetId: Room.Id;
+        public sourceText: string;
+        public targetText: string;
 
         constructor(v1: Api.v1.Models.StructureData.Tunnel) {
             Object.assign(this, v1);
         }
 
-        toV1(): Api.v1.Models.StructureData.Tunnel {
+        public toV1(): Api.v1.Models.StructureData.Tunnel {
             return {
                 sType: this.sType,
                 sourceId: this.sourceId,
-                targetId: this.targetId,
                 sourceText: this.sourceText,
-                targetText: this.targetText
+                targetId: this.targetId,
+                targetText: this.targetText,
             };
         }
     }
 
     export class Text {
-        readonly sType = 'text';
-        text: string;
-        size: Position;
+        public readonly sType = 'text';
+        public text: string;
+        public size: Position;
 
         constructor(v1: Api.v1.Models.StructureData.Text) {
             Object.assign(this, v1);
         }
 
-        toV1(): Api.v1.Models.StructureData.Text {
+        public toV1(): Api.v1.Models.StructureData.Text {
             return {
                 sType: this.sType,
+                size: this.size,
                 text: this.text,
-                size: this.size
             };
         }
     }
 }
 
-
 export class Structure {
-    id: Structure.Id;
-    creator: User.Id;
-    pos: Position;
-    data: StructureData;
+    public id: Structure.Id;
+    public creator: User.Id;
+    public pos: Position;
+    public data: StructureData;
 
     constructor(v1: Api.v1.Models.Structure) {
         Object.assign(this, v1);
@@ -115,12 +114,12 @@ export class Structure {
         //this.data = v1.data;
     }
 
-    toV1(): Api.v1.Models.Structure {
+    public toV1(): Api.v1.Models.Structure {
         return {
-            id: this.id,
             creator: this.creator,
+            data: this.data.toV1(),
+            id: this.id,
             pos: this.pos,
-            data: this.data.toV1()
         };
     }
 }
@@ -130,19 +129,19 @@ export namespace Structure {
 }
 
 export class CursorRecording {
-    id: CursorRecording.Id;
-    activeUserId: ActiveUser.Id;
-    frames: CursorRecordingFrame[];
+    public id: CursorRecording.Id;
+    public activeUserId: ActiveUser.Id;
+    public frames: CursorRecordingFrame[];
 
     constructor(v1: Api.v1.Models.CursorRecording) {
         Object.assign(this, v1);
     }
 
-    toV1(): Api.v1.Models.CursorRecording {
+    public toV1(): Api.v1.Models.CursorRecording {
         return {
-            id: this.id,
             activeUserId: this.activeUserId,
-            frames: this.frames
+            frames: this.frames,
+            id: this.id,
         };
     }
 }
@@ -183,4 +182,3 @@ export interface StructureCreatedEvent {
     user: User;
     structure: Structure;
 }
-
