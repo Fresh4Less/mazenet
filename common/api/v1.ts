@@ -379,12 +379,12 @@ export namespace Events {
                  * route: '/rooms/structures/created'
                  * A structure was created in the client's current room
                  */
-                export let Created = Models.Room;
+                export type Created = Models.Structure;
                 /**
                  * route: '/rooms/structures/updated'
                  * A structure was updated in the client's current room
                  */
-                export let Updated = Models.Room;
+                export type Updated = Models.Structure;
             }
 
             /**

@@ -163,7 +163,7 @@ export interface ActiveUserRoomData {
     enterTime: string;
 }
 
-export type RoomEvent = EnterRoomEvent | ExitRoomEvent;
+export type RoomEvent = EnterRoomEvent | ExitRoomEvent | StructureCreateEvent ;
 
 export interface EnterRoomEvent {
     event: 'enter';
@@ -175,5 +175,12 @@ export interface ExitRoomEvent {
     event: 'exit';
     roomId: Room.Id;
     activeUser: ActiveUser;
+}
+
+export interface StructureCreateEvent {
+    event: 'structure-create';
+    roomId: Room.Id;
+    structure: Structure;
+
 }
 

@@ -112,6 +112,11 @@ export class Service {
 
             return this.dataStore.insertStructure(structure);
         }).map((structure) => {
+            this.eventObserver.next({
+                event: 'structure-create',
+                roomId: roomId,
+                structure: structure
+            });
             GlobalLogger.trace('create structure', {structure});
             return structure;
         });

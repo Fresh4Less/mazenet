@@ -12,7 +12,7 @@ import {GlobalLogger} from '../util/logger';
 
 import { Request, Response, Socket, BadRequestError, UnauthorizedError, ConflictError, mapToObject } from '../common';
 import { Service } from './service';
-import { RoomDocument, Room, Structure, ActiveUserRoomData, RoomEvent, EnterRoomEvent, ExitRoomEvent } from './models';
+import { RoomDocument, Room, Structure, ActiveUserRoomData, RoomEvent, EnterRoomEvent, ExitRoomEvent, StructureCreateEvent} from './models';
 import { User, ActiveUser } from '../user/models';
 
 import {CursorRecording, CursorEvent, CursorMoveEvent} from '../cursor-recording/models';
@@ -41,6 +41,7 @@ export class Middleware {
         // NOTE: consider adding a way to unsubscribe
         service.events.filter((event) => event.event === 'enter').subscribe((event) => this.onEnterRoom(<EnterRoomEvent>event));
         service.events.filter((event) => event.event === 'exit').subscribe((event) => this.onExitRoom(<ExitRoomEvent>event));
+        service.events.filter((event) => event.event === 'structure-create').subscribe((event) => this.onCreateStructure(<StructureCreateEvent>event));
         cursorService.events.filter((event) => event.event === 'move').subscribe((event) => this.onCursorMoved(<CursorMoveEvent>event));
         this.router = this.makeRouter();
         this.socketMiddleware = this.makeSocketMiddleware();
@@ -229,6 +230,11 @@ export class Middleware {
             pos: event.pos
         };
         this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/desktop/cursor-moved', data).subscribe();
+    }
+
+    onCreateStructure(event: StructureCreateEvent) {
+        let data: Api.v1.Events.Server.Rooms.Structures.Created = event.structure.toV1();
+        this.emitToSocketsInRoom(event.roomId, '/rooms/structures/created', data).subscribe();
     }
 
     private emitToSocketsInRoom(roomId: Room.Id, route: string, data: any) {
