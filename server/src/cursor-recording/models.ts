@@ -31,9 +31,9 @@ export namespace CursorRecording {
     export type Id = string;
 }
 
-export type CursorEvent = CursorMoveEvent;
+export type CursorEvent = CursorMovedEvent;
 
-export interface CursorMoveEvent {
+export interface CursorMovedEvent {
     event: 'move';
     roomId: Room.Id;
     activeUser: ActiveUser;

@@ -210,7 +210,7 @@ export namespace Routes {
                 }
 
                 /** Information about the client's user account and the root room id. */
-                export let Response201 = Models.User;
+                export type Response201 = Models.User;
             }
         }
         /**
@@ -353,7 +353,7 @@ export namespace Routes {
                     cursorRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
                 }
 
-                export let Response400 = {};
+                export type Response400 = ErrorResponse;
             }
         }
     }
@@ -367,49 +367,64 @@ export namespace Events {
          */
         export namespace Rooms {
             /**
-             * route: '/rooms/updated'
              * The room data was updated.
              */
-            export let Updated = Models.Room;
-            /**
-             * route: '/rooms/structures'
-             */
+            export type Updated = Models.Room;
+            export namespace Updated {
+                export let Route = '/rooms/updated';
+            }
             export namespace Structures {
+                /** A structure was created in the client's current room */
+                export class Created {
+                    static Route = '/rooms/structures/created';
+
+                    @Validator.validate()
+                    roomId: Models.Room.Id;
+                    @Validator.validate()
+                    structure: Models.Structure;
+                }
+
                 /**
-                 * route: '/rooms/structures/created'
-                 * A structure was created in the client's current room
-                 */
-                export type Created = Models.Structure;
-                /**
-                 * route: '/rooms/structures/updated'
                  * A structure was updated in the client's current room
                  */
-                export type Updated = Models.Structure;
+                export class Updated {
+                    static Route = '/rooms/structures/updated';
+
+                    @Validator.validate()
+                    roomId: Models.Room.Id;
+                    @Validator.validate()
+                    structure: Models.Structure;
+                }
             }
 
-            /**
-             * route: '/rooms/active-users'
-             */
             export namespace ActiveUsers {
-                /**
-                 * route: '/rooms/active-users/entered'
-                 * An ActiveUser entered the client's current room
-                 */
-                export type Entered = Models.ActiveUser;
-                /**
-                 * route: '/rooms/active-users/exited'
-                 * An ActiveUser exited the client's current room
-                 */
-                export type Exited = Models.ActiveUser;
-                /**
-                 * route: '/rooms/active-users/desktop'
-                 */
+                /** An ActiveUser entered the client's current room */
+                export class Entered {
+                    static Route = '/rooms/active-users/entered';
+
+                    @Validator.validate()
+                    roomId: Models.Room.Id;
+                    @Validator.validate()
+                    activeUser: Models.ActiveUser;
+                }
+
+                /** An ActiveUser exited the client's current room */
+                export class Exited {
+                    static Route = '/rooms/active-users/exited';
+
+                    @Validator.validate()
+                    roomId: Models.Room.Id;
+                    @Validator.validate()
+                    activeUserId: Models.ActiveUser.Id;
+                }
+
                 export namespace Desktop {
-                    /**
-                     * route: '/rooms/active-users/desktop/cursor-moved'
-                     * An ActiveUser moved their cursor in the client's current room
-                     */
+                    /** An ActiveUser moved their cursor in the client's current room */
                     export class CursorMoved {
+                        static Route = '/rooms/active-users/desktop/cursor-moved';
+
+                        @Validator.validate()
+                        roomId: Models.Room.Id;
                         @Validator.validate()
                         activeUserId: Models.ActiveUser.Id;
                         @Validator.validate()
@@ -422,15 +437,11 @@ export namespace Events {
 
     /** Events that are emitted by the client */
     export namespace Client {
-        /**
-         * route: '/rooms/active-users/desktop'
-         */
         export namespace Rooms.ActiveUsers.Desktop {
-            /**
-             * route: '/rooms/active-users/desktop/cursor-moved'
-             * Should be emitted whenever the client updates moves their cursor
-             */
+            /** Should be emitted whenever the client updates moves their cursor */
             export class CursorMoved {
+                static Route = '/rooms/active-users/desktop/cursor-moved';
+
                 @Validator.validate()
                 pos: Models.Position;
             }
@@ -438,17 +449,17 @@ export namespace Events {
     }
 }
 
-export class Error {
+export class ErrorResponse {
     /** HTTP status code */
     @Validator.validate()
     code: number;
     /** A short message describing the error */
     @Validator.validate()
     message: string;
-    @Validator.validate(true)
+
     data?: Error.Data;
 }
 
 export namespace Error {
-    export type Data = object;
+    export type Data = any;
 }

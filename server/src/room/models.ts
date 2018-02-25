@@ -163,21 +163,21 @@ export interface ActiveUserRoomData {
     enterTime: string;
 }
 
-export type RoomEvent = EnterRoomEvent | ExitRoomEvent | StructureCreateEvent ;
+export type RoomEvent = EnteredRoomEvent | ExitedRoomEvent | StructureCreatedEvent ;
 
-export interface EnterRoomEvent {
+export interface EnteredRoomEvent {
     event: 'enter';
     roomId: Room.Id;
     activeUser: ActiveUser;
 }
 
-export interface ExitRoomEvent {
+export interface ExitedRoomEvent {
     event: 'exit';
     roomId: Room.Id;
     activeUser: ActiveUser;
 }
 
-export interface StructureCreateEvent {
+export interface StructureCreatedEvent {
     event: 'structure-create';
     roomId: Room.Id;
     user: User;

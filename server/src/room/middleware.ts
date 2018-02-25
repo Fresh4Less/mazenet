@@ -12,10 +12,10 @@ import {GlobalLogger} from '../util/logger';
 
 import { Request, Response, Socket, BadRequestError, UnauthorizedError, ConflictError, mapToObject } from '../common';
 import { Service } from './service';
-import { RoomDocument, Room, Structure, ActiveUserRoomData, RoomEvent, EnterRoomEvent, ExitRoomEvent, StructureCreateEvent} from './models';
+import { RoomDocument, Room, Structure, ActiveUserRoomData, RoomEvent, EnteredRoomEvent, ExitedRoomEvent, StructureCreatedEvent} from './models';
 import { User, ActiveUser } from '../user/models';
 
-import {CursorRecording, CursorEvent, CursorMoveEvent} from '../cursor-recording/models';
+import {CursorRecording, CursorEvent, CursorMovedEvent} from '../cursor-recording/models';
 import {Service as UserService} from '../user/service';
 import {Service as CursorService} from '../cursor-recording/service';
 
@@ -39,10 +39,10 @@ export class Middleware {
         this.socketNamespace = socketNamespace;
 
         // NOTE: consider adding a way to unsubscribe
-        service.events.filter((event) => event.event === 'enter').subscribe((event) => this.onEnterRoom(<EnterRoomEvent>event));
-        service.events.filter((event) => event.event === 'exit').subscribe((event) => this.onExitRoom(<ExitRoomEvent>event));
-        service.events.filter((event) => event.event === 'structure-create').subscribe((event) => this.onCreateStructure(<StructureCreateEvent>event));
-        cursorService.events.filter((event) => event.event === 'move').subscribe((event) => this.onCursorMoved(<CursorMoveEvent>event));
+        service.events.filter((event) => event.event === 'enter').subscribe((event) => this.onEnterRoom(<EnteredRoomEvent>event));
+        service.events.filter((event) => event.event === 'exit').subscribe((event) => this.onExitRoom(<ExitedRoomEvent>event));
+        service.events.filter((event) => event.event === 'structure-create').subscribe((event) => this.onCreateStructure(<StructureCreatedEvent>event));
+        cursorService.events.filter((event) => event.event === 'move').subscribe((event) => this.onCursorMoved(<CursorMovedEvent>event));
         this.router = this.makeRouter();
         this.socketMiddleware = this.makeSocketMiddleware();
     }
@@ -96,10 +96,11 @@ export class Middleware {
                     }
                 }).subscribe(() => {
                     //TODO: standardize event logging
-                    GlobalLogger.request('event-complete', {
-                        code: 200,
-                        route: '/rooms/active-users/desktop/cursor-moved'
-                    });
+                    // unnecessary log
+                    //GlobalLogger.request('event-complete', {
+                        //code: 200,
+                        //route: '/rooms/active-users/desktop/cursor-moved'
+                    //});
                 }, (err: any) => {
                     //TODO: standardize event logging
                     let errorOut = {
@@ -214,27 +215,58 @@ export class Middleware {
         return router;
     }
 
-    onEnterRoom(event: EnterRoomEvent) {
-        let data: Api.v1.Events.Server.Rooms.ActiveUsers.Entered = event.activeUser.toV1();
-        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/entered', data, event.activeUser.id).subscribe();
+    onEnterRoom(event: EnteredRoomEvent) {
+        let data: Api.v1.Events.Server.Rooms.ActiveUsers.Entered = {
+            roomId: event.roomId,
+            activeUser: event.activeUser.toV1()
+        };
+        this.emitToSocketsInRoom(
+            event.roomId,
+            Api.v1.Events.Server.Rooms.ActiveUsers.Entered.Route,
+            data,
+            event.activeUser.id
+        ).subscribe();
     }
 
-    onExitRoom(event: ExitRoomEvent) {
-        let data: Api.v1.Events.Server.Rooms.ActiveUsers.Exited = event.activeUser.toV1();
-        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/exited', data, event.activeUser.id).subscribe();
+    onExitRoom(event: ExitedRoomEvent) {
+        let data: Api.v1.Events.Server.Rooms.ActiveUsers.Exited = {
+            roomId: event.roomId,
+            activeUserId: event.activeUser.id
+        };
+        this.emitToSocketsInRoom(
+            event.roomId,
+            Api.v1.Events.Server.Rooms.ActiveUsers.Exited.Route,
+            data,
+            event.activeUser.id
+        ).subscribe();
     }
 
-    onCursorMoved(event: CursorMoveEvent) {
+    onCursorMoved(event: CursorMovedEvent) {
         let data: Api.v1.Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved = {
+            roomId: event.roomId,
             activeUserId: event.activeUser.id,
             pos: event.pos
         };
-        this.emitToSocketsInRoom(event.roomId, '/rooms/active-users/desktop/cursor-moved', data, event.activeUser.id).subscribe();
+        this.emitToSocketsInRoom(
+            event.roomId,
+            Api.v1.Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved.Route,
+            data,
+            event.activeUser.id
+        ).subscribe();
     }
 
-    onCreateStructure(event: StructureCreateEvent) {
-        let data: Api.v1.Events.Server.Rooms.Structures.Created = event.structure.toV1();
-        this.emitToSocketsInRoom(event.roomId, '/rooms/structures/created', data, event.user.id, true).subscribe();
+    onCreateStructure(event: StructureCreatedEvent) {
+        let data: Api.v1.Events.Server.Rooms.Structures.Created = {
+            roomId: event.roomId,
+            structure: event.structure.toV1()
+        };
+        this.emitToSocketsInRoom(
+            event.roomId,
+            Api.v1.Events.Server.Rooms.Structures.Created.Route,
+            data,
+            event.user.id,
+            true
+        ).subscribe();
     }
 
     private emitToSocketsInRoom(roomId: Room.Id, route: string, data: any, ignoreUser: ActiveUser.Id | User.Id, ignoreUserNonActive?: boolean) {
