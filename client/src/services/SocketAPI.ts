@@ -4,7 +4,6 @@ import * as SocketIo from 'socket.io-client';
 import { Events, Models, Routes } from '../../../common/api/v1';
 import Socket = SocketIOClient.Socket;
 import { WebRequest } from '../models/freshIO/WebRequest';
-import { Page } from '../models/pages/Page';
 import { WebResponse } from '../models/freshIO/WebResponse';
 import { ErrorService } from './ErrorService';
 
@@ -68,9 +67,9 @@ export class SocketAPI {
         this.socket.emit('/rooms/enter', new WebRequest('POST', {id: roomId}, '1'));
     }
 
-    public UpdatePage(pageData: Page): void {
+    public UpdatePage(pageData: Models.Room): void {
 
-        this.socket.emit('/pages/update', new WebRequest('GET', pageData.GetJSON(), '1'));
+        this.socket.emit('/pages/update', new WebRequest('GET', pageData, '1'));
     }
 
     public CreateStructure(roomId: string, blueprint: Models.Structure.Blueprint): void {
