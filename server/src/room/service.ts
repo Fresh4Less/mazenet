@@ -1,26 +1,26 @@
-import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/catch';
+import { Observable } from 'rxjs/Observable';
+import { Observer } from 'rxjs/Observer';
 
 import * as Uuid from 'uuid/v4';
 
 import * as Api from '../../../common/api';
 
-import { GlobalLogger } from '../util/logger';
 import { NotFoundError } from '../common';
+import { Service as CursorService } from '../cursor-recording/service';
+import { ActiveUser, User } from '../user/models';
+import { GlobalLogger } from '../util/logger';
 import { DataStore } from './datastore';
-import { RoomDocument, Room, Structure, StructureData, ActiveUserRoomData, RoomEvent } from './models';
-import { Service as CursorService} from '../cursor-recording/service';
-import { User, ActiveUser} from '../user/models';
+import { ActiveUserRoomData, Room, RoomDocument, RoomEvent, Structure, StructureData } from './models';
 
 export class Service {
-    dataStore: DataStore;
-    cursorService: CursorService;
-    events: Observable<RoomEvent>;
+    public dataStore: DataStore;
+    public cursorService: CursorService;
+    public events: Observable<RoomEvent>;
 
     private eventObserver: Observer<RoomEvent>;
 
@@ -32,8 +32,8 @@ export class Service {
         }).share();
     }
 
-    initRootRoom(): Observable<Room> {
-        let rootUser = {
+    public initRootRoom(): Observable<Room> {
+        const rootUser = {
             id: Uuid(),
             username: 'mazenet'
         };
@@ -42,13 +42,13 @@ export class Service {
             .mergeMap((room: Room) => {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
             }).mergeMap(([room]: [Room, null]) => {
-                let enterTunnel: Api.v1.Models.Structure.Blueprint = {
-                    pos: {x: 0.5, y: 0.5},
+                const enterTunnel: Api.v1.Models.Structure.Blueprint = {
                     data: {
                         sType: 'tunnel',
                         sourceText: 'enter',
                         targetText: 'welcome to the mazenet'
-                    }
+                    },
+                    pos: {x: 0.5, y: 0.5}
                 };
                 return Observable.forkJoin(Observable.of(room), this.createStructure(rootUser, room.id, enterTunnel));
             }).mergeMap(([room]: [Room, Structure]) => {
@@ -57,44 +57,48 @@ export class Service {
             });
     }
 
-    getRootRoom(): Observable<Room> {
+    public getRootRoom(): Observable<Room> {
         return this.dataStore.getRootRoom()
             .catch((err: Error) => {
-                if (err instanceof NotFoundError) {
+                if(err instanceof NotFoundError) {
                     return this.initRootRoom();
                 }
                 throw err;
             });
     }
 
-    getRoom(roomId: Room.Id): Observable<Room> {
+    public getRoom(roomId: Room.Id): Observable<Room> {
         return this.dataStore.getRoom(roomId);
     }
 
-    getRoomDocument(room: Room): Observable<RoomDocument> {
+    public getRoomDocument(room: Room): Observable<RoomDocument> {
         return this.dataStore.getRoomDocument(room);
     }
 
-    createRoom(user: User, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
-        let room = new Room({
-            id: roomId,
+    public createRoom(user: User, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
+        const newRoom = new Room({
             creator: user.id,
-            title: roomBlueprint.title,
+            id: roomId,
             owners: new Set<User.Id>([user.id]),
-            stylesheet: ''
+            stylesheet: '',
+            title: roomBlueprint.title
         });
 
-        return this.dataStore.insertRoom(room).map((room) => {
+        return this.dataStore.insertRoom(newRoom).map((room) => {
             GlobalLogger.trace('create room', {room});
             return room;
         });
     }
 
-    createStructure(user: User, roomId: Api.v1.Models.Room.Id, structureBlueprint: Api.v1.Models.Structure.Blueprint): Observable<Structure> {
+    public createStructure(
+        user: User,
+        roomId: Api.v1.Models.Room.Id,
+        structureBlueprint: Api.v1.Models.Structure.Blueprint
+    ): Observable<Structure> {
         return this.dataStore.getRoom(roomId).mergeMap((room: Room) => {
             //TODO: make this logic a dispatch
             let initStructureDataObservable;
-            switch(structureBlueprint.data.sType) {
+            switch (structureBlueprint.data.sType) {
                 case 'tunnel':
                     initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
                     break;
@@ -103,33 +107,33 @@ export class Service {
             }
             return Observable.forkJoin(initStructureDataObservable, Observable.of(room));
         }).mergeMap(([structureData, room]: [StructureData, Room]) => {
-            let structure = new Structure({
-                id: Uuid(),
+            const structure = new Structure({
                 creator: user.id,
-                pos: structureBlueprint.pos,
                 data: structureData,
+                id: Uuid(),
+                pos: structureBlueprint.pos,
             });
 
             return this.dataStore.insertStructure(structure);
         }).map((structure) => {
             this.eventObserver.next({
                 event: 'structure-create',
-                roomId: roomId,
-                user: user,
-                structure: structure
+                roomId,
+                structure,
+                user,
             });
             GlobalLogger.trace('create structure', {structure});
             return structure;
         });
     }
 
-    enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
+    public enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
         return this.exitRoom(activeUser.id)
         .mergeMap(() => {
-            let activeUserRoomData = {
-                activeUser: activeUser,
-                roomId: roomId,
-                enterTime: new Date().toISOString()
+            const activeUserRoomData = {
+                activeUser,
+                enterTime: new Date().toISOString(),
+                roomId,
             };
             return Observable.forkJoin(
                 this.dataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
@@ -141,7 +145,7 @@ export class Service {
         });
     }
 
-    exitRoom(activeUserId: ActiveUser.Id): Observable<null> {
+    public exitRoom(activeUserId: ActiveUser.Id): Observable<null> {
         return this.dataStore.getActiveUserRoomData(activeUserId)
         .mergeMap((activeUserRoomData: ActiveUserRoomData | undefined) => {
             if(activeUserRoomData) {
@@ -158,21 +162,25 @@ export class Service {
         });
     }
 
-    getActiveUsersInRoom(roomId: Room.Id): Observable<Map<ActiveUser.Id, ActiveUserRoomData>> {
+    public getActiveUsersInRoom(roomId: Room.Id): Observable<Map<ActiveUser.Id, ActiveUserRoomData>> {
         return this.dataStore.getActiveUsersInRoom(roomId);
     }
 
-    getActiveUserRoomData(activeUserId: ActiveUser.Id): Observable<ActiveUserRoomData | undefined> {
+    public getActiveUserRoomData(activeUserId: ActiveUser.Id): Observable<ActiveUserRoomData | undefined> {
         return this.dataStore.getActiveUserRoomData(activeUserId);
     }
 
     /** Creates a new room and returns the data for a tunnel that leads to it */
-    protected initTunnel(user: User, roomId: Room.Id, tunnelBlueprintData: Api.v1.Models.StructureDataBlueprint.Tunnel): Observable<StructureData.Tunnel> {
-        let tunnelData = new StructureData.Tunnel({
+    protected initTunnel(
+        user: User,
+        roomId: Room.Id,
+        tunnelBlueprintData: Api.v1.Models.StructureDataBlueprint.Tunnel
+    ): Observable<StructureData.Tunnel> {
+        const tunnelData = new StructureData.Tunnel({
             sType: tunnelBlueprintData.sType,
             sourceId: roomId,
-            targetId: Uuid(),
             sourceText: tunnelBlueprintData.sourceText,
+            targetId: Uuid(),
             targetText: tunnelBlueprintData.targetText,
         });
 

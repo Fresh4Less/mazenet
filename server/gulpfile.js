@@ -1,13 +1,25 @@
 var gulp = require('gulp');
 var ts = require('gulp-typescript');
 var typedoc = require('gulp-typedoc');
+var tslint = require('gulp-tslint');
 
 var tsProject = ts.createProject('tsconfig.json');
 
-gulp.task('default', function () {
+gulp.task('build', function () {
     return tsProject.src()
         .pipe(tsProject())
         .js.pipe(gulp.dest('build'));
+});
+
+gulp.task('tslint', function () {
+    return tsProject.src()
+        .pipe(tslint({
+            formatter: 'verbose'
+        }))
+        .pipe(tslint.report());
+});
+
+gulp.task('default', ['build', 'tslint'], function() {
 });
 
 gulp.task('docs', function () {

@@ -1,11 +1,11 @@
-import { Observable } from 'rxjs/Observable';
 import * as Express from 'express';
+import { Observable } from 'rxjs/Observable';
 import * as SocketIO from 'socket.io';
 
-import { GlobalLogger } from './logger';
-import * as Validator from '../../../common/util/validator';
 import FreshSocketIO = require('fresh-socketio-router');
-import { Request, Response, HttpErrors} from '../common';
+import * as Validator from '../../../common/util/validator';
+import { HttpErrors, Request, Response } from '../common';
+import { GlobalLogger } from './logger';
 
 import * as Api from '../../../common/api';
 
@@ -15,17 +15,17 @@ export class ErrorHandler {
         Object.bind(this, this.middleware);
     }
 
-    middleware(err: any, req: Request, res: Response, next: Express.NextFunction) {
-        let errorOut = {
+    public middleware(err: any, req: Request, res: Response, next: Express.NextFunction) {
+        const errorOut = {
             code: err.httpCode || 500,
-            message: err.message,
             data: Object.keys(err).reduce((o: any, p: string) => {
                 o[p] = err[p];
                 return o;
-            }, {})
+            }, {}),
+            message: err.message,
         };
 
-        if (errorOut.code >= 500) {
+        if(errorOut.code >= 500) {
             GlobalLogger.error(`Unhandled ${err.constructor.name} in request handler'`, err);
         }
         res.status(errorOut.code).json(errorOut);
@@ -40,21 +40,22 @@ export class ErrorHandler {
  * - responseLength - length of response body in bytes
  * - responseCode - http response code
  * - responseDuration - response latency in milliseconds
- * - connectionDuration - if socket was closed unexpectedly, duration of the conneciton. if this is set, responseXXX fields are undefined
+ * - connectionDuration - if socket was closed unexpectedly, duration of the conneciton.
+ *                        if this is set, responseXXX fields are undefined
  */
 export class RequestLogger {
     constructor() {
         Object.bind(this, this.middleware);
     }
 
-    middleware(req: Request, res: any, next: Express.NextFunction) {
-        let startTime = new Date().valueOf();
+    public middleware(req: Request, res: any, next: Express.NextFunction) {
+        const startTime = new Date().valueOf();
 
-        let data = {
+        const data = {
+            ip: (req as any).ip,
             method: req.method,
+            transport: (req.socket as SocketIO.Socket).id ? 'ws' : 'http',
             url: req.originalUrl || req.url,
-            ip: (<any>req).ip,
-            transport: (<SocketIO.Socket>req.socket).id ? 'ws' : 'http',
         };
         res.on('close', () => {
             GlobalLogger.request('closed', Object.assign(data, {
@@ -74,7 +75,7 @@ export class RequestLogger {
             GlobalLogger.request('complete', Object.assign(data, {
                 responseCode: res.statusCode,
                 responseDuration: new Date().valueOf() - startTime,
-                responseLength: responseLength
+                responseLength
             }));
         });
         next();

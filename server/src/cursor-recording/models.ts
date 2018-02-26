@@ -1,23 +1,23 @@
 import * as Api from '../../../common/api';
 
-import { Position, mapToObject, objectToMap } from '../common';
-import { ActiveUser } from '../user/models';
+import { mapToObject, objectToMap, Position } from '../common';
 import { Room } from '../room/models';
+import { ActiveUser } from '../user/models';
 
 export class CursorRecording {
-    id: CursorRecording.Id;
-    activeUserId: ActiveUser.Id;
-    frames: CursorRecordingFrame[];
+    public id: CursorRecording.Id;
+    public activeUserId: ActiveUser.Id;
+    public frames: CursorRecordingFrame[];
 
     constructor(v1: Api.v1.Models.CursorRecording) {
         Object.assign(this, v1);
     }
 
-    toV1(): Api.v1.Models.CursorRecording {
+    public toV1(): Api.v1.Models.CursorRecording {
         return {
-            id: this.id,
             activeUserId: this.activeUserId,
-            frames: this.frames
+            frames: this.frames,
+            id: this.id,
         };
     }
 }
@@ -31,9 +31,9 @@ export namespace CursorRecording {
     export type Id = string;
 }
 
-export type CursorEvent = CursorMoveEvent;
+export type CursorEvent = CursorMovedEvent;
 
-export interface CursorMoveEvent {
+export interface CursorMovedEvent {
     event: 'move';
     roomId: Room.Id;
     activeUser: ActiveUser;

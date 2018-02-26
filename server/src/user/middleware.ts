@@ -1,27 +1,27 @@
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/forkJoin';
 import * as Express from 'express';
+import 'rxjs/add/observable/forkJoin';
+import { Observable } from 'rxjs/Observable';
 
-import * as Validator from '../../../common/util/validator';
 import FreshSocketIO = require('fresh-socketio-router');
 import * as Api from '../../../common/api';
-import { Request, Response, Socket, BadRequestError, UnauthorizedError } from '../common';
+import * as Validator from '../../../common/util/validator';
+import { BadRequestError, Request, Response, Socket, UnauthorizedError } from '../common';
 
-import { User, ActiveUser } from './models';
 import { Room } from '../room/models';
-import { Service } from './service';
 import { Service as RoomService } from '../room/service';
+import { ActiveUser, User } from './models';
+import { Service } from './service';
 
 // temporary imports, won't be needed later
 import * as Uuid from 'uuid/v4';
 
 export class Middleware {
 
-    service: Service;
-    roomService: RoomService;
+    public service: Service;
+    public roomService: RoomService;
     /** Universal router that can be used in express or fresh-socketio-router */
-    router: Express.Router;
-    socketMiddleware: (socket: Socket, fn: ( err?: any ) => void ) => void;
+    public router: Express.Router;
+    public socketMiddleware: (socket: Socket, fn: ( err?: any ) => void ) => void;
 
     constructor(service: Service, roomService: RoomService) {
         this.service = service;
@@ -32,7 +32,7 @@ export class Middleware {
             socket.mazenet = {
                 sessionId: socket.id,
                 user: new User({id: Uuid(), username: 'anon'})
-            }
+            };
 
             socket.on('disconnect', () => {
                 this.service.onUserDisconnect(socket.mazenet!.sessionId);
@@ -41,22 +41,21 @@ export class Middleware {
         };
         this.router = Express.Router();
         this.router.use((req: Request, res: Response, next: Express.NextFunction) => {
-            if((<Socket>req.socket).mazenet) {
+            if((req.socket as Socket).mazenet) {
                 // this is a socketio connection
                 //TODO: do we need to validate that activeUser is valid for this user?
-                req.user = (<Socket>req.socket).mazenet!.user;
-                req.activeUser = this.service.getActiveUserFromSession((<Socket>req.socket).mazenet!.sessionId);
-            }
-            else {
+                req.user = (req.socket as Socket).mazenet!.user;
+                req.activeUser = this.service.getActiveUserFromSession((req.socket as Socket).mazenet!.sessionId);
+            } else {
                 //TODO: authenticate based on JWT
                 req.user = new User({id: Uuid(), username: 'anon'});
             }
             next();
         });
 
-        let usersRouter = Express.Router();
+        const usersRouter = Express.Router();
         usersRouter.post('/connect', (req: Request, res: Response, next: Express.NextFunction) => {
-            if(!(<Socket>req.socket).mazenet) {
+            if(!(req.socket as Socket).mazenet) {
                 throw new BadRequestError('Only websocket sessions can /connect to the Mazenet');
             }
             if(!req.user) {
@@ -65,17 +64,16 @@ export class Middleware {
             let body: Api.v1.Models.PlatformData;
             try {
                 body = Validator.validateData(req.body, Api.v1.Routes.Users.Connect.Post.Request.Desktop, 'body');
-            }
-            catch(err) {
+            } catch (err) {
                 throw new BadRequestError(err.message);
             }
 
             Observable.forkJoin(
-                this.service.createActiveUser((<Socket>req.socket).mazenet!.sessionId, req.user, body),
+                this.service.createActiveUser((req.socket as Socket).mazenet!.sessionId, req.user, body),
                 this.roomService.getRootRoom())
             .subscribe(([activeUser, rootRoom]: [ActiveUser, Room]) => {
-                (<Socket>req.socket).mazenet!.activeUser = activeUser;
-                let response: Api.v1.Routes.Users.Connect.Post.Response200 = {
+                (req.socket as Socket).mazenet!.activeUser = activeUser;
+                const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
                     activeUser: activeUser.toV1(),
                     rootRoomId: rootRoom.id
                 };
@@ -88,5 +86,3 @@ export class Middleware {
         this.router.use('/users', usersRouter);
     }
 }
-
-

@@ -2,7 +2,7 @@ import * as Logger from '../../src/util/logger';
 //TODO: test adding new level, custom middleware
 
 let logs: string[] = [];
-let target = {
+const target = {
     name: 'test', write: (serializedData: string) => {
         logs.push(serializedData);
     }
@@ -13,15 +13,15 @@ beforeEach(() => {
 });
 
 test('log message', () => {
-    let logger = new Logger.Logger({target, middleware: []});
+    const logger = new Logger.Logger({target, middleware: []});
     logger.info('hello');
     expect(logs.length).toBe(1);
     expect(JSON.parse(logs[0])).toEqual({level: 'info', message: 'hello'});
 });
 
 test('log messages at all levels', () => {
-    let logger = new Logger.Logger({target, middleware: []});
-    for (let item of logger.handlers) {
+    const logger = new Logger.Logger({target, middleware: []});
+    for (const item of logger.handlers) {
         item[1].enabled = true;
     }
 
@@ -34,7 +34,7 @@ test('log messages at all levels', () => {
 
     expect(logs.length).toBe(6);
 
-    let data = logs.map(d => JSON.parse(d));
+    const data = logs.map((d) => JSON.parse(d));
 
     expect(data[0]).toEqual({level: 'diag', message: 'diagMessage', cpu: 100});
     expect(data[1]).toEqual({level: 'trace', message: 'traceMessage', type: 'a'});
@@ -46,7 +46,7 @@ test('log messages at all levels', () => {
 
 describe('middleware', () => {
     test('timestamp', () => {
-        let logger = new Logger.Logger({target, middleware: [{mw: Logger.Middleware.timestamp, levels: true}]});
+        const logger = new Logger.Logger({target, middleware: [{mw: Logger.Middleware.timestamp, levels: true}]});
 
         logger.info('a');
 
@@ -56,12 +56,12 @@ describe('middleware', () => {
     });
 
     test('fullError', () => {
-        let logger = new Logger.Logger({target, middleware: [{mw: Logger.Middleware.fullError, levels: true}]});
+        const logger = new Logger.Logger({target, middleware: [{mw: Logger.Middleware.fullError, levels: true}]});
 
         logger.info('a', {error: new Error('broken')});
 
         expect(logs.length).toBe(1);
-        let data = JSON.parse(logs[0]);
+        const data = JSON.parse(logs[0]);
         expect(data).toMatchObject({level: 'info', message: 'a', error: {message: 'broken'}});
         expect(data.error.stack).toBeDefined();
     });

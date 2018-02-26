@@ -1,15 +1,15 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/timer';
-import 'rxjs/add/operator/toPromise';
 import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/operator/toPromise';
 
 import * as Http from 'http';
 import * as SocketIOClient from 'socket.io-client';
 
-import {Server} from '../src/server';
 import * as Api from '../../common/api';
-import {GlobalLogger, LoggerHandler} from '../src/util/logger';
+import { Server } from '../src/server';
+import { GlobalLogger, LoggerHandler } from '../src/util/logger';
 
 //interface Emit {
     //eventName: string;
@@ -32,34 +32,34 @@ interface Response {
 /** Connects a SocketIO client and records request/response for each transaction. Provides helper functions for issuing and validating transactions
  * user and activeUser properties are automatically set after using connectSocket() or connectAndEnter()
  * TODO: multi-client tests, emit history
- * */
+ */
 class Client {
-    client: SocketIOClient.Socket;
+    public client: SocketIOClient.Socket;
     /** transaction history */
-    transactions: [Request, Response][];
+    public transactions: Array<[Request, Response]>;
     /** last request */
-    req: Request;
+    public req: Request;
     /** last response */
-    res: Response;
+    public res: Response;
     //user?: Api.v1.Models.User;
-    activeUser?: Api.v1.Models.ActiveUser;
+    public activeUser?: Api.v1.Models.ActiveUser;
     /** after emitting an event, record heard events */
     //emitHistory: [Emit, Emit[]][];
     /** last event emitted */
     //lastEmitted: [Emit, Emit[]];
 
-    constructor(baseUrl: string) {
-        this.client = SocketIOClient(baseUrl);
+    constructor(url: string) {
+        this.client = SocketIOClient(url);
         this.transactions = [];
         //this.emitHistory = [];
     }
 
-    emitTransaction(method: string, route: string, body: any): Observable<Client> {
-        let request: Request = {route, method, body};
-        let obs: Observable<Response> = Observable.fromEvent(this.client, route);
+    public emitTransaction(method: string, route: string, body: any): Observable<Client> {
+        const request: Request = {route, method, body};
+        const obs: Observable<Response> = Observable.fromEvent(this.client, route);
         this.client.emit(route, {
-            method: method,
-            body: body
+            body,
+            method,
         });
         return Observable.forkJoin(Observable.of(request), obs.first())
         .map(([req, res]: [Request, Response]) => {
@@ -88,14 +88,14 @@ class Client {
     //}
 
     /** Handle initial /users/connect call */
-    connectSocket(): Observable<Client> {
+    public connectSocket(): Observable<Client> {
         return this.emitTransaction('POST', '/users/connect',
             {
-                pType: 'desktop',
                 cursorPos: {
                     x: 0.5,
                     y: 0.5,
-                }
+                },
+                pType: 'desktop',
             }
         ).map((client) => {
             expect(client.res.status).toBe(200);
@@ -106,7 +106,7 @@ class Client {
     }
 
     /** Handle initial /users/connect then /rooms/enter the root room */
-    connectAndEnter(): Observable<Client> {
+    public connectAndEnter(): Observable<Client> {
         return this.connectSocket().mergeMap((client) => {
             return this.emitTransaction('POST', '/rooms/enter', {id: client.res.body.rootRoomId});
         }).map((client) => {
@@ -131,34 +131,33 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
 
 beforeEach(() => {
     server = new Server({
+        env: 'test',
         port: 0,
         securePort: 0,
-        //sslCertPath: '',
-        env: 'test'
     });
     return server.start().map(() => {
-        let protocol = server.usingSsl ? 'https' : 'http';
+        const protocol = server.usingSsl ? 'https' : 'http';
         baseUrl = `${protocol}://127.0.0.1:${server.httpServer.address().port}/mazenet`;
     }).toPromise();
 });
 
 describe('users', () => {
     test('POST /connect', () => {
-        let client = new Client(baseUrl);
+        const client = new Client(baseUrl);
 
         return client.connectSocket().map(() => {
-            let res = client.res;
+            const res = client.res;
             expect(res.status).toBe(200);
             expect(typeof res.body.rootRoomId).toBe('string');
             expect(typeof res.body.activeUser.id).toBe('string');
             expect(typeof res.body.activeUser.userId).toBe('string');
             expect(typeof res.body.activeUser.username).toBe('string');
             expect(res.body.activeUser.platformData).toEqual({
-                pType: 'desktop',
                 cursorPos: {
                     x: 0.5,
                     y: 0.5,
-                }
+                },
+                pType: 'desktop',
             });
         }).first().toPromise();
     });
@@ -166,10 +165,10 @@ describe('users', () => {
 
 describe('rooms', () => {
     test('POST /enter', () => {
-        let client = new Client(baseUrl);
+        const client = new Client(baseUrl);
 
         return client.connectAndEnter().map(() => {
-            let res = client.res;
+            const res = client.res;
             expect(res.status).toBe(200);
             // room
             expect(typeof res.body.room.id).toBe('string');
@@ -182,7 +181,7 @@ describe('rooms', () => {
 
             // structure
             expect(Object.keys(res.body.room.structures)).toHaveLength(1);
-            let enterTunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
+            const enterTunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
             expect(typeof enterTunnel.id).toBe('string');
             expect(typeof enterTunnel.creator).toBe('string');
             expect(enterTunnel.pos).toEqual({x: 0.5, y: 0.5});
@@ -202,22 +201,22 @@ describe('rooms', () => {
     describe('structures', () => {
         describe('tunnel', () => {
             test('POST /create', () => {
-                let client = new Client(baseUrl);
+                const client = new Client(baseUrl);
                 return client.connectAndEnter().mergeMap(() => {
-                    let res = client.res;
+                    const res = client.res;
                     return client.emitTransaction('POST', '/rooms/structures/create', {
                         roomId: res.body.room.id,
                         structure: {
-                            pos: {x: 0.1, y: 0.1},
                             data: {
                                 sType: 'tunnel',
                                 sourceText: 'the hills',
                                 targetText: 'mazenet'
-                            }
+                            },
+                            pos: {x: 0.1, y: 0.1},
                         }
                     });
                 }).mergeMap(() => {
-                    let res = client.res;
+                    const res = client.res;
                     expect(res.status).toBe(201);
                     expect(typeof res.body.id).toBe('string');
                     expect(res.body.creator).toBe(client.activeUser!.userId);
@@ -231,7 +230,7 @@ describe('rooms', () => {
                     // ensure the target room can be entered
                     return client.emitTransaction('POST', '/rooms/enter', {id: res.body.data.targetId});
                 }).map(() => {
-                    let res = client.res;
+                    const res = client.res;
                     expect(res.status).toBe(200);
 
                     // room
@@ -244,7 +243,7 @@ describe('rooms', () => {
 
                     // structure
                     expect(Object.keys(res.body.room.structures)).toHaveLength(1);
-                    let tunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
+                    const tunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
                     expect(tunnel.id).toBe(client.transactions[2][1].body.id);
                 }).first().toPromise();
             });
@@ -253,13 +252,13 @@ describe('rooms', () => {
 
     describe('cursors', () => {
         test('cursor recording on disconnect', () => {
-            let client = new Client(baseUrl);
-            let client2 = new Client(baseUrl);
+            const client = new Client(baseUrl);
+            const client2 = new Client(baseUrl);
             return client.connectAndEnter().mergeMap(() => {
                 client.client.emit(
                     '/rooms/active-users/desktop/cursor-moved',
                     {pos: {x: 0.1, y: 0.1}});
-                return Observable.timer(1000/30).take(1);
+                return Observable.timer(1000 / 30).take(1);
             }).mergeMap(() => {
                 client.client.emit(
                     '/rooms/active-users/desktop/cursor-moved',
@@ -271,16 +270,16 @@ describe('rooms', () => {
             }).mergeMap(() => {
                 return client2.connectAndEnter();
             }).mergeMap(() => {
-                let res = client2.res;
+                const res = client2.res;
                 return client2.emitTransaction('GET', '/rooms/cursor-recordings', {
                     roomId: res.body.room.id
                 });
             }).map(() => {
-                let res = client2.res;
+                const res = client2.res;
                 expect(res.status).toBe(200);
                 expect(Object.keys(res.body.cursorRecordings)).toHaveLength(1);
 
-                let recording = res.body.cursorRecordings[Object.keys(res.body.cursorRecordings)[0]];
+                const recording = res.body.cursorRecordings[Object.keys(res.body.cursorRecordings)[0]];
                 expect(typeof recording.id).toBe('string');
                 expect(recording.activeUserId).toBe(client.activeUser!.id);
 

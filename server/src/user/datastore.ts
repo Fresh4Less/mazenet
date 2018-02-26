@@ -1,8 +1,8 @@
-import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
+import { Observable } from 'rxjs/Observable';
 
-import { User, ActiveUser } from './models';
-import { NotFoundError, AlreadyExistsError } from '../common';
+import { AlreadyExistsError, NotFoundError } from '../common';
+import { ActiveUser, User } from './models';
 
 export interface DataStore {
     getUser: (userId: User.Id) => Observable<User>;
@@ -11,7 +11,7 @@ export interface DataStore {
     getActiveUser: (activeUserId: ActiveUser.Id) => Observable<ActiveUser>;
     insertActiveUser: (activeUser: ActiveUser) => Observable<ActiveUser>;
 
-    /** local store, return immediately **/
+    /** local store, return immediately */
     getActiveUserFromSession: (sessionId: string) => ActiveUser | undefined;
     insertActiveUserFromSession: (sessionId: string, activeUser: ActiveUser) => ActiveUser;
     deleteActiveUserFromSession: (sessionId: string) => void;
@@ -19,10 +19,10 @@ export interface DataStore {
 }
 
 export class InMemoryDataStore implements DataStore {
-    users: Map<User.Id, User>;
-    activeUsers: Map<ActiveUser.Id, ActiveUser>;
-    sessionActiveUsers: Map<string, ActiveUser>;
-    activeUserSessions: Map<ActiveUser.Id, string>;
+    public users: Map<User.Id, User>;
+    public activeUsers: Map<ActiveUser.Id, ActiveUser>;
+    public sessionActiveUsers: Map<string, ActiveUser>;
+    public activeUserSessions: Map<ActiveUser.Id, string>;
 
     constructor() {
         this.users = new Map<User.Id, User>();
@@ -31,48 +31,48 @@ export class InMemoryDataStore implements DataStore {
         this.activeUserSessions = new Map<ActiveUser.Id, string>();
     }
 
-    getUser(userId: User.Id) {
-        let user = this.users.get(userId);
-        if (!user) {
-            return <Observable<User>>Observable.throw(new NotFoundError(`User '${userId}' not found`));
+    public getUser(userId: User.Id) {
+        const user = this.users.get(userId);
+        if(!user) {
+            return Observable.throw(new NotFoundError(`User '${userId}' not found`)) as Observable<User>;
         }
 
         return Observable.of(user);
     }
 
-    insertUser(user: User) {
-        if (this.users.has(user.id)) {
-            return <Observable<User>>Observable.throw(new AlreadyExistsError(`User with id '${user.id}' already exists`));
+    public insertUser(user: User) {
+        if(this.users.has(user.id)) {
+            return Observable.throw(new AlreadyExistsError(`User with id '${user.id}' already exists`)) as Observable<User>;
         }
 
         this.users.set(user.id, user);
         return Observable.of(user);
     }
 
-    getActiveUser(activeUserId: ActiveUser.Id) {
-        let activeUser = this.activeUsers.get(activeUserId);
-        if (!activeUser) {
-            return <Observable<ActiveUser>>Observable.throw(new NotFoundError(`ActiveUser '${activeUserId}' not found`));
+    public getActiveUser(activeUserId: ActiveUser.Id) {
+        const activeUser = this.activeUsers.get(activeUserId);
+        if(!activeUser) {
+            return Observable.throw(new NotFoundError(`ActiveUser '${activeUserId}' not found`)) as Observable<ActiveUser>;
         }
 
         return Observable.of(activeUser);
     }
 
-    insertActiveUser(activeUser: ActiveUser) {
-        if (this.activeUsers.has(activeUser.id)) {
-            return <Observable<ActiveUser>>Observable.throw(new AlreadyExistsError(`ActiveUser with id '${activeUser.id}' already exists`));
+    public insertActiveUser(activeUser: ActiveUser) {
+        if(this.activeUsers.has(activeUser.id)) {
+            return Observable.throw(new AlreadyExistsError(`ActiveUser with id '${activeUser.id}' already exists`)) as Observable<ActiveUser>;
         }
 
         this.activeUsers.set(activeUser.id, activeUser);
         return Observable.of(activeUser);
     }
 
-    getActiveUserFromSession(sessionId: string) {
+    public getActiveUserFromSession(sessionId: string) {
         return this.sessionActiveUsers.get(sessionId);
     }
 
-    insertActiveUserFromSession(sessionId: string, activeUser: ActiveUser) {
-        if (this.sessionActiveUsers.has(sessionId)) {
+    public insertActiveUserFromSession(sessionId: string, activeUser: ActiveUser) {
+        if(this.sessionActiveUsers.has(sessionId)) {
             throw new AlreadyExistsError(`Session '${sessionId}' already has an ActiveUser`);
         }
 
@@ -81,15 +81,15 @@ export class InMemoryDataStore implements DataStore {
         return activeUser;
     }
 
-    deleteActiveUserFromSession(sessionId: string) {
-        let activeUser = this.sessionActiveUsers.get(sessionId);
+    public deleteActiveUserFromSession(sessionId: string) {
+        const activeUser = this.sessionActiveUsers.get(sessionId);
         if(activeUser) {
             this.activeUserSessions.delete(activeUser.id);
         }
         this.sessionActiveUsers.delete(sessionId);
     }
 
-    getSessionFromActiveUser(activeUserId: ActiveUser.Id) {
+    public getSessionFromActiveUser(activeUserId: ActiveUser.Id) {
         return this.activeUserSessions.get(activeUserId);
     }
 }
