@@ -1,10 +1,13 @@
-
 // Handles popping up tools and such.
 import * as React from 'react';
 
 import './mouseCanvas.css';
 import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
+import { ErrorService } from '../../services/ErrorService';
+import { Sprite } from '../../models/canvas/Sprite';
+
+const cursorIcon = require('./../../media/cursor.png');
 
 interface MouseCanvasState {
     mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
@@ -12,10 +15,16 @@ interface MouseCanvasState {
 
 export default class MouseCanvas extends React.PureComponent<any, MouseCanvasState> {
 
+    private activeAnimation: number = 0;
+    private nextFrameMarkers: { [cursorRecordingId: string]: number } = {};
+    private cursorSprite: HTMLImageElement = document.createElement('img');
+    private resizeCb: () => void | null;
+
     constructor(props: any) {
         super(props);
         SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
             SocketAPI.Instance.GetRecordingForRoom(value.room.id).subscribe(val => {
+                this.nextFrameMarkers = {};
                 this.setState({
                     mouseRecordings: val.cursorRecordings
                 });
@@ -25,11 +34,7 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
         this.state = {
             mouseRecordings: {}
         };
-
-    }
-
-    initAnimation(c: HTMLCanvasElement | null) {
-        console.log('initAnimation', c);
+        this.cursorSprite.src = cursorIcon;
     }
 
     render() {
@@ -38,4 +43,68 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
         );
     }
 
+    private initAnimation(c: HTMLCanvasElement | null) {
+        if (c && Object.keys(this.state.mouseRecordings).length) {
+            const resizeCanvas = () => {
+                c.width = c.clientWidth;
+                c.height = c.clientHeight;
+            };
+            if (this.resizeCb) {
+                window.removeEventListener('resize', this.resizeCb);
+            }
+            window.addEventListener('resize', resizeCanvas);
+            this.resizeCb = resizeCanvas;
+            resizeCanvas();
+
+            const ctx = c.getContext('2d');
+            if (ctx) {
+                this.rootFrameLoop(ctx);
+            } else {
+                ErrorService.Warning('Unable to start mouse animation. Could not get 2D canvas context.');
+            }
+        }
+    }
+
+    private rootFrameLoop(ctx: CanvasRenderingContext2D) {
+        const animationNumber = ++this.activeAnimation;
+        let t: number = 0;
+        let cursorSprite = new Sprite(this.cursorSprite.width, this.cursorSprite.height, this.cursorSprite);
+
+        const frameLoop = () => { // TODO: Rewrite with throttled Observable?
+            /* Check if a new animation got started by entering a new room or something. */
+            if (this.activeAnimation > animationNumber) {
+                return;
+            }
+            setTimeout(() => {
+                frameLoop();
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                Object.keys(this.state.mouseRecordings).forEach((cursorRecordingId: string) => {
+                    /* Figure out what frame to draw. */
+                    const frames = this.state.mouseRecordings[cursorRecordingId].frames;
+                    if (frames.length === 0) {
+                        return;
+                    }
+                    const nextFrameIdx = this.nextFrameMarkers[cursorRecordingId] || 0;
+                    const nextFrame: Models.CursorRecordingFrame = frames[nextFrameIdx];
+                    let frameToRender: Models.CursorRecordingFrame | null = null;
+                    if (nextFrame.t <= t) {
+                        frameToRender = nextFrame;
+                        this.nextFrameMarkers[cursorRecordingId] =
+                            (frames.length - 1) > nextFrameIdx ? nextFrameIdx + 1 : nextFrameIdx;
+                    } else if (nextFrameIdx > 0) {
+                        frameToRender = frames[nextFrameIdx - 1];
+                    }
+                    /* Render frame to canvas. */
+                    if (!frameToRender) {
+                        return;
+                    }
+                    cursorSprite.Render(ctx,
+                        frameToRender.pos.x * ctx.canvas.width,
+                        frameToRender.pos.y * ctx.canvas.height);
+                });
+                t++;
+            }, 1000 / 30);
+        };
+        frameLoop();
+    }
 }
