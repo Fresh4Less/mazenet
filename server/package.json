@@ -4,7 +4,7 @@
   "description": "mazenet backend",
   "main": "build/server/src/main.js",
   "scripts": {
-    "start": "node build/server/src/main.js",
+    "start": "node build/server/src/main.js | node scripts/pretty-log.js",
     "test": "jest --coverage --verbose"
   },
   "dependencies": {
