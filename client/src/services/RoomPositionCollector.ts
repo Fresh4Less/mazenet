@@ -12,8 +12,8 @@ export class RoomPositionCollector {
         this.overlayElement.style.width = '100%';
         this.overlayElement.style.height = '100%';
         this.overlayElement.style.position = 'absolute';
-        this.overlayElement.style.backgroundColor = 'rgba(0,0,0,0.5)';
-        this.overlayElement.style.cursor = 'pointer';
+        this.overlayElement.style.backgroundColor = 'rgba(0,0,0,0.3)';
+        this.overlayElement.style.cursor = 'crosshair';
         this.overlayElement.addEventListener('click', this.overlayClicked.bind(this));
         document.body.addEventListener('click', this.cleanupWithResult.bind(this, null));
         document.body.addEventListener('keydown', this.cleanupWithResult.bind(this, null));

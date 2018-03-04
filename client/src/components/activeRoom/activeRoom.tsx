@@ -15,18 +15,37 @@ interface MouseMoveInfo {
     mouseClientY: number;
 }
 
-interface ActiveRoomProps {
-    room: Models.Room;
+interface ActiveRoomState {
+    room: Models.Room | null;
 }
 
-export default class ActiveRoom extends React.Component<ActiveRoomProps, any> {
+export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
 
     private boundMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
     private mouseMoveObserver: Observer<MouseMoveInfo>;
 
-    constructor(props: ActiveRoomProps) {
+    constructor(props: any) {
         super(props);
+        this.state = {
+            room: null
+        };
 
+        SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
+            this.setState({
+                room: value.room,
+            });
+        }));
+
+        SocketAPI.Instance.structureCreatedObservable.subscribe(value => {
+            if (this.state.room) {
+                this.state.room.structures[value.id] = value;
+                this.setState({
+                    room: this.state.room
+                });
+            }
+        });
+
+        /* Mouse Recording Stuff */
         this.boundMouseMove = this.mouseMove.bind(this);
         new Observable<MouseMoveInfo>((observer: Observer<MouseMoveInfo>) => {
             this.mouseMoveObserver = observer;
@@ -52,17 +71,26 @@ export default class ActiveRoom extends React.Component<ActiveRoomProps, any> {
             mouseClientY: event.clientY
         });
     }
-    render() {
-        let structureElements: JSX.Element[] = Object.keys(this.props.room.structures).map((key) => {
-            const structure = this.props.room.structures[key];
-            return (<Structure key={structure.id} structure={structure} room={this.props.room}/>);
-        });
 
-        return (
-            <div id={this.props.room.id} className={'active-room'} onMouseMove={this.boundMouseMove}>
-                {structureElements}
-            </div>
-        );
+    render() {
+        if (this.state.room) {
+            const room: Models.Room = this.state.room;
+            let structureElements: JSX.Element[] = Object.keys(this.state.room.structures).map((key) => {
+                const structure = room.structures[key];
+                return (<Structure key={structure.id} structure={structure} room={room}/>);
+            });
+
+            return (
+                <div id={room.id} className={'active-room'} onMouseMove={this.boundMouseMove}>
+                    {structureElements}
+                </div>
+            );
+        } else {
+            return (
+                <div>Loading room...</div>
+            );
+        }
+
     }
 
 }

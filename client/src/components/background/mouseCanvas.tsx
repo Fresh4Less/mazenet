@@ -45,23 +45,27 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
 
     private initAnimation(c: HTMLCanvasElement | null) {
         if (c && Object.keys(this.state.mouseRecordings).length) {
+            const ctxNullable = c.getContext('2d');
+            let ctx: CanvasRenderingContext2D;
+            if (ctxNullable === null) {
+                ErrorService.Warning('Unable to start mouse animation. Could not get 2D canvas context.');
+                return;
+            } else {
+                ctx = ctxNullable;
+            }
             const resizeCanvas = () => {
                 c.width = c.clientWidth;
                 c.height = c.clientHeight;
             };
+
             if (this.resizeCb) {
                 window.removeEventListener('resize', this.resizeCb);
             }
             window.addEventListener('resize', resizeCanvas);
             this.resizeCb = resizeCanvas;
-            resizeCanvas();
+            this.resizeCb();
+            this.rootFrameLoop(ctx);
 
-            const ctx = c.getContext('2d');
-            if (ctx) {
-                this.rootFrameLoop(ctx);
-            } else {
-                ErrorService.Warning('Unable to start mouse animation. Could not get 2D canvas context.');
-            }
         }
     }
 
@@ -77,6 +81,7 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
             }
             setTimeout(() => {
                 frameLoop();
+                ctx.globalAlpha = 0.3; // TODO: Magic number, move into user-config or something.
                 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                 Object.keys(this.state.mouseRecordings).forEach((cursorRecordingId: string) => {
                     /* Figure out what frame to draw. */

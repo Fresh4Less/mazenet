@@ -26,6 +26,7 @@ export class SocketAPI {
 
     private socket: Socket;
     private uniqueIdCounter: number;
+    private rootPage: string;
     private cursorRecordingTransactionManager: TransactionManager;
 
     /*
@@ -41,6 +42,7 @@ export class SocketAPI {
         const serverPort = 8080; // TODO Edit when server serves front end.
         this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${serverPort}/mazenet`);
         this.uniqueIdCounter = 0;
+        this.rootPage = '';
         this.cursorRecordingTransactionManager = new TransactionManager(this.socket, '/rooms/cursor-recordings');
 
         /* Setup the Observable feeds */
@@ -61,6 +63,12 @@ export class SocketAPI {
 
     public static get Instance(): SocketAPI {
         return this._instance || (this._instance = new this());
+    }
+
+    public EnterRootPage(): void {
+        if (this.rootPage.length > 0) {
+            this.socket.emit('/rooms/enter', new WebRequest('POST', {id: this.rootPage}, '1'));
+        }
     }
 
     public EnterPage(roomId: string): void {
@@ -109,6 +117,7 @@ export class SocketAPI {
                 this.socket.on('/users/connect', (res: WebResponse) => {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
+                        this.rootPage = res200.rootRoomId;
                         observer.next(res200);
                         this.socket.emit('/rooms/enter',
                             new WebRequest('POST', {id: res200.rootRoomId}, '1'));
@@ -138,13 +147,13 @@ export class SocketAPI {
     private initStructureCreatedObservable() {
         return new Observable((observer: Observer<Models.Structure>) => {
             this.socket.on('/rooms/structures/create', (res: WebResponse) => {
-               if (res.status === 201) {
+                if (res.status === 201) {
                    const struct = (res.body as Models.Structure);
                    observer.next(struct);
-               }  else {
+                }  else {
                    ErrorService.Warning('Could not create structure.', res);
                    observer.error(res.body);
-               }
+                }
             });
             this.socket.on('/rooms/structures/created', (structure: Models.Structure) => {
                 observer.next(structure);
