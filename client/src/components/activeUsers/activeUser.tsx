@@ -3,6 +3,7 @@ import { Models } from '../../../../common/api/v1';
 
 const cursorIcon = require('./../../media/cursor.png');
 import './activeUser.css';
+import { MazenetUtils } from '../../services/MazenetUtils';
 
 interface ActiveUserProps {
     user: Models.ActiveUser;
@@ -14,21 +15,7 @@ export default class ActiveUser extends React.Component<ActiveUserProps, any> {
 
     constructor(props: ActiveUserProps) {
         super(props);
-        this.colors = this.getColorsForUUIDv4(props.user.id);
-    }
-
-    private getColorsForUUIDv4(uuid: string): string[] {
-        let hex = uuid.split('-').join('');
-        const out: string[] = [];
-        while (hex.length > 0) {
-            let col = hex.slice(0, 6);
-            while (col.length < 6) {
-                col = (col + col).slice(0, 6);
-            }
-            out.push('#' + col);
-            hex = hex.substr(6);
-        }
-        return out;
+        this.colors = MazenetUtils.GetColorsForUUIDv4(props.user.id);
     }
 
     render() {
@@ -63,7 +50,7 @@ export default class ActiveUser extends React.Component<ActiveUserProps, any> {
                 );
             case 'mobile':
             default:
-                return null;
+                return null; // Currently unhandled displaying mobile users.
         }
     }
 }

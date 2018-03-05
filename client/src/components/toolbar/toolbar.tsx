@@ -11,6 +11,7 @@ import HomeTool from './homeTool';
 
 interface ToolbarState {
     room: Models.Room | null;
+    rootRoomId: string;
     username: string;
 }
 
@@ -20,10 +21,12 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
         super(props);
         this.state = {
             room: null,
+            rootRoomId: '',
             username: ''
         };
         SocketAPI.Instance.connectedObservable.subscribe(value => {
             this.setState({
+                rootRoomId: value.rootRoomId,
                 username: value.activeUser.username
             });
         });
@@ -42,13 +45,19 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                 <span className={'right'}>
                     <TunnelTool room={this.state.room}/>
                     <TextTool room={this.state.room}/>
-                    <HomeTool/>
+                    <HomeTool room={this.state.room} rootRoomId={this.state.rootRoomId}/>
                 </span>
             );
         }
+
+        const subtitle = this.state.room ? this.state.room.title : '...';
         return (
             <div id={'Tools'}>
-                <span id={'Title'}>MZ: {this.state.room ? this.state.room.title : 'Loading...'}</span>
+                <span id={'Title'}>
+                    mazenet
+                </span><span title={'Title of the current room.'} id={'Subtitle'}>
+                    {subtitle}
+                </span>
                 {tools}
             </div>
         );

@@ -1,12 +1,21 @@
 #Tools {
     line-height: 30px;
     height: 30px;
-    background-color: #00b0e8;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.73);
+    color: #f3f3f3;
+    background-color: #404040;
 }
 
 #Tools #Title {
+    font-size: 30px;
     padding-left: 10px;
-    font-weight: bold;
+}
+#Tools #Subtitle {
+    font-family: sans-serif;
+    padding-left: 4px;
+    font-size: 12px;
+    color: #bbbbbb;
 }
 
 #Tools .right {

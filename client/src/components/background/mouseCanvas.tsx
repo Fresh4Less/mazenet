@@ -6,10 +6,12 @@ import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
+import { MazenetUtils } from '../../services/MazenetUtils';
 
 const cursorIcon = require('./../../media/cursor.png');
 
 interface MouseCanvasState {
+    room: Models.Room | null;
     mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
 }
 
@@ -22,24 +24,38 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
 
     constructor(props: any) {
         super(props);
-        SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
-            SocketAPI.Instance.GetRecordingForRoom(value.room.id).subscribe(val => {
+        SocketAPI.Instance.roomEnteredObservable.subscribe((enterVal => {
+            SocketAPI.Instance.GetRecordingForRoom(enterVal.room.id).subscribe(cursorVal => {
                 this.nextFrameMarkers = {};
                 this.setState({
-                    mouseRecordings: val.cursorRecordings
+                    room: enterVal.room,
+                    mouseRecordings: cursorVal.cursorRecordings
                 });
             });
         }));
 
         this.state = {
+            room: null,
             mouseRecordings: {}
         };
         this.cursorSprite.src = cursorIcon;
     }
 
     render() {
+        // Set the background gradient to be a fun rainbow based on the room id.
+        // TODO: Delete this when room CSS is implemented.
+        let bg = 'white';
+        if (this.state.room !== null) {
+            const twoColors = MazenetUtils.GetColorsForUUIDv4(this.state.room.id).slice(0, 2);
+            bg = `linear-gradient(${twoColors.join(', ')}`;
+        }
+
+        const style = {
+            background: bg
+        };
+        // END of background stuff.
         return (
-            <canvas ref={(c) => { this.initAnimation(c); }} id={'Background'}/>
+            <canvas ref={(c) => { this.initAnimation(c); }} id={'Background'} style={style}/>
         );
     }
 

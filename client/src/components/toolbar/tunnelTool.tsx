@@ -15,9 +15,10 @@ export default class TunnelTool extends React.PureComponent<TunnelToolProps, any
     }
 
     tunnelRoom() {
-        const sourceText = prompt('What should the tunnel link text be in this room?');
+        const sourceText = prompt('Text of this tunnel?');
         if (sourceText) {
-            const targetText = prompt('What should the tunnel link text be in the created room?');
+            const targetText = prompt('Text of the tunnel on the other side?',
+                this.props.room.title);
             if (targetText) {
                 RoomPositionCollector.Instance.GetPositionInRoom(this.props.room.id,
                     (pos: Models.Position | null) => {

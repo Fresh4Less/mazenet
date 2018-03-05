@@ -6,7 +6,7 @@ import Toolbar from './toolbar/toolbar';
 import './mazenet.css';
 import ActiveRoom from './activeRoom/activeRoom';
 import MouseCanvas from './background/mouseCanvas';
-import ActiveUsers from './activeUser/activeUsers';
+import ActiveUsers from './activeUsers/activeUsers';
 
 export default class Mazenet extends React.PureComponent<any, any> {
 
