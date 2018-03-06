@@ -42,7 +42,8 @@ export class Mazenet {
         const cursorService = new CursorRecording.Service(cursorDataStore);
 
         const userDataStore = new User.DataStore.InMemoryDataStore();
-        const userService = new User.Service(userDataStore);
+        const userSessionDataStore = new User.DataStore.SimpleSessionDataStore();
+        const userService = new User.Service(userDataStore, userSessionDataStore);
 
         const roomDataStore = new Room.DataStore.InMemoryDataStore();
         const roomService = new Room.Service(roomDataStore, cursorService);

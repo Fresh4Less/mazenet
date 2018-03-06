@@ -9,14 +9,16 @@ import * as Api from '../../../common/api';
 
 import { GlobalLogger } from '../util/logger';
 
-import { DataStore } from './datastore';
+import { DataStore, SessionDataStore } from './datastore';
 import { ActiveUser, User } from './models';
 
 export class Service {
     public dataStore: DataStore;
+    public sessionDataStore: SessionDataStore;
 
-    constructor(dataStore: DataStore) {
+    constructor(dataStore: DataStore, sessionDataStore: SessionDataStore) {
         this.dataStore = dataStore;
+        this.sessionDataStore = sessionDataStore;
     }
 
     public createUser(userBlueprint: Api.v1.Routes.Users.Create.Post.Request): Observable<User> {
@@ -42,19 +44,19 @@ export class Service {
         return this.dataStore.insertActiveUser(newActiveUser)
             .map((activeUser: ActiveUser) => {
                 GlobalLogger.trace('create active user', {activeUser});
-                return this.dataStore.insertActiveUserFromSession(sessionId, activeUser);
+                return this.sessionDataStore.insertActiveUserFromSession(sessionId, activeUser);
             });
     }
 
     public getActiveUserFromSession(sessionId: string): ActiveUser | undefined {
-        return this.dataStore.getActiveUserFromSession(sessionId);
+        return this.sessionDataStore.getActiveUserFromSession(sessionId);
     }
 
     public getSessionFromActiveUser(activeUserId: ActiveUser.Id): string | undefined {
-        return this.dataStore.getSessionFromActiveUser(activeUserId);
+        return this.sessionDataStore.getSessionFromActiveUser(activeUserId);
     }
 
     public onUserDisconnect(sessionId: string): void {
-        this.dataStore.deleteActiveUserFromSession(sessionId);
+        this.sessionDataStore.deleteActiveUserFromSession(sessionId);
     }
 }

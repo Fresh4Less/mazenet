@@ -1,0 +1,77 @@
+/*
+To run this script, pass the file to psql:
+	psql -f initdb.psql [db] [dbuser]
+replacing [db] and [dbuser] with your parameters
+*/
+BEGIN;
+
+CREATE SCHEMA mazenet;
+SET search_path TO mazenet,public;
+
+CREATE TABLE users (
+	userid uuid PRIMARY KEY,
+	username varchar(80) NOT NULL
+);
+
+CREATE TABLE activeusers (
+	activeuserid uuid PRIMARY KEY,
+	ptype text NOT NULL
+);
+
+CREATE TABLE users_activeusers (
+	userid uuid REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE,
+	activeuserid uuid REFERENCES activeusers ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT users_activeusers_key PRIMARY KEY (userid, activeuserid)
+);
+
+/*
+CREATE TABLE platformdata_desktop (
+	platformdataid uuid REFERENCES platformdata NOT NULL
+);
+
+CREATE TABLE platformdata_mobile (
+	platformdataid uuid REFERENCES platformdata NOT NULL
+);
+*/
+
+CREATE TABLE rooms (
+	roomid uuid PRIMARY KEY,
+	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
+	title text NOT NULL,
+	stylesheet text NOT NULL
+
+);
+
+CREATE TABLE rooms_owners (
+	roomid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE CASCADE,
+	userid uuid REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT rooms_owners_key PRIMARY KEY (roomid, userid)
+);
+
+CREATE TABLE structures (
+	structureid uuid PRIMARY KEY,
+	stype text NOT NULL,
+	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
+	pos point NOT NULL
+);
+
+CREATE TABLE structure_tunnels (
+	structureid uuid REFERENCES structures NOT NULL,
+	sourceId uuid REFERENCES rooms NOT NULL,
+	sourceText text NOT NULL,
+	targetId uuid REFERENCES rooms NOT NULL,
+	targetText text NOT NULL
+);
+
+CREATE TABLE cursorrecordings (
+	cursorrecordingid uuid PRIMARY KEY,
+	activeuserid uuid REFERENCES activeusers NOT NULL,
+);
+
+CREATE TABLE cursorrecordingframes (
+	cursorrecordingid uuid REFERENCES cursorrecordings NOT NULL
+	pos point NOT NULL,
+	t integer NOT NULL
+);
+
+END;

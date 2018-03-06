@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 var readline = require('readline');
 var colors = require('colors');
 
