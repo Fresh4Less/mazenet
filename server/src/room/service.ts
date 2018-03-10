@@ -57,13 +57,12 @@ export class Service {
             });
     }
 
-    public getRootRoom(): Observable<Room> {
-        return this.dataStore.getRootRoom()
-            .catch((err: Error) => {
-                if(err instanceof NotFoundError) {
+    public getRootRoomId(): Observable<Room> {
+        return this.dataStore.getRootRoomId()
+            .map((rootRoomId) => {
+                if(!rootRoomId) {
                     return this.initRootRoom();
                 }
-                throw err;
             });
     }
 
@@ -95,18 +94,17 @@ export class Service {
         roomId: Api.v1.Models.Room.Id,
         structureBlueprint: Api.v1.Models.Structure.Blueprint
     ): Observable<Structure> {
-        return this.dataStore.getRoom(roomId).mergeMap((room: Room) => {
-            //TODO: make this logic a dispatch
-            let initStructureDataObservable;
-            switch (structureBlueprint.data.sType) {
-                case 'tunnel':
-                    initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
-                    break;
-                default:
-                    throw new Error(`Failed to create ${structureBlueprint.data.sType}. Unrecognized structure type: '${structureBlueprint.data.sType}'`);
-            }
-            return Observable.forkJoin(initStructureDataObservable, Observable.of(room));
-        }).mergeMap(([structureData, room]: [StructureData, Room]) => {
+        //TODO: make this logic a dispatch
+        let initStructureDataObservable: Observable<StructureData>;
+        switch (structureBlueprint.data.sType) {
+            case 'tunnel':
+                initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
+                break;
+            default:
+                throw new Error(`Failed to create ${structureBlueprint.data.sType}. Unrecognized structure type: '${structureBlueprint.data.sType}'`);
+        }
+        return initStructureDataObservable
+        .mergeMap((structureData) => {
             const structure = new Structure({
                 creator: user.id,
                 data: structureData,

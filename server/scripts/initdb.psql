@@ -10,18 +10,14 @@ SET search_path TO mazenet,public;
 
 CREATE TABLE users (
 	userid uuid PRIMARY KEY,
-	username varchar(80) NOT NULL
+	username varchar(80) NOT NULL,
+	created_at timestampz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE activeusers (
 	activeuserid uuid PRIMARY KEY,
+	userid uuid REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
 	ptype text NOT NULL
-);
-
-CREATE TABLE users_activeusers (
-	userid uuid REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE,
-	activeuserid uuid REFERENCES activeusers ON UPDATE CASCADE ON DELETE CASCADE,
-	CONSTRAINT users_activeusers_key PRIMARY KEY (userid, activeuserid)
 );
 
 /*
@@ -34,12 +30,19 @@ CREATE TABLE platformdata_mobile (
 );
 */
 
+/* only allow one root room */
+CREATE TABLE rootroom (
+	rowid bool PRIMARY KEY DEFAULT TRUE,
+	rootroomid uuid
+	CONSTRAINT row_uni CHECK (rowid)
+);
+
 CREATE TABLE rooms (
 	roomid uuid PRIMARY KEY,
 	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
 	title text NOT NULL,
-	stylesheet text NOT NULL
-
+	stylesheet text NOT NULL,
+	created_at timestampz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE rooms_owners (
@@ -52,26 +55,33 @@ CREATE TABLE structures (
 	structureid uuid PRIMARY KEY,
 	stype text NOT NULL,
 	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
-	pos point NOT NULL
+	pos point NOT NULL,
+	created_at timestampz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE structure_tunnels (
 	structureid uuid REFERENCES structures NOT NULL,
-	sourceId uuid REFERENCES rooms NOT NULL,
-	sourceText text NOT NULL,
-	targetId uuid REFERENCES rooms NOT NULL,
-	targetText text NOT NULL
+	sourceid uuid REFERENCES rooms NOT NULL,
+	sourcetext text NOT NULL,
+	targetid uuid REFERENCES rooms NOT NULL,
+	targettext text NOT NULL
 );
 
 CREATE TABLE cursorrecordings (
 	cursorrecordingid uuid PRIMARY KEY,
 	activeuserid uuid REFERENCES activeusers NOT NULL,
+	created_at timestampz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cursorrecordingframes (
-	cursorrecordingid uuid REFERENCES cursorrecordings NOT NULL
+	cursorrecordingid uuid REFERENCES cursorrecordings NOT NULL,
 	pos point NOT NULL,
 	t integer NOT NULL
 );
+
+/********* VIEWS *********/
+CREATE VIEW room_structures AS
+	SELECT structures.*
+	FROM structures rooms
 
 END;

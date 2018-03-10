@@ -70,12 +70,12 @@ export class Middleware {
 
             Observable.forkJoin(
                 this.service.createActiveUser((req.socket as Socket).mazenet!.sessionId, req.user, body),
-                this.roomService.getRootRoom())
-            .subscribe(([activeUser, rootRoom]: [ActiveUser, Room]) => {
+                this.roomService.getRootRoomId())
+            .subscribe(([activeUser, rootRoomId]) => {
                 (req.socket as Socket).mazenet!.activeUser = activeUser;
                 const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
                     activeUser: activeUser.toV1(),
-                    rootRoomId: rootRoom.id
+                    rootRoomId: rootRoomId
                 };
                 return res.status(200).json(response);
             }, (err: Error) => {

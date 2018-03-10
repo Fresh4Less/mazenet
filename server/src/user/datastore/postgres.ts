@@ -19,7 +19,7 @@ export class PostgresDataStore implements DataStore {
 
     public getUser(userId: User.Id) {
         const query =
-            `SELECT * FROM users WHERE userid=$1`;
+            `SELECT * FROM users WHERE userid=$1;`;
         return Observable.fromPromise(this.client.query(
             query,
             [userId]
@@ -36,7 +36,7 @@ export class PostgresDataStore implements DataStore {
 
     public insertUser(user: User) {
         const query =
-            `INSERT INTO users(userid, username) VALUES ($1, $2) RETURNING *`;
+            `INSERT INTO users(userid, username) VALUES ($1, $2) RETURNING *;`;
         return Observable.fromPromise(this.client.query(
             query,
             [user.id, user.username]
@@ -58,9 +58,8 @@ export class PostgresDataStore implements DataStore {
         // TODO: hook up to platformdata
         const query =
         `SELECT users.userid, users.username, activeusers.activeuserid, activeusers.pType
-        FROM users_activeusers
-        JOIN activeusers ON users_activeusers.activeuserid=$1
-        JOIN users ON users.userid=users_activeusers.userid`;
+        FROM users, activeusers
+        WHERE users.userid=activeusers.userid AND activeusers.activeuserid=$1;`;
         return Observable.fromPromise(this.client.query(
             query,
             [activeUserId]
@@ -96,13 +95,10 @@ export class PostgresDataStore implements DataStore {
     public insertActiveUser(activeUser: ActiveUser) {
         // TODO: hook up to platformdata
         const query =
-        `BEGIN;
-        INSERT INTO activeusers(activeuserid, ptype) VALUES ($1, $2) RETURNING *;
-        INSERT INTO users_activeusers(userid, activeuserid) VALUES ($3, $1);
-        COMMIT;`;
+        `INSERT INTO activeusers(activeuserid, userid, ptype) VALUES ($1, $2, $3) RETURNING *;`;
         return Observable.fromPromise(this.client.query(
             query,
-            [activeUser.id, activeUser.platformData.pType, activeUser.userId]
+            [activeUser.id, activeUser.userId, activeUser.platformData.pType]
         )).map((result: QueryResult) => {
             // TODO: should this return the value from the databse?
             return activeUser;
