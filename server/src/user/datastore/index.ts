@@ -12,6 +12,9 @@ interface DataStore {
 
     getActiveUser: (activeUserId: ActiveUser.Id) => Observable<ActiveUser>;
     insertActiveUser: (activeUser: ActiveUser) => Observable<ActiveUser>;
+
+    getRootUserId: () => Observable<User.Id>;
+    setRootUserId: (userId: User.Id) => Observable<null>;
 }
 
 interface SessionDataStore {

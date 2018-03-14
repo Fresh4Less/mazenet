@@ -30,8 +30,7 @@ export class Middleware {
         this.socketMiddleware = (socket: Socket, next: (err?: any) => void) => {
             //TODO: authenticate based on JWT
             socket.mazenet = {
-                sessionId: socket.id,
-                user: new User({id: Uuid(), username: 'anon'})
+                sessionId: socket.id
             };
 
             socket.on('disconnect', () => {
@@ -44,13 +43,24 @@ export class Middleware {
             if((req.socket as Socket).mazenet) {
                 // this is a socketio connection
                 //TODO: do we need to validate that activeUser is valid for this user?
-                req.user = (req.socket as Socket).mazenet!.user;
                 req.activeUser = this.service.getActiveUserFromSession((req.socket as Socket).mazenet!.sessionId);
+                if(!(req.socket as Socket).mazenet!.user) {
+                    this.service.createUser({username: 'anonymous'}).subscribe((user) => {
+                        (req.socket as Socket).mazenet!.user = user;
+                        req.user = user;
+                        return next();
+                    });
+                } else {
+                    req.user = (req.socket as Socket).mazenet!.user;
+                    return next();
+                }
             } else {
                 //TODO: authenticate based on JWT
-                req.user = new User({id: Uuid(), username: 'anon'});
+                this.service.createUser({username: 'anonymous'}).subscribe((user) => {
+                    req.user = user;
+                    return next();
+                });
             }
-            next();
         });
 
         const usersRouter = Express.Router();
@@ -68,6 +78,7 @@ export class Middleware {
                 throw new BadRequestError(err.message);
             }
 
+            // TODO: make this wait for user insert to complete
             Observable.forkJoin(
                 this.service.createActiveUser((req.socket as Socket).mazenet!.sessionId, req.user, body),
                 this.roomService.getRootRoomId())
@@ -75,7 +86,7 @@ export class Middleware {
                 (req.socket as Socket).mazenet!.activeUser = activeUser;
                 const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
                     activeUser: activeUser.toV1(),
-                    rootRoomId: rootRoomId
+                    rootRoomId,
                 };
                 return res.status(200).json(response);
             }, (err: Error) => {

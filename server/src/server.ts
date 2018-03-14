@@ -7,6 +7,8 @@ import { Observable, Observer } from 'rxjs';
 import { EventTargetLike } from 'rxjs/observable/FromEventObservable';
 import * as SocketIO from 'socket.io';
 
+import { Pool } from 'pg';
+
 import * as BodyParser from 'body-parser';
 import * as Compression from 'compression';
 import * as CookieParser from 'cookie-parser';
@@ -20,7 +22,7 @@ import * as Mazenet from './mazenet';
 export namespace Server {
     /** Server constructor options */
     export interface Options {
-        /** Insecure HTTP port, if0, let OS pick */
+        /** Insecure HTTP port, if 0, let OS pick */
         port: number;
         /** HTTPS port, if0, let OS pick */
         securePort: number;
@@ -28,6 +30,17 @@ export namespace Server {
         sslCertPath?: string;
         /** ifset to 'prod', use stricter settings (SSL required) */
         env: string;
+        /** postgres client options */
+        postgres?: Partial<PostgresOptions>;
+    }
+
+    export interface PostgresOptions {
+        database: string;
+        host: string;
+        password?: string;
+        port: number;
+        timeout?: number;
+        user: string;
     }
 }
 
@@ -48,12 +61,20 @@ export class Server {
         sslCertPath: null,
     };
 
+    public static readonly defaultPostgresOptions = {
+        database: 'mazenet',
+        host: '127.0.0.1',
+        port: 5432,
+        user: 'mazenet',
+    };
+
     public options: Server.Options;
     public httpServer: Http.Server | Https.Server;
-    public secureRedirectServer: Http.Server | null;
+    public secureRedirectServer?: Http.Server;
     public app: Express.Express;
     public socketServer: SocketIO.Server;
     public usingSsl: boolean;
+    public postgresPool?: Pool;
 
     constructor(options: Partial<Server.Options>) {
         // TODO: put this in util
@@ -65,6 +86,9 @@ export class Server {
         });
 
         this.options = Object.assign({}, Server.defaultOptions, options);
+        if(this.options.postgres) {
+            this.options.postgres = Object.assign({}, Server.defaultPostgresOptions, this.options.postgres);
+        }
         this.usingSsl = false;
     }
 
@@ -76,10 +100,17 @@ export class Server {
         let listeningObservable: Observable<void>;
         try {
             //TODO: add server info to the logger (instance id, pid, etc)
-            GlobalLogger.info('Server: configuration', this.options);
+            // don't log passwords
+            let cleanOptions = this.options;
+            if(this.options.postgres && this.options.postgres.password) {
+                cleanOptions = Object.assign({}, this.options);
+                cleanOptions.postgres = Object.assign({}, this.options.postgres);
+                delete cleanOptions.postgres!.password;
+            }
+            GlobalLogger.info('Server: configuration', cleanOptions);
             this.app = Express();
 
-            let sslCert: Certificate | null = null;
+            let sslCert: Certificate | undefined;
             if(this.options.sslCertPath) {
                 try {
                     sslCert = this.loadCerts(this.options.sslCertPath);
@@ -147,8 +178,20 @@ export class Server {
             // https://github.com/socketio/engine.io/issues/521
             this.socketServer = SocketIO(this.httpServer, {wsEngine: 'ws'} as SocketIO.ServerOptions);
             //this.socketServer.use(SocketIOCookieParser());
+            if(this.options.postgres) {
+                this.postgresPool = new Pool({
+                    connectionTimeoutMillis: this.options.postgres.timeout,
+                    database: this.options.postgres.database,
+                    host: this.options.postgres.host,
+                    password: this.options.postgres.password,
+                    port: this.options.postgres.port,
+                    user: this.options.postgres.user,
+                });
+                // TODO: log data
+                GlobalLogger.info('Initialized postgres pool');
+            }
 
-            const mazenet = new Mazenet.Mazenet(this.app, this.socketServer);
+            const mazenet = new Mazenet.Mazenet(this.app, this.socketServer, {postgresPool: this.postgresPool});
         } catch (error) {
             return Observable.throw(error) as Observable<void>;
         }

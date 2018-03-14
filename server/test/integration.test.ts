@@ -126,6 +126,7 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
     }
 });
 
+// uncomment for debugging
 //GlobalLogger.handlers.get('request')!.enabled = true;
 //GlobalLogger.handlers.get('trace')!.enabled = true;
 
@@ -133,11 +134,17 @@ beforeEach(() => {
     server = new Server({
         env: 'test',
         port: 0,
+        // e2e testing
+        //postgres: {
+            //password: 'mz-db-pass',
+        //},
         securePort: 0,
     });
     return server.start().map(() => {
         const protocol = server.usingSsl ? 'https' : 'http';
         baseUrl = `${protocol}://127.0.0.1:${server.httpServer.address().port}/mazenet`;
+        // drop root room. TODO: propertly clear db data before test
+        //return server.postgresPool!.query(`TRUNCATE rootroom;`);
     }).toPromise();
 });
 

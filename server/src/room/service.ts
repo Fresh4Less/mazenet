@@ -13,19 +13,24 @@ import * as Api from '../../../common/api';
 import { NotFoundError } from '../common';
 import { Service as CursorService } from '../cursor-recording/service';
 import { ActiveUser, User } from '../user/models';
+import { Service as UserService } from '../user/service';
 import { GlobalLogger } from '../util/logger';
-import { DataStore } from './datastore';
+import { ActiveUserRoomDataStore, DataStore } from './datastore';
 import { ActiveUserRoomData, Room, RoomDocument, RoomEvent, Structure, StructureData } from './models';
 
 export class Service {
     public dataStore: DataStore;
+    public activeUserRoomDataStore: ActiveUserRoomDataStore;
+    public userService: UserService;
     public cursorService: CursorService;
     public events: Observable<RoomEvent>;
 
     private eventObserver: Observer<RoomEvent>;
 
-    constructor(dataStore: DataStore, cursorService: CursorService) {
+    constructor(dataStore: DataStore, activeUserRoomDataStore: ActiveUserRoomDataStore, userService: UserService, cursorService: CursorService) {
         this.dataStore = dataStore;
+        this.activeUserRoomDataStore = activeUserRoomDataStore;
+        this.userService = userService;
         this.cursorService = cursorService;
         this.events = Observable.create((observer: Observer<RoomEvent>) => {
             this.eventObserver = observer;
@@ -33,13 +38,11 @@ export class Service {
     }
 
     public initRootRoom(): Observable<Room> {
-        const rootUser = {
-            id: Uuid(),
-            username: 'mazenet'
-        };
-
-        return this.createRoom(rootUser, Uuid(), {title: 'mazenet'})
-            .mergeMap((room: Room) => {
+        let rootUser: User;
+        return this.userService.getRootUser().mergeMap((user) => {
+            rootUser = user;
+            return this.createRoom(rootUser, Uuid(), {title: 'mazenet'});
+        }).mergeMap((room: Room) => {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
             }).mergeMap(([room]: [Room, null]) => {
                 const enterTunnel: Api.v1.Models.Structure.Blueprint = {
@@ -57,21 +60,19 @@ export class Service {
             });
     }
 
-    public getRootRoomId(): Observable<Room> {
+    public getRootRoomId(): Observable<Room.Id> {
         return this.dataStore.getRootRoomId()
-            .map((rootRoomId) => {
-                if(!rootRoomId) {
-                    return this.initRootRoom();
+            .catch((err: Error) => {
+                if(err instanceof NotFoundError) {
+                    return this.initRootRoom().map((room) => room.id);
                 }
+
+                return Observable.throw(err) as Observable<Room.Id>;
             });
     }
 
-    public getRoom(roomId: Room.Id): Observable<Room> {
-        return this.dataStore.getRoom(roomId);
-    }
-
-    public getRoomDocument(room: Room): Observable<RoomDocument> {
-        return this.dataStore.getRoomDocument(room);
+    public getRoomDocument(roomId: Room.Id): Observable<RoomDocument> {
+        return this.dataStore.getRoomDocument(roomId);
     }
 
     public createRoom(user: User, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
@@ -134,7 +135,7 @@ export class Service {
                 roomId,
             };
             return Observable.forkJoin(
-                this.dataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
+                this.activeUserRoomDataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
                 this.cursorService.startCursorRecording(activeUser.id, roomId));
         }).map(() => {
             this.eventObserver.next({event: 'enter', roomId, activeUser});
@@ -144,11 +145,11 @@ export class Service {
     }
 
     public exitRoom(activeUserId: ActiveUser.Id): Observable<null> {
-        return this.dataStore.getActiveUserRoomData(activeUserId)
+        return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId)
         .mergeMap((activeUserRoomData: ActiveUserRoomData | undefined) => {
             if(activeUserRoomData) {
                 return Observable.forkJoin(
-                    this.dataStore.deleteActiveUserFromRoom(activeUserRoomData.roomId, activeUserId),
+                    this.activeUserRoomDataStore.deleteActiveUserFromRoom(activeUserRoomData.roomId, activeUserId),
                     this.cursorService.endCursorRecording(activeUserId))
                 .map(() => {
                     this.eventObserver.next({event: 'exit', roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
@@ -161,11 +162,11 @@ export class Service {
     }
 
     public getActiveUsersInRoom(roomId: Room.Id): Observable<Map<ActiveUser.Id, ActiveUserRoomData>> {
-        return this.dataStore.getActiveUsersInRoom(roomId);
+        return this.activeUserRoomDataStore.getActiveUsersInRoom(roomId);
     }
 
     public getActiveUserRoomData(activeUserId: ActiveUser.Id): Observable<ActiveUserRoomData | undefined> {
-        return this.dataStore.getActiveUserRoomData(activeUserId);
+        return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId);
     }
 
     /** Creates a new room and returns the data for a tunnel that leads to it */

@@ -1,4 +1,4 @@
-import { Client, QueryResult } from 'pg';
+import { Pool, QueryResult } from 'pg';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/of';
@@ -11,16 +11,16 @@ import { DataStore } from './index';
 
 export class PostgresDataStore implements DataStore {
 
-    public client: Client;
+    public clientPool: Pool;
 
-    constructor(client: Client) {
-        this.client = client;
+    constructor(clientPool: Pool) {
+        this.clientPool = clientPool;
     }
 
     public getUser(userId: User.Id) {
         const query =
             `SELECT * FROM users WHERE userid=$1;`;
-        return Observable.fromPromise(this.client.query(
+        return Observable.fromPromise(this.clientPool.query(
             query,
             [userId]
         )).map((result: QueryResult) => {
@@ -37,7 +37,7 @@ export class PostgresDataStore implements DataStore {
     public insertUser(user: User) {
         const query =
             `INSERT INTO users(userid, username) VALUES ($1, $2) RETURNING *;`;
-        return Observable.fromPromise(this.client.query(
+        return Observable.fromPromise(this.clientPool.query(
             query,
             [user.id, user.username]
         )).map((result: QueryResult) => {
@@ -60,7 +60,7 @@ export class PostgresDataStore implements DataStore {
         `SELECT users.userid, users.username, activeusers.activeuserid, activeusers.pType
         FROM users, activeusers
         WHERE users.userid=activeusers.userid AND activeusers.activeuserid=$1;`;
-        return Observable.fromPromise(this.client.query(
+        return Observable.fromPromise(this.clientPool.query(
             query,
             [activeUserId]
         )).map((result: QueryResult) => {
@@ -96,7 +96,7 @@ export class PostgresDataStore implements DataStore {
         // TODO: hook up to platformdata
         const query =
         `INSERT INTO activeusers(activeuserid, userid, ptype) VALUES ($1, $2, $3) RETURNING *;`;
-        return Observable.fromPromise(this.client.query(
+        return Observable.fromPromise(this.clientPool.query(
             query,
             [activeUser.id, activeUser.userId, activeUser.platformData.pType]
         )).map((result: QueryResult) => {
@@ -109,6 +109,33 @@ export class PostgresDataStore implements DataStore {
             }
             return Observable.throw(err) as Observable<ActiveUser>;
         }).catch(handlePostgresError<ActiveUser>('insertUser', query));
+    }
+
+    public getRootUserId() {
+        const query =
+            `SELECT * from rootuser;`;
+
+        return Observable.fromPromise(this.clientPool.query(query)
+        ).map((result: QueryResult) => {
+            if(result.rows.length === 0) {
+                throw new NotFoundError(`Root user id not set`);
+            }
+            return result.rows[0].rootuserid;
+        }).catch(handlePostgresError<User.Id>('getRootUserId', query));
+    }
+
+    public setRootUserId(userId: User.Id) {
+        // NOTE: overwriting the root user id if it is already set probably shouldn't be allowed
+        const query =
+            `INSERT INTO rootuser (rowid, rootuserid) VALUES (TRUE, $1)
+            ON CONFLICT (rowid) DO UPDATE SET rootuserid = EXCLUDED.rootuserid;`;
+
+        return Observable.fromPromise(this.clientPool.query(
+            query,
+            [userId]
+        )).map((result: QueryResult) => {
+            return null;
+        }).catch(handlePostgresError<null>('setRootUserId', query));
     }
 
 }

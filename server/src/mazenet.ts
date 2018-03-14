@@ -6,6 +6,8 @@ import * as Express from 'express';
 import FreshSocketIO = require('fresh-socketio-router');
 import * as SocketIO from 'socket.io';
 
+import { Pool } from 'pg';
+
 import * as CursorRecording from './cursor-recording';
 import * as Room from './room';
 import * as User from './user';
@@ -15,6 +17,7 @@ import { ErrorHandler, RequestLogger } from './util/middleware';
 
 export namespace Mazenet {
     export interface Options {
+        postgresPool?: Pool;
     }
 }
 
@@ -38,15 +41,27 @@ export class Mazenet {
         const mazenetIo = this.socketServer.of('/mazenet');
 
         //TODO: will need express middleware to convert GET query params to req.body object
-        const cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
-        const cursorService = new CursorRecording.Service(cursorDataStore);
+        let cursorDataStore: CursorRecording.DataStore.DataStore;
+        let userDataStore: User.DataStore.DataStore;
+        let roomDataStore: Room.DataStore.DataStore;
+        let activeUserRoomDataStore: Room.DataStore.ActiveUserRoomDataStore;
 
-        const userDataStore = new User.DataStore.InMemoryDataStore();
+        if(this.options.postgresPool) {
+            cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
+            userDataStore = new User.DataStore.PostgresDataStore(this.options.postgresPool);
+            roomDataStore = new Room.DataStore.PostgresDataStore(this.options.postgresPool);
+            activeUserRoomDataStore = new Room.DataStore.InMemoryActiveUserRoomDataStore();
+        } else {
+            cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
+            userDataStore = new User.DataStore.InMemoryDataStore();
+            roomDataStore = new Room.DataStore.InMemoryDataStore();
+            activeUserRoomDataStore = new Room.DataStore.InMemoryActiveUserRoomDataStore();
+        }
+
+        const cursorService = new CursorRecording.Service(cursorDataStore);
         const userSessionDataStore = new User.DataStore.SimpleSessionDataStore();
         const userService = new User.Service(userDataStore, userSessionDataStore);
-
-        const roomDataStore = new Room.DataStore.InMemoryDataStore();
-        const roomService = new Room.Service(roomDataStore, cursorService);
+        const roomService = new Room.Service(roomDataStore, activeUserRoomDataStore, userService, cursorService);
 
         const roomMiddleware = new Room.Middleware(roomService, userService, cursorService, mazenetIo);
         const userMiddleware = new User.Middleware(userService, roomService);

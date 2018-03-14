@@ -9,6 +9,7 @@ import * as Api from '../../../common/api';
 
 import { GlobalLogger } from '../util/logger';
 
+import { NotFoundError } from '../common';
 import { DataStore, SessionDataStore } from './datastore';
 import { ActiveUser, User } from './models';
 
@@ -21,6 +22,10 @@ export class Service {
         this.sessionDataStore = sessionDataStore;
     }
 
+    public getUser(userId: User.Id): Observable<User> {
+        return this.dataStore.getUser(userId);
+    }
+
     public createUser(userBlueprint: Api.v1.Routes.Users.Create.Post.Request): Observable<User> {
         const newUser = new User({
             id: Uuid(),
@@ -31,6 +36,10 @@ export class Service {
             GlobalLogger.trace('create user', {user});
             return user;
         });
+    }
+
+    public getActiveUser(activeUserId: ActiveUser.Id): Observable<ActiveUser> {
+        return this.dataStore.getActiveUser(activeUserId);
     }
 
     public createActiveUser(sessionId: string, user: Api.v1.Models.User, platformData: Api.v1.Models.PlatformData): Observable<ActiveUser> {
@@ -54,6 +63,27 @@ export class Service {
 
     public getSessionFromActiveUser(activeUserId: ActiveUser.Id): string | undefined {
         return this.sessionDataStore.getSessionFromActiveUser(activeUserId);
+    }
+
+    public getRootUser(): Observable<User> {
+        return this.dataStore.getRootUserId()
+        .catch((err: Error) => {
+            if(err instanceof NotFoundError) {
+                const rootUserBlueprint = {
+                    username: 'mazenet'
+                };
+                return this.createUser(rootUserBlueprint).mergeMap((user) => {
+                    return this.dataStore.setRootUserId(user.id).map(() => {
+                        GlobalLogger.trace('init root user', {user});
+                        return user.id;
+                    });
+                });
+            }
+
+            return Observable.throw(err) as Observable<User.Id>;
+        }).mergeMap((userId) => {
+            return this.getUser(userId);
+        });
     }
 
     public onUserDisconnect(sessionId: string): void {

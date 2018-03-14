@@ -8,10 +8,17 @@ BEGIN;
 CREATE SCHEMA mazenet;
 SET search_path TO mazenet,public;
 
+/* the root user is the owner of the root room + structures */
+CREATE TABLE rootuser (
+	rowid bool PRIMARY KEY DEFAULT TRUE,
+	rootuserid uuid
+	CONSTRAINT row_uni CHECK (rowid)
+);
+
 CREATE TABLE users (
 	userid uuid PRIMARY KEY,
 	username varchar(80) NOT NULL,
-	created_at timestampz DEFAULT CURRENT_TIMESTAMP
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE activeusers (
@@ -42,7 +49,7 @@ CREATE TABLE rooms (
 	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
 	title text NOT NULL,
 	stylesheet text NOT NULL,
-	created_at timestampz DEFAULT CURRENT_TIMESTAMP
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE rooms_owners (
@@ -56,7 +63,7 @@ CREATE TABLE structures (
 	stype text NOT NULL,
 	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
 	pos point NOT NULL,
-	created_at timestampz DEFAULT CURRENT_TIMESTAMP
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE structure_tunnels (
@@ -79,9 +86,10 @@ CREATE TABLE cursorrecordingframes (
 	t integer NOT NULL
 );
 
-/********* VIEWS *********/
-CREATE VIEW room_structures AS
-	SELECT structures.*
-	FROM structures rooms
+/******** ROLES ********/
+CREATE USER mazenet WITH PASSWORD 'mz-db-pass';
+ALTER ROLE mazenet IN DATABASE mazenet SET search_path TO mazenet,public;
+GRANT USAGE ON SCHEMA mazenet TO mazenet; 
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA mazenet TO mazenet;
 
 END;

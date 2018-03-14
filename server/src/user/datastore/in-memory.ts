@@ -6,8 +6,9 @@ import { ActiveUser, User } from '../models';
 import { DataStore } from './index';
 
 export class InMemoryDataStore implements DataStore {
-    public users: Map<User.Id, User>;
-    public activeUsers: Map<ActiveUser.Id, ActiveUser>;
+    private users: Map<User.Id, User>;
+    private activeUsers: Map<ActiveUser.Id, ActiveUser>;
+    private rootUserId?: User.Id;
 
     constructor() {
         this.users = new Map<User.Id, User>();
@@ -48,5 +49,18 @@ export class InMemoryDataStore implements DataStore {
 
         this.activeUsers.set(activeUser.id, activeUser);
         return Observable.of(activeUser);
+    }
+
+    public getRootUserId() {
+        if(!this.rootUserId) {
+            return Observable.throw(new NotFoundError(`Root user id not set`)) as Observable<User.Id>;
+        }
+
+        return Observable.of(this.rootUserId);
+    }
+
+    public setRootUserId(userId: User.Id) {
+        this.rootUserId = userId;
+        return Observable.of(null);
     }
 }

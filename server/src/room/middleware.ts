@@ -22,9 +22,6 @@ import { CursorEvent, CursorMovedEvent, CursorRecording } from '../cursor-record
 import {Service as CursorService } from '../cursor-recording/service';
 import {Service as UserService } from '../user/service';
 
-// temporary imports, won't be needed later
-import * as Uuid from 'uuid/v4';
-
 export class Middleware {
 
     public service: Service;

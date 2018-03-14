@@ -30,7 +30,10 @@ export class InMemoryDataStore implements DataStore {
     }
 
     public getRootRoomId() {
-        return Observable.of(this.rootRoomId);
+        if(!this.rootRoomId) {
+            return Observable.throw(new NotFoundError(`Root room id not set`));
+        }
+        return Observable.of(this.rootRoomId!);
     }
 
     public setRootRoomId(roomId: Room.Id) {
