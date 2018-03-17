@@ -39,3 +39,4 @@ common/**/*.map
 common/**/*.js
 
 coverage/
+secrets/

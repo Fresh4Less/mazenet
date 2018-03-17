@@ -31,14 +31,14 @@ export namespace Server {
         /** ifset to 'prod', use stricter settings (SSL required) */
         env: string;
         /** postgres client options */
-        postgres?: Partial<PostgresOptions>;
+        postgres?: PostgresOptions;
     }
 
     export interface PostgresOptions {
         database: string;
         host: string;
-        password?: string;
-        port: number;
+        password: string;
+        port?: number;
         timeout?: number;
         user: string;
     }
@@ -61,13 +61,6 @@ export class Server {
         sslCertPath: null,
     };
 
-    public static readonly defaultPostgresOptions = {
-        database: 'mazenet',
-        host: '127.0.0.1',
-        port: 5432,
-        user: 'mazenet',
-    };
-
     public options: Server.Options;
     public httpServer: Http.Server | Https.Server;
     public secureRedirectServer?: Http.Server;
@@ -77,18 +70,7 @@ export class Server {
     public postgresPool?: Pool;
 
     constructor(options: Partial<Server.Options>) {
-        // TODO: put this in util
-        // delete null/undefined options so Object.assign doesn't copy them
-        Object.keys(options).forEach((optName: string) => {
-            if((options as any)[optName] == null) {
-                delete (options as any)[optName];
-            }
-        });
-
         this.options = Object.assign({}, Server.defaultOptions, options);
-        if(this.options.postgres) {
-            this.options.postgres = Object.assign({}, Server.defaultPostgresOptions, this.options.postgres);
-        }
         this.usingSsl = false;
     }
 
@@ -189,6 +171,8 @@ export class Server {
                 });
                 // TODO: log data
                 GlobalLogger.info('Initialized postgres pool');
+            } else {
+                GlobalLogger.info('Using in-memory data store');
             }
 
             const mazenet = new Mazenet.Mazenet(this.app, this.socketServer, {postgresPool: this.postgresPool});
