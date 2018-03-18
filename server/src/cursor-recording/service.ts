@@ -12,7 +12,7 @@ import * as Api from '../../../common/api';
 
 import { NotFoundError } from '../common';
 import { GlobalLogger } from '../util/logger';
-import { DataStore } from './datastore';
+import { DataStore, LiveCursorRecordingDataStore } from './datastore';
 import { CursorEvent, CursorRecording, CursorRecordingFrame } from './models';
 
 import { Position } from '../common';
@@ -21,13 +21,15 @@ import { ActiveUser, User } from '../user/models';
 
 export class Service {
     public dataStore: DataStore;
+    public liveCursorRecordingDataStore: LiveCursorRecordingDataStore;
 
     public events: Observable<CursorEvent>;
 
     private eventObserver: Observer<CursorEvent>;
 
-    constructor(dataStore: DataStore) {
+    constructor(dataStore: DataStore, liveCursorRecordingDataStore: LiveCursorRecordingDataStore) {
         this.dataStore = dataStore;
+        this.liveCursorRecordingDataStore = liveCursorRecordingDataStore;
 
         this.events = Observable.create((observer: Observer<CursorEvent>) => {
             this.eventObserver = observer;
@@ -39,21 +41,23 @@ export class Service {
     }
 
     public startCursorRecording(activeUserId: ActiveUser.Id, roomId: Room.Id): Observable<null> {
-        return this.dataStore.startCursorRecording(activeUserId, roomId);
+        return this.liveCursorRecordingDataStore.startCursorRecording(activeUserId, roomId);
     }
 
     /* Commit the user's cursor frames to the room */
     public endCursorRecording(activeUserId: ActiveUser.Id): Observable<CursorRecording> {
-        return this.dataStore.endCursorRecording(activeUserId)
+        return this.liveCursorRecordingDataStore.endCursorRecording(activeUserId)
         .mergeMap(([roomId, frames]: [Room.Id, CursorRecordingFrame[]]) => {
             const cursorRecording = new CursorRecording({
                 activeUserId,
                 frames,
                 id: Uuid(),
             });
-            return this.dataStore.insertCursorRecording(roomId, cursorRecording);
-        }).map((cursorRecording) => {
-            GlobalLogger.trace('cursor recording', {id: cursorRecording.id, activeUserId: cursorRecording.activeUserId});
+            return Observable.forkJoin(
+                this.dataStore.insertCursorRecording(roomId, cursorRecording),
+                Observable.of(roomId));
+        }).map(([cursorRecording, roomId]) => {
+            GlobalLogger.trace('create cursor recording', {id: cursorRecording.id, activeUserId: cursorRecording.activeUserId, roomId});
             return cursorRecording;
         });
     }
@@ -66,7 +70,7 @@ export class Service {
             pos,
             t: Math.floor((new Date().valueOf() - new Date(activeUserRoomData.enterTime).valueOf()) / 30)
         };
-        return this.dataStore.addCursorRecordingFrame(activeUserRoomData.activeUser.id, frame).map(() => {
+        return this.liveCursorRecordingDataStore.addCursorRecordingFrame(activeUserRoomData.activeUser.id, frame).map(() => {
             this.eventObserver.next({
                 activeUser: activeUserRoomData.activeUser,
                 event: 'move',

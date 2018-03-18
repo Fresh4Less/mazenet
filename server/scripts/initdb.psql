@@ -29,11 +29,11 @@ CREATE TABLE activeusers (
 
 /*
 CREATE TABLE platformdata_desktop (
-	platformdataid uuid REFERENCES platformdata NOT NULL
+	platformdataid uuid REFERENCES platformdata ON UPDATE CASCADE ON DELETE CASCADE NOT NULL
 );
 
 CREATE TABLE platformdata_mobile (
-	platformdataid uuid REFERENCES platformdata NOT NULL
+	platformdataid uuid REFERENCES platformdata ON UPDATE CASCADE ON DELETE CASCADE NOT NULL
 );
 */
 
@@ -67,21 +67,22 @@ CREATE TABLE structures (
 );
 
 CREATE TABLE structure_tunnels (
-	structureid uuid REFERENCES structures NOT NULL,
-	sourceid uuid REFERENCES rooms NOT NULL,
+	structureid uuid REFERENCES structures ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	sourceid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE SET NULL NOT NULL,
 	sourcetext text NOT NULL,
-	targetid uuid REFERENCES rooms NOT NULL,
+	targetid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE SET NULL NOT NULL,
 	targettext text NOT NULL
 );
 
 CREATE TABLE cursorrecordings (
 	cursorrecordingid uuid PRIMARY KEY,
-	activeuserid uuid REFERENCES activeusers NOT NULL,
-	created_at timestampz DEFAULT CURRENT_TIMESTAMP
+	activeuserid uuid REFERENCES activeusers ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	roomid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cursorrecordingframes (
-	cursorrecordingid uuid REFERENCES cursorrecordings NOT NULL,
+	cursorrecordingid uuid REFERENCES cursorrecordings ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
 	pos point NOT NULL,
 	t integer NOT NULL
 );

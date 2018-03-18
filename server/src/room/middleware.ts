@@ -66,10 +66,10 @@ export class Middleware {
                 if(socket.mazenet!.activeUser) {
                     this.service.exitRoom(socket.mazenet!.activeUser!.id).subscribe(() => {
                         // do nothing
-                    }, (err: Error) => {
+                    }, (error: Error) => {
                         GlobalLogger.error(
                             'ActiveUser failed to exit room on disconnect',
-                            {activeUser: socket.mazenet!.activeUser}
+                            {error, activeUser: socket.mazenet!.activeUser}
                         );
                     });
                 }

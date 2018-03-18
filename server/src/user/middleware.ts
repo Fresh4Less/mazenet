@@ -78,7 +78,6 @@ export class Middleware {
                 throw new BadRequestError(err.message);
             }
 
-            // TODO: make this wait for user insert to complete
             Observable.forkJoin(
                 this.service.createActiveUser((req.socket as Socket).mazenet!.sessionId, req.user, body),
                 this.roomService.getRootRoomId())

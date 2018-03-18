@@ -13,7 +13,6 @@ let inStream = readline.createInterface({
 	output: process.stdout,
 	terminal: false
 });
-console.log('hi');
 
 inStream.on('line', function(line) {
 	try {

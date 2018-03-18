@@ -42,23 +42,26 @@ export class Mazenet {
 
         //TODO: will need express middleware to convert GET query params to req.body object
         let cursorDataStore: CursorRecording.DataStore.DataStore;
+        let liveCursorRecordingDataStore: CursorRecording.DataStore.LiveCursorRecordingDataStore;
         let userDataStore: User.DataStore.DataStore;
         let roomDataStore: Room.DataStore.DataStore;
         let activeUserRoomDataStore: Room.DataStore.ActiveUserRoomDataStore;
 
         if(this.options.postgresPool) {
-            cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
+            cursorDataStore = new CursorRecording.DataStore.PostgresDataStore(this.options.postgresPool);
+            liveCursorRecordingDataStore = new CursorRecording.DataStore.InMemoryLiveCursorRecordingDataStore();
             userDataStore = new User.DataStore.PostgresDataStore(this.options.postgresPool);
             roomDataStore = new Room.DataStore.PostgresDataStore(this.options.postgresPool);
             activeUserRoomDataStore = new Room.DataStore.InMemoryActiveUserRoomDataStore();
         } else {
             cursorDataStore = new CursorRecording.DataStore.InMemoryDataStore();
+            liveCursorRecordingDataStore = new CursorRecording.DataStore.InMemoryLiveCursorRecordingDataStore();
             userDataStore = new User.DataStore.InMemoryDataStore();
             roomDataStore = new Room.DataStore.InMemoryDataStore();
             activeUserRoomDataStore = new Room.DataStore.InMemoryActiveUserRoomDataStore();
         }
 
-        const cursorService = new CursorRecording.Service(cursorDataStore);
+        const cursorService = new CursorRecording.Service(cursorDataStore, liveCursorRecordingDataStore);
         const userSessionDataStore = new User.DataStore.SimpleSessionDataStore();
         const userService = new User.Service(userDataStore, userSessionDataStore);
         const roomService = new Room.Service(roomDataStore, activeUserRoomDataStore, userService, cursorService);
