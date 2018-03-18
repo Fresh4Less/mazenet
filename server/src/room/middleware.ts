@@ -22,9 +22,6 @@ import { CursorEvent, CursorMovedEvent, CursorRecording } from '../cursor-record
 import {Service as CursorService } from '../cursor-recording/service';
 import {Service as UserService } from '../user/service';
 
-// temporary imports, won't be needed later
-import * as Uuid from 'uuid/v4';
-
 export class Middleware {
 
     public service: Service;
@@ -69,10 +66,10 @@ export class Middleware {
                 if(socket.mazenet!.activeUser) {
                     this.service.exitRoom(socket.mazenet!.activeUser!.id).subscribe(() => {
                         // do nothing
-                    }, (err: Error) => {
+                    }, (error: Error) => {
                         GlobalLogger.error(
                             'ActiveUser failed to exit room on disconnect',
-                            {activeUser: socket.mazenet!.activeUser}
+                            {error, activeUser: socket.mazenet!.activeUser}
                         );
                     });
                 }
@@ -170,16 +167,16 @@ export class Middleware {
             }
 
             return Observable.forkJoin(
-                this.service.getRoom(body.id),
+                // get the room and active users
+                this.service.getRoomDocument(body.id),
                 this.service.getActiveUsersInRoom(body.id)
-            ).mergeMap(([room, activeUsers]) => {
-                // enter room after getting the room and active users
+            ).mergeMap(([roomDocument, activeUsers]) => {
+                // enter room
                 return Observable.forkJoin(
-                    this.service.getRoomDocument(room),
+                    Observable.of(roomDocument),
                     Observable.of(activeUsers),
                     this.service.enterRoom(body.id, (req.socket as Socket).mazenet!.activeUser!));
             }).subscribe(([roomDoc, activeUsers]) => {
-                //(<Socket>req.socket).emit('/rooms/active-users/entered', (<Socket>req.socket).mazenet!.activeUser);
                 const response: Api.v1.Routes.Rooms.Enter.Post.Response200 = {
                     room: roomDoc.toV1(),
                     users: mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1())

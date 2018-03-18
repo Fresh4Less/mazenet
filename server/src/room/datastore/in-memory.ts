@@ -1,29 +1,12 @@
 import 'rxjs/add/observable/of';
 import { Observable } from 'rxjs/Observable';
-import { AlreadyExistsError, NotFoundError } from '../common';
-import { ActiveUser } from '../user/models';
-import { ActiveUserRoomData, Room, RoomDocument, Structure } from './models';
 
-import * as Uuid from 'uuid/v4';
+import { AlreadyExistsError, NotFoundError } from '../../common';
 
-export interface DataStore {
-    getRootRoom: () => Observable<Room>;
-    setRootRoomId: (roomId: Room.Id) => Observable<null>;
+import { ActiveUser } from '../../user/models';
+import { ActiveUserRoomData, Room, RoomDocument, Structure } from '../models';
 
-    getRoom: (roomId: Room.Id) => Observable<Room>;
-    insertRoom: (room: Room) => Observable<Room>;
-    updateRoom: (updatedRoom: Room) => Observable<Room>;
-
-    getStructure: (structureId: Structure.Id) => Observable<Structure>;
-    insertStructure: (structure: Structure) => Observable<Structure>;
-
-    getRoomDocument: (room: Room) => Observable<RoomDocument>;
-
-    getActiveUserRoomData: (activeUserId: ActiveUser.Id) => Observable<ActiveUserRoomData | undefined>;
-    insertActiveUserToRoom: (roomId: Room.Id, activeUser: ActiveUserRoomData) => Observable<null>;
-    deleteActiveUserFromRoom: (roomId: Room.Id, activeUserId: ActiveUser.Id) => Observable<null>;
-    getActiveUsersInRoom: (roomId: Room.Id) => Observable<Map<ActiveUser.Id, ActiveUserRoomData>>;
-}
+import { DataStore } from './index';
 
 export class InMemoryDataStore implements DataStore {
     public rootRoomId?: string;
@@ -46,12 +29,11 @@ export class InMemoryDataStore implements DataStore {
 
     }
 
-    public getRootRoom() {
+    public getRootRoomId() {
         if(!this.rootRoomId) {
-            return Observable.throw(new NotFoundError(`Root room id not set`)) as Observable<Room>;
+            return Observable.throw(new NotFoundError(`Root room id not set`));
         }
-
-        return this.getRoom(this.rootRoomId);
+        return Observable.of(this.rootRoomId!);
     }
 
     public setRootRoomId(roomId: Room.Id) {
@@ -126,14 +108,17 @@ export class InMemoryDataStore implements DataStore {
         return Observable.of(structure);
     }
 
-    public getRoomDocument(room: Room) {
-        const structureIds = this.structuresInRoom.get(room.id) || new Set<Structure.Id>();
-        const structures = new Map<Structure.Id, Structure>();
-        for (const id of structureIds) {
-            // the structure better exist
-            structures.set(id, this.structures.get(id)!);
-        }
-        return Observable.of(new RoomDocument(room, structures));
+    public getRoomDocument(roomId: Room.Id) {
+        return this.getRoom(roomId)
+        .map((room) => {
+            const structureIds = this.structuresInRoom.get(roomId) || new Set<Structure.Id>();
+            const structures = new Map<Structure.Id, Structure>();
+            for (const id of structureIds) {
+                // the structure better exist
+                structures.set(id, this.structures.get(id)!);
+            }
+            return new RoomDocument(room, structures);
+        });
     }
 
     public getActiveUsersInRoom(roomId: Room.Id) {

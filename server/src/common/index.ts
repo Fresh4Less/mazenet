@@ -76,7 +76,7 @@ export type Response = Express.Response | FreshSocketIO.Response;
 
 interface MazenetSocketData {
     sessionId: string;
-    user: User;
+    user?: User;
     activeUser?: ActiveUser;
 }
 interface MazenetSocket {
