@@ -88,9 +88,16 @@ CREATE TABLE cursorrecordingframes (
 );
 
 /******** ROLES ********/
-CREATE USER mazenet WITH PASSWORD 'mz-db-pass';
+DO
+$do$
+BEGIN
+	IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname='mazenet') THEN
+		CREATE USER mazenet WITH PASSWORD 'mz-db-pass';
+	END IF;
+END
+$do$;
+
 ALTER ROLE mazenet IN DATABASE mazenet SET search_path TO mazenet,public;
 GRANT USAGE ON SCHEMA mazenet TO mazenet; 
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA mazenet TO mazenet;
-
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA mazenet TO mazenet;
 END;

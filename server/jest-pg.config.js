@@ -15,4 +15,13 @@ module.exports = {
         '**/test/**/*.test.ts'
     ],
     testEnvironment: 'node',
+    testEnvironmentOptions: {
+        postgres: {
+            database: 'mazenet',
+            host: '127.0.0.1',
+            password: 'mz-db-pass',
+            timeout: 2000,
+            user: 'mazenet',
+        }
+    }
 };

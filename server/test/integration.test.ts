@@ -1,4 +1,6 @@
+import { QueryResult } from 'pg';
 import { Observable } from 'rxjs';
+
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/timer';
 import 'rxjs/add/operator/mergeMap';
@@ -130,21 +132,28 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
 //GlobalLogger.handlers.get('request')!.enabled = true;
 //GlobalLogger.handlers.get('trace')!.enabled = true;
 
+const postgres = (global as any).postgres;
+
 beforeEach(() => {
     server = new Server({
         env: 'test',
         port: 0,
-        // e2e testing
-        //postgres: {
-            //password: 'mz-db-pass',
-        //},
+        postgres,
         securePort: 0,
     });
     return server.start().map(() => {
         const protocol = server.usingSsl ? 'https' : 'http';
         baseUrl = `${protocol}://127.0.0.1:${server.httpServer.address().port}/mazenet`;
-        // drop root room. TODO: propertly clear db data before test
-        //return server.postgresPool!.query(`TRUNCATE rootroom;`);
+        if(postgres) {
+            // delete from all tables
+            return server.postgresPool!.query(
+                `SELECT table_name FROM information_schema.tables WHERE table_schema='mazenet'`
+            ).then((result: QueryResult) => {
+                return Observable.forkJoin(
+                    result.rows.map((row) => Observable.fromPromise(server.postgresPool!.query(`TRUNCATE ${row.table_name} CASCADE`)))
+                ).toPromise();
+            });
+        }
     }).toPromise();
 });
 

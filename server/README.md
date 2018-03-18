@@ -1,4 +1,5 @@
 # Mazenet Server
+NodeJS backend for Mazenet. Exposes the Mazenet API through an interactive WebSocket API, and a RESTFUL HTTP API.
 
 # Install
 ```bash
@@ -119,6 +120,23 @@ HTML Documentation is generated in `/docs`.
 ## Run Tests
 ```bash
 npm test
+```
+By default, the integration tests use the in-memory data store. To test against a live Postgres database, use the postgres Jest configuration:
+```bash
+npm test -- --config ./jest-pg.config.js
+```
+
+## Initialize Postgres DB Schema
+To create the `mazenet` Postgres schema and tables, execute the SQL commands in `./scripts/initdb.psql`.
+```bash
+	psql -f initdb.psql [db] [dbuser]
+```
+Suggested values: db=mazenet, dbuser=postgres
+
+`initdb.psql` automatically creates the `mazenet` role if it doesn't already exist, and grants it read-write permissions on tables in the `mazenet` schema.  
+The default password is `mz-db-pass`. If not on a dev environment, you should immediately change the password with the following SQL command:
+```
+ALTER ROLE mazenet WITH PASSWORD 'newpassword'
 ```
 
 ## FAQ
