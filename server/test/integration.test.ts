@@ -33,7 +33,6 @@ interface Response {
 
 /** Connects a SocketIO client and records request/response for each transaction. Provides helper functions for issuing and validating transactions
  * user and activeUser properties are automatically set after using connectSocket() or connectAndEnter()
- * TODO: multi-client tests, emit history
  */
 class Client {
     public client: SocketIOClient.Socket;
@@ -45,6 +44,9 @@ class Client {
     public res: Response;
     //user?: Api.v1.Models.User;
     public activeUser?: Api.v1.Models.ActiveUser;
+
+    /** events registered with listenEvent are recorded here. key: event name, value: event data in the order it was received */
+    public receivedEvents: Map<string, any[]>;
     /** after emitting an event, record heard events */
     //emitHistory: [Emit, Emit[]][];
     /** last event emitted */
@@ -53,6 +55,7 @@ class Client {
     constructor(url: string) {
         this.client = SocketIOClient(url);
         this.transactions = [];
+        this.receivedEvents = new Map<string, any[]>();
         //this.emitHistory = [];
     }
 
@@ -69,6 +72,14 @@ class Client {
             this.req = req;
             this.res = res;
             return this;
+        });
+    }
+
+    public listenEvent(eventName: string) {
+        const events: any[] = [];
+        this.receivedEvents.set(eventName, events);
+        this.client.on(eventName, (data: any) => {
+            events.push(data);
         });
     }
 
@@ -179,152 +190,225 @@ describe('users', () => {
     });
 });
 
-describe('rooms', () => {
-    test('POST /enter', () => {
-        const client = new Client(baseUrl);
+describe('single client', () => {
+    describe('rooms', () => {
+        test('POST /enter', () => {
+            const client = new Client(baseUrl);
 
-        return client.connectAndEnter().map(() => {
-            const res = client.res;
-            expect(res.status).toBe(200);
-            // room
-            expect(typeof res.body.room.id).toBe('string');
-            expect(typeof res.body.room.creator).toBe('string');
-            expect(typeof res.body.room.title).toBe('string');
-            expect(typeof res.body.room.stylesheet).toBe('string');
+            return client.connectAndEnter().map(() => {
+                const res = client.res;
+                expect(res.status).toBe(200);
+                // room
+                expect(typeof res.body.room.id).toBe('string');
+                expect(typeof res.body.room.creator).toBe('string');
+                expect(typeof res.body.room.title).toBe('string');
+                expect(typeof res.body.room.stylesheet).toBe('string');
 
-            expect(Array.isArray(res.body.room.owners)).toBe(true);
-            expect(res.body.room.owners).toHaveLength(1);
+                expect(Array.isArray(res.body.room.owners)).toBe(true);
+                expect(res.body.room.owners).toHaveLength(1);
 
-            // structure
-            expect(Object.keys(res.body.room.structures)).toHaveLength(1);
-            const enterTunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
-            expect(typeof enterTunnel.id).toBe('string');
-            expect(typeof enterTunnel.creator).toBe('string');
-            expect(enterTunnel.pos).toEqual({x: 0.5, y: 0.5});
-            expect(enterTunnel.data.sType).toBe('tunnel');
-            expect(enterTunnel.data.sourceId).toBe(res.body.room.id);
-            expect(typeof enterTunnel.data.targetId).toBe('string');
-            expect(typeof enterTunnel.data.sourceText).toBe('string');
-            expect(typeof enterTunnel.data.targetId).toBe('string');
+                // structure
+                expect(Object.keys(res.body.room.structures)).toHaveLength(1);
+                const enterTunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
+                expect(typeof enterTunnel.id).toBe('string');
+                expect(typeof enterTunnel.creator).toBe('string');
+                expect(enterTunnel.pos).toEqual({x: 0.5, y: 0.5});
+                expect(enterTunnel.data.sType).toBe('tunnel');
+                expect(enterTunnel.data.sourceId).toBe(res.body.room.id);
+                expect(typeof enterTunnel.data.targetId).toBe('string');
+                expect(typeof enterTunnel.data.sourceText).toBe('string');
+                expect(typeof enterTunnel.data.targetId).toBe('string');
 
-            // users
-            expect(res.body.users).toBeDefined();
-            expect(typeof res.body.users).toBe('object');
-            expect(Object.keys(res.body.users)).toHaveLength(0);
-        }).first().toPromise();
-    });
+                // users
+                expect(res.body.users).toBeDefined();
+                expect(typeof res.body.users).toBe('object');
+                expect(Object.keys(res.body.users)).toHaveLength(0);
+            }).first().toPromise();
+        });
 
-    describe('structures', () => {
-        describe('tunnel', () => {
-            test('POST /create', () => {
+        describe('structures', () => {
+            describe('tunnel', () => {
+                test('POST /create', () => {
+                    const client = new Client(baseUrl);
+                    return client.connectAndEnter().mergeMap(() => {
+                        const res = client.res;
+                        return client.emitTransaction('POST', '/rooms/structures/create', {
+                            roomId: res.body.room.id,
+                            structure: {
+                                data: {
+                                    sType: 'tunnel',
+                                    sourceText: 'the hills',
+                                    targetText: 'mazenet'
+                                },
+                                pos: {x: 0.1, y: 0.1},
+                            }
+                        });
+                    }).mergeMap(() => {
+                        const res = client.res;
+                        expect(res.status).toBe(201);
+                        expect(typeof res.body.id).toBe('string');
+                        expect(res.body.creator).toBe(client.activeUser!.userId);
+                        expect(res.body.pos).toEqual({x: 0.1, y: 0.1});
+                        expect(res.body.data.sType).toBe('tunnel');
+                        expect(res.body.data.sourceId).toBe(client.req.body.roomId);
+                        expect(typeof res.body.data.targetId).toBe('string');
+                        expect(res.body.data.sourceText).toBe('the hills');
+                        expect(res.body.data.targetText).toBe('mazenet');
+
+                        // ensure the target room can be entered
+                        return client.emitTransaction('POST', '/rooms/enter', {id: res.body.data.targetId});
+                    }).map(() => {
+                        const res = client.res;
+                        expect(res.status).toBe(200);
+
+                        // room
+                        expect(res.body.room.creator).toBe(client.activeUser!.userId);
+                        expect(res.body.room.title).toBe('the hills');
+
+                        expect(Array.isArray(res.body.room.owners)).toBe(true);
+                        expect(res.body.room.owners).toHaveLength(1);
+                        expect(res.body.room.owners).toContain(client.activeUser!.userId);
+
+                        // structure
+                        expect(Object.keys(res.body.room.structures)).toHaveLength(1);
+                        const tunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
+                        expect(tunnel.id).toBe(client.transactions[2][1].body.id);
+                    }).first().toPromise();
+                });
+            });
+        });
+
+        describe('cursors', () => {
+            test('cursor recording on disconnect', () => {
                 const client = new Client(baseUrl);
+                const client2 = new Client(baseUrl);
                 return client.connectAndEnter().mergeMap(() => {
-                    const res = client.res;
-                    return client.emitTransaction('POST', '/rooms/structures/create', {
-                        roomId: res.body.room.id,
-                        structure: {
-                            data: {
-                                sType: 'tunnel',
-                                sourceText: 'the hills',
-                                targetText: 'mazenet'
-                            },
-                            pos: {x: 0.1, y: 0.1},
-                        }
-                    });
+                    client.client.emit(
+                        '/rooms/active-users/desktop/cursor-moved',
+                        {pos: {x: 0.1, y: 0.1}});
+                    return Observable.timer(1000 / 30).take(1);
                 }).mergeMap(() => {
-                    const res = client.res;
-                    expect(res.status).toBe(201);
-                    expect(typeof res.body.id).toBe('string');
-                    expect(res.body.creator).toBe(client.activeUser!.userId);
-                    expect(res.body.pos).toEqual({x: 0.1, y: 0.1});
-                    expect(res.body.data.sType).toBe('tunnel');
-                    expect(res.body.data.sourceId).toBe(client.req.body.roomId);
-                    expect(typeof res.body.data.targetId).toBe('string');
-                    expect(res.body.data.sourceText).toBe('the hills');
-                    expect(res.body.data.targetText).toBe('mazenet');
-
-                    // ensure the target room can be entered
-                    return client.emitTransaction('POST', '/rooms/enter', {id: res.body.data.targetId});
+                    client.client.emit(
+                        '/rooms/active-users/desktop/cursor-moved',
+                        {pos: {x: 0.2, y: 0.2}});
+                    return Observable.timer(10).take(1);
+                }).mergeMap(() => {
+                    client.client.close();
+                    return Observable.timer(10).take(1);
+                }).mergeMap(() => {
+                    return client2.connectAndEnter();
+                }).mergeMap(() => {
+                    const res = client2.res;
+                    return client2.emitTransaction('GET', '/rooms/cursor-recordings', {
+                        roomId: res.body.room.id
+                    });
                 }).map(() => {
-                    const res = client.res;
+                    const res = client2.res;
                     expect(res.status).toBe(200);
+                    expect(Object.keys(res.body.cursorRecordings)).toHaveLength(1);
 
-                    // room
-                    expect(res.body.room.creator).toBe(client.activeUser!.userId);
-                    expect(res.body.room.title).toBe('the hills');
+                    const recording = res.body.cursorRecordings[Object.keys(res.body.cursorRecordings)[0]];
+                    expect(typeof recording.id).toBe('string');
+                    expect(recording.activeUserId).toBe(client.activeUser!.id);
 
-                    expect(Array.isArray(res.body.room.owners)).toBe(true);
-                    expect(res.body.room.owners).toHaveLength(1);
-                    expect(res.body.room.owners).toContain(client.activeUser!.userId);
+                    expect(Array.isArray(recording.frames)).toBe(true);
+                    expect(recording.frames).toHaveLength(2);
 
-                    // structure
-                    expect(Object.keys(res.body.room.structures)).toHaveLength(1);
-                    const tunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
-                    expect(tunnel.id).toBe(client.transactions[2][1].body.id);
+                    expect(recording.frames[0].pos).toEqual({x: 0.1, y: 0.1});
+                    expect(typeof recording.frames[0].t).toBe('number');
+                    expect(recording.frames[1].pos).toEqual({x: 0.2, y: 0.2});
+                    expect(typeof recording.frames[1].t).toBe('number');
+                    expect(recording.frames[1].t).toBeGreaterThan(recording.frames[0].t);
                 }).first().toPromise();
+            });
+            // TODO: set up multi-client tests
+            test('cursor movement', () => {
+                //let client = new Client(baseUrl);
+                //return client.connectAndEnter().mergeMap(() => {
+                    //return client.client.emit(
+                        //'/rooms/active-users/desktop/cursor-moved',
+                        //{pos: {x: 0.1, y: 0.1}},
+                        //'/rooms/active-users/desktop/cursor-moved'
+                    //).take(1);
+                //}).mergeMap(() => {
+                    //let data = client.lastEmitted[1][0].data;
+                    //expect(client.lastEmitted[1].eventName).toBe('/rooms/active-users/desktop/cursor-moved');
+
+                    //expect(typeof data.activeUserId).toBe('string');
+                    //expect(data.pos).toEqual({x: 0.1, y: 0.1});
+                //}).first().toPromise();
             });
         });
     });
+});
 
-    describe('cursors', () => {
-        test('cursor recording on disconnect', () => {
+/** multi client tests validate that a second client recieves the correct socket events */
+describe.only('multi-client', () => {
+    describe('rooms', () => {
+        test('POST /enter', () => {
             const client = new Client(baseUrl);
             const client2 = new Client(baseUrl);
+
             return client.connectAndEnter().mergeMap(() => {
-                client.client.emit(
-                    '/rooms/active-users/desktop/cursor-moved',
-                    {pos: {x: 0.1, y: 0.1}});
-                return Observable.timer(1000 / 30).take(1);
-            }).mergeMap(() => {
-                client.client.emit(
-                    '/rooms/active-users/desktop/cursor-moved',
-                    {pos: {x: 0.2, y: 0.2}});
-                return Observable.timer(10).take(1);
-            }).mergeMap(() => {
-                client.client.close();
-                return Observable.timer(10).take(1);
-            }).mergeMap(() => {
+                client.listenEvent(Api.v1.Events.Server.Rooms.ActiveUsers.Entered.Route);
                 return client2.connectAndEnter();
-            }).mergeMap(() => {
-                const res = client2.res;
-                return client2.emitTransaction('GET', '/rooms/cursor-recordings', {
-                    roomId: res.body.room.id
-                });
             }).map(() => {
                 const res = client2.res;
-                expect(res.status).toBe(200);
-                expect(Object.keys(res.body.cursorRecordings)).toHaveLength(1);
 
-                const recording = res.body.cursorRecordings[Object.keys(res.body.cursorRecordings)[0]];
-                expect(typeof recording.id).toBe('string');
-                expect(recording.activeUserId).toBe(client.activeUser!.id);
+                expect(typeof res.body.users).toBe('object');
+                const roomUserIds = Object.keys(res.body.users);
+                expect(roomUserIds.length).toBe(1);
+                const activeUserInRoom = res.body.users[roomUserIds[0]];
+                expect(activeUserInRoom).toEqual(client.activeUser);
 
-                expect(Array.isArray(recording.frames)).toBe(true);
-                expect(recording.frames).toHaveLength(2);
+                const enterEvents = client.receivedEvents.get(Api.v1.Events.Server.Rooms.ActiveUsers.Entered.Route);
+                expect(enterEvents).toBeDefined();
+                expect(enterEvents!.length).toBe(1);
 
-                expect(recording.frames[0].pos).toEqual({x: 0.1, y: 0.1});
-                expect(typeof recording.frames[0].t).toBe('number');
-                expect(recording.frames[1].pos).toEqual({x: 0.2, y: 0.2});
-                expect(typeof recording.frames[1].t).toBe('number');
-                expect(recording.frames[1].t).toBeGreaterThan(recording.frames[0].t);
+                const enterEvent: Api.v1.Events.Server.Rooms.ActiveUsers.Entered = enterEvents![0];
+                expect(typeof enterEvent.activeUser).toBe('object');
+                expect(enterEvent.activeUser).toEqual(client2.activeUser);
+                expect(typeof enterEvent.roomId).toBe('string');
+                expect(enterEvent.roomId).toBe(res.body.room.id);
             }).first().toPromise();
         });
-        // TODO: set up multi-client tests
-        test('cursor movement', () => {
-            //let client = new Client(baseUrl);
-            //return client.connectAndEnter().mergeMap(() => {
-                //return client.client.emit(
-                    //'/rooms/active-users/desktop/cursor-moved',
-                    //{pos: {x: 0.1, y: 0.1}},
-                    //'/rooms/active-users/desktop/cursor-moved'
-                //).take(1);
-            //}).mergeMap(() => {
-                //let data = client.lastEmitted[1][0].data;
-                //expect(client.lastEmitted[1].eventName).toBe('/rooms/active-users/desktop/cursor-moved');
 
-                //expect(typeof data.activeUserId).toBe('string');
-                //expect(data.pos).toEqual({x: 0.1, y: 0.1});
-            //}).first().toPromise();
+        describe('structures', () => {
+            describe('tunnel', () => {
+                test('POST /create', () => {
+                    const client = new Client(baseUrl);
+                    const client2 = new Client(baseUrl);
+
+                    return client.connectAndEnter().mergeMap(() => {
+                        return client2.connectAndEnter();
+                    }).mergeMap(() => {
+                        client.listenEvent(Api.v1.Events.Server.Rooms.Structures.Created.Route);
+                        const res = client2.res;
+                        return client2.emitTransaction('POST', '/rooms/structures/create', {
+                            roomId: res.body.room.id,
+                            structure: {
+                                data: {
+                                    sType: 'tunnel',
+                                    sourceText: 'the hills',
+                                    targetText: 'mazenet'
+                                },
+                                pos: {x: 0.1, y: 0.1},
+                            }
+                        });
+                    }).delay(1000).map(() => {
+                        const res = client2.res;
+                        const events = client.receivedEvents.get(Api.v1.Events.Server.Rooms.Structures.Created.Route);
+                        expect(events).toBeDefined();
+                        expect(events!.length).toBe(1);
+
+                        const event: Api.v1.Events.Server.Rooms.Structures.Created = events![0];
+                        expect(typeof event.roomId).toBe('string');
+                        expect(event.roomId).toBe(client2.transactions[1][1].body.room.id);
+                        expect(typeof event.structure).toBe('object');
+                        expect(event.structure).toEqual(res.body);
+                    }).first().toPromise();
+                });
+            });
         });
     });
 });

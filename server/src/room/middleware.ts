@@ -177,9 +177,11 @@ export class Middleware {
                     Observable.of(activeUsers),
                     this.service.enterRoom(body.id, (req.socket as Socket).mazenet!.activeUser!));
             }).subscribe(([roomDoc, activeUsers]) => {
+                const activeUsersInRoom = mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1());
+                delete activeUsersInRoom[req.activeUser!.id];
                 const response: Api.v1.Routes.Rooms.Enter.Post.Response200 = {
                     room: roomDoc.toV1(),
-                    users: mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1())
+                    users: activeUsersInRoom,
                 };
                 return res.status(200).json(response);
             }, (err: Error) => {
@@ -284,7 +286,8 @@ export class Middleware {
 
     private emitToSocketsInRoom(
         roomId: Room.Id,
-        route: string, data: any,
+        route: string,
+        data: any,
         ignoreUser: ActiveUser.Id | User.Id,
         ignoreUserNonActive?: boolean
     ) {
