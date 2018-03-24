@@ -21,13 +21,14 @@ export class SocketAPI {
     readonly structureCreatedObservable: Observable<Models.Structure>;
     readonly structureUpdatedObservable: Observable<Models.Structure>;
     readonly activeUserEnteredObservable: Observable<Models.ActiveUser>;
-    readonly activeUserExitedObservable: Observable<Models.ActiveUser>;
+    readonly activeUserExitedObservable: Observable<Models.ActiveUser.Id>;
     readonly activeUserDesktopCursorMovedObservable: Observable<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>;
 
     private socket: Socket;
     private uniqueIdCounter: number;
     private rootPage: string;
     private cursorRecordingTransactionManager: TransactionManager;
+    private activePageId: string;
 
     /*
      * Managers for transactional SocketIO requests. Maps callbacks
@@ -40,6 +41,7 @@ export class SocketAPI {
     private constructor() {
         const loc = window.location;
         const serverPort = 8080; // TODO Edit when server serves front end.
+        this.activePageId = '';
         this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${serverPort}/mazenet`);
         this.uniqueIdCounter = 0;
         this.rootPage = '';
@@ -135,7 +137,9 @@ export class SocketAPI {
         return new Observable((observer: Observer<Routes.Rooms.Enter.Post.Response200>) => {
             this.socket.on('/rooms/enter', (res: WebResponse) => {
                 if (res.status === 200) {
-                    observer.next(res.body as Routes.Rooms.Enter.Post.Response200);
+                    const res200 = (res.body as Routes.Rooms.Enter.Post.Response200);
+                    this.activePageId = res200.room.id;
+                    observer.next(res200);
                 } else {
                     ErrorService.Warning('Error entering room.',  res);
                     observer.error(res.body);
@@ -155,24 +159,30 @@ export class SocketAPI {
                    observer.error(res.body);
                 }
             });
-            this.socket.on('/rooms/structures/created', (structure: Models.Structure) => {
-                observer.next(structure);
+            this.socket.on('/rooms/structures/created', (structure: Events.Server.Rooms.Structures.Created) => {
+                if (this.activePageId === structure.roomId) {
+                    observer.next(structure.structure);
+                }
             });
         }).share();
     }
 
     private initActiveUserEnteredObservable() {
         return new Observable((observer: Observer<Models.ActiveUser>) => {
-            this.socket.on('/rooms/active-users/entered', (user: Models.ActiveUser) => {
-                observer.next(user);
+            this.socket.on('/rooms/active-users/entered', (user: Events.Server.Rooms.ActiveUsers.Entered) => {
+                if (this.activePageId === user.roomId) {
+                    observer.next(user.activeUser);
+                }
             });
         }).share();
     }
 
     private initActiveUserExitedObservable() {
-        return new Observable((observer: Observer<Models.ActiveUser>) => {
-            this.socket.on('/rooms/active-users/exited', (user: Models.ActiveUser) => {
-                observer.next(user);
+        return new Observable((observer: Observer<Models.ActiveUser.Id>) => {
+            this.socket.on('/rooms/active-users/exited', (user: Events.Server.Rooms.ActiveUsers.Exited) => {
+                if (this.activePageId === user.roomId) {
+                    observer.next(user.activeUserId);
+                }
             });
         }).share();
     }
@@ -181,7 +191,10 @@ export class SocketAPI {
         return new Observable((observer: Observer<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>) => {
             this.socket.on('/rooms/active-users/desktop/cursor-moved',
                 (cursor: Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved) => {
-                observer.next(cursor);
+                if (this.activePageId === cursor.roomId) {
+                    observer.next(cursor);
+                }
+
             });
         }).share();
     }

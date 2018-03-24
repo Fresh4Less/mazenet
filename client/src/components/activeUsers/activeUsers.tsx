@@ -44,17 +44,13 @@ export default class ActiveUsers extends React.Component<any, ActiveUsersState> 
         });
         SocketAPI.Instance.activeUserExitedObservable.subscribe(value => {
             this.activeUserRefs = {};
-            delete this.state.users[value.id];
+            delete this.state.users[value];
             this.setState({
                 users: this.state.users
             });
         });
         SocketAPI.Instance.activeUserDesktopCursorMovedObservable.subscribe(value => {
             const pData = this.state.users[value.activeUserId].platformData;
-            if (value.roomId === this.state.roomId) {
-                console.error('user moved value is now fixed on the server! '
-                 + ' Remove this line of code and add it to the following');
-            }
             // TODO: Compare roomid when fixed on server.
             if ( pData.pType === 'desktop' && this.activeUserRefs[value.activeUserId]) {
                 // Force a re-render of only the ActiveUser that moved. The appears to work great.

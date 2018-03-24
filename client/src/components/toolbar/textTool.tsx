@@ -7,13 +7,13 @@ interface TextToolProps {
 
 export default class TextTool extends React.PureComponent<TextToolProps, any> {
     render() {
-        const tunnelToolIcon = '📝';
+        const textToolIcon = '📝';
         return  (
             <span
                 className={'noselect tool disabled'}
                 title={'Add text to room.'}
             >
-               {tunnelToolIcon}
+               {textToolIcon}
             </span>
         );
     }

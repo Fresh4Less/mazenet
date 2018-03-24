@@ -8,6 +8,7 @@ import TunnelTool from './tunnelTool';
 import { Models } from '../../../../common/api/v1';
 import TextTool from './textTool';
 import HomeTool from './homeTool';
+import ConfigTool from './configTool';
 
 interface ToolbarState {
     room: Models.Room | null;
@@ -45,6 +46,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                 <span className={'right'}>
                     <TunnelTool room={this.state.room}/>
                     <TextTool room={this.state.room}/>
+                    <ConfigTool room={this.state.room}/>
                     <HomeTool room={this.state.room} rootRoomId={this.state.rootRoomId}/>
                 </span>
             );
