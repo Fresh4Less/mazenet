@@ -40,18 +40,19 @@ export class Middleware {
         };
         this.router = Express.Router();
         this.router.use((req: Request, res: Response, next: Express.NextFunction) => {
-            if((req.socket as Socket).mazenet) {
+            const socketData = (req.socket as Socket).mazenet;
+            if(socketData) {
                 // this is a socketio connection
                 //TODO: do we need to validate that activeUser is valid for this user?
-                req.activeUser = this.service.getActiveUserFromSession((req.socket as Socket).mazenet!.sessionId);
-                if(!(req.socket as Socket).mazenet!.user) {
+                req.activeUser = this.service.getActiveUserFromSession(socketData!.sessionId);
+                if(!socketData!.user) {
                     this.service.createUser({username: 'anonymous'}).subscribe((user) => {
-                        (req.socket as Socket).mazenet!.user = user;
+                        socketData!.user = user;
                         req.user = user;
                         return next();
                     });
                 } else {
-                    req.user = (req.socket as Socket).mazenet!.user;
+                    req.user = socketData!.user;
                     return next();
                 }
             } else {
@@ -65,7 +66,8 @@ export class Middleware {
 
         const usersRouter = Express.Router();
         usersRouter.post('/connect', (req: Request, res: Response, next: Express.NextFunction) => {
-            if(!(req.socket as Socket).mazenet) {
+            const socketData = (req.socket as Socket).mazenet;
+            if(!socketData) {
                 throw new BadRequestError('Only websocket sessions can /connect to the Mazenet');
             }
             if(!req.user) {
@@ -79,10 +81,10 @@ export class Middleware {
             }
 
             Observable.forkJoin(
-                this.service.createActiveUser((req.socket as Socket).mazenet!.sessionId, req.user, body),
+                this.service.createActiveUser(socketData!.sessionId, req.user, body),
                 this.roomService.getRootRoomId())
             .subscribe(([activeUser, rootRoomId]) => {
-                (req.socket as Socket).mazenet!.activeUser = activeUser;
+                socketData!.activeUser = activeUser;
                 const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
                     activeUser: activeUser.toV1(),
                     rootRoomId,

@@ -18,18 +18,21 @@ import { CursorEvent, CursorRecording, CursorRecordingFrame } from './models';
 import { Position } from '../common';
 import { ActiveUserRoomData, Room } from '../room/models';
 import { ActiveUser, User } from '../user/models';
+import { Service as UserService } from '../user/service';
 
 export class Service {
     public dataStore: DataStore;
     public liveCursorRecordingDataStore: LiveCursorRecordingDataStore;
+    public userService: UserService;
 
     public events: Observable<CursorEvent>;
 
     private eventObserver: Observer<CursorEvent>;
 
-    constructor(dataStore: DataStore, liveCursorRecordingDataStore: LiveCursorRecordingDataStore) {
+    constructor(dataStore: DataStore, liveCursorRecordingDataStore: LiveCursorRecordingDataStore, userService: UserService) {
         this.dataStore = dataStore;
         this.liveCursorRecordingDataStore = liveCursorRecordingDataStore;
+        this.userService = userService;
 
         this.events = Observable.create((observer: Observer<CursorEvent>) => {
             this.eventObserver = observer;
@@ -66,6 +69,8 @@ export class Service {
      * The frame's `t` property is the number of 1/30 second intervals have passed since the active user entered the room, based on the current time.
      */
     public onCursorMoved(activeUserRoomData: ActiveUserRoomData, pos: Position): Observable<null> {
+        // NOTE: activeUserRoomData might not be stored in memory in the future, and this update will break
+        (activeUserRoomData.activeUser.platformData as ActiveUser.PlatformData.Desktop).cursorPos = pos;
         const frame = {
             pos,
             t: Math.floor((new Date().valueOf() - new Date(activeUserRoomData.enterTime).valueOf()) / 30)

@@ -207,12 +207,17 @@ describe('single client', () => {
                 expect(Array.isArray(res.body.room.owners)).toBe(true);
                 expect(res.body.room.owners).toHaveLength(1);
 
-                // structure
-                expect(Object.keys(res.body.room.structures)).toHaveLength(1);
-                const enterTunnel = res.body.room.structures[Object.keys(res.body.room.structures)[0]];
+                // structure. only validate the enter structure
+                expect(Object.keys(res.body.room.structures).length).toBeGreaterThanOrEqual(1);
+                const enterTunnelId = Object.keys(res.body.room.structures).filter((structureId) => {
+                    const structure = res.body.room.structures[structureId];
+                    return structure.data.sType === 'tunnel' && structure.data.sourceText === 'enter';
+                })[0];
+                const enterTunnel = res.body.room.structures[enterTunnelId];
                 expect(typeof enterTunnel.id).toBe('string');
                 expect(typeof enterTunnel.creator).toBe('string');
-                expect(enterTunnel.pos).toEqual({x: 0.5, y: 0.5});
+                expect(typeof enterTunnel.pos.x).toBe('number');
+                expect(typeof enterTunnel.pos.y).toBe('number');
                 expect(enterTunnel.data.sType).toBe('tunnel');
                 expect(enterTunnel.data.sourceId).toBe(res.body.room.id);
                 expect(typeof enterTunnel.data.targetId).toBe('string');
@@ -321,29 +326,12 @@ describe('single client', () => {
                     expect(recording.frames[1].t).toBeGreaterThan(recording.frames[0].t);
                 }).first().toPromise();
             });
-            // TODO: set up multi-client tests
-            test('cursor movement', () => {
-                //let client = new Client(baseUrl);
-                //return client.connectAndEnter().mergeMap(() => {
-                    //return client.client.emit(
-                        //'/rooms/active-users/desktop/cursor-moved',
-                        //{pos: {x: 0.1, y: 0.1}},
-                        //'/rooms/active-users/desktop/cursor-moved'
-                    //).take(1);
-                //}).mergeMap(() => {
-                    //let data = client.lastEmitted[1][0].data;
-                    //expect(client.lastEmitted[1].eventName).toBe('/rooms/active-users/desktop/cursor-moved');
-
-                    //expect(typeof data.activeUserId).toBe('string');
-                    //expect(data.pos).toEqual({x: 0.1, y: 0.1});
-                //}).first().toPromise();
-            });
         });
     });
 });
 
 /** multi client tests validate that a second client recieves the correct socket events */
-describe.only('multi-client', () => {
+describe('multi-client', () => {
     describe('rooms', () => {
         test('POST /enter', () => {
             const client = new Client(baseUrl);
@@ -395,7 +383,7 @@ describe.only('multi-client', () => {
                                 pos: {x: 0.1, y: 0.1},
                             }
                         });
-                    }).delay(1000).map(() => {
+                    }).map(() => {
                         const res = client2.res;
                         const events = client.receivedEvents.get(Api.v1.Events.Server.Rooms.Structures.Created.Route);
                         expect(events).toBeDefined();
@@ -409,6 +397,39 @@ describe.only('multi-client', () => {
                     }).first().toPromise();
                 });
             });
+        });
+        test('cursor movement', () => {
+            const client = new Client(baseUrl);
+            const client2 = new Client(baseUrl);
+            const clientRoute = Api.v1.Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved.Route;
+            const serverRoute = Api.v1.Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved.Route;
+            const cursorPositions = [
+                {x: 0.1, y: 0.1},
+                {x: 0.1, y: 0.2},
+                {x: 0.1, y: 0.3},
+            ];
+
+            return client.connectAndEnter().mergeMap(() => {
+                return client2.connectAndEnter();
+            }).map(() => {
+                client.listenEvent(serverRoute);
+
+                cursorPositions.forEach((data) => {
+                    client2.client.emit(clientRoute, {pos: data});
+                });
+            }).delay(200).map(() => {
+                const events = client.receivedEvents.get(serverRoute);
+                expect(events).toBeDefined();
+                expect(events!.length).toBe(3);
+
+                events!.forEach((event) => {
+                    expect(typeof event.roomId).toBe('string');
+                    expect(event.roomId).toBe(client2.transactions[1][1].body.room.id);
+                    expect(typeof event.activeUserId).toBe('string');
+                    expect(event.activeUserId).toBe(client2.activeUser!.id);
+                    expect(cursorPositions).toContainEqual(event.pos);
+                });
+            }).first().toPromise();
         });
     });
 });

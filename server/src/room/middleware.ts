@@ -151,11 +151,12 @@ export class Middleware {
 
         const roomsRouter = Express.Router();
         roomsRouter.post('/enter', (req: Request, res: Response, next: Express.NextFunction) => {
-            if(!(req.socket as Socket).mazenet) {
+            const socketData = (req.socket as Socket).mazenet;
+            if(!socketData) {
                 throw new BadRequestError('Only websocket sessions can /enter the Mazenet');
             }
 
-            if(!(req.socket as Socket).mazenet!.activeUser) {
+            if(!socketData!.activeUser) {
                 throw new ConflictError('No ActiveUser. You must `POST /users/connect` before you can enter a room');
             }
 
@@ -175,7 +176,7 @@ export class Middleware {
                 return Observable.forkJoin(
                     Observable.of(roomDocument),
                     Observable.of(activeUsers),
-                    this.service.enterRoom(body.id, (req.socket as Socket).mazenet!.activeUser!));
+                    this.service.enterRoom(body.id, socketData!.activeUser!));
             }).subscribe(([roomDoc, activeUsers]) => {
                 const activeUsersInRoom = mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1());
                 delete activeUsersInRoom[req.activeUser!.id];
