@@ -18,6 +18,12 @@ import { GlobalLogger } from '../util/logger';
 import { ActiveUserRoomDataStore, DataStore } from './datastore';
 import { ActiveUserRoomData, Room, RoomDocument, RoomEvent, Structure, StructureData } from './models';
 
+/** blueprints to create structures in a subtree of rooms */
+export interface StructureBlueprintTree {
+    structure: Api.v1.Models.Structure.Blueprint;
+    children?: StructureBlueprintTree[];
+}
+
 export class Service {
     public dataStore: DataStore;
     public activeUserRoomDataStore: ActiveUserRoomDataStore;
@@ -45,16 +51,8 @@ export class Service {
         }).mergeMap((room: Room) => {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
             }).mergeMap(([room]: [Room, null]) => {
-                const enterTunnel: Api.v1.Models.Structure.Blueprint = {
-                    data: {
-                        sType: 'tunnel',
-                        sourceText: 'enter',
-                        targetText: 'welcome to the mazenet'
-                    },
-                    pos: {x: 0.5, y: 0.5}
-                };
-                return Observable.forkJoin(Observable.of(room), this.createStructure(rootUser, room.id, enterTunnel));
-            }).mergeMap(([room]: [Room, Structure]) => {
+                return Observable.forkJoin(Observable.of(room), this.createStructureTrees(rootUser, room.id, Service.entranceSubTrees));
+            }).mergeMap(([room, structures]: [Room, Structure[]]) => {
                 GlobalLogger.trace('init root room', {room});
                 return Observable.of(room);
             });
@@ -169,6 +167,25 @@ export class Service {
         return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId);
     }
 
+    protected createStructureTrees(user: User, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure[]> {
+        return Observable.forkJoin(structureTrees.map((tree) => {
+            return this.createStructure(user, roomId, tree.structure).mergeMap((structure: Structure) => {
+                let childRoomId: Room.Id | undefined;
+                switch(structure.data.sType) {
+                    case 'tunnel':
+                        childRoomId = structure.data.targetId;
+                        break;
+                    default:
+                        break;
+                }
+                if(tree.children && childRoomId) {
+                    return this.createStructureTrees(user, childRoomId, tree.children).map((subStructures) => structure);
+                }
+                return Observable.of(structure);
+            });
+        }));
+    }
+
     /** Creates a new room and returns the data for a tunnel that leads to it */
     protected initTunnel(
         user: User,
@@ -189,4 +206,92 @@ export class Service {
             return tunnelData;
         });
     }
+
+    /* tslint:disable:object-literal-sort-keys member-ordering */
+    private static entranceSubTrees: StructureBlueprintTree[] = [{
+        structure: {
+            data: {
+                sType: 'tunnel',
+                sourceText: 'enter',
+                targetText: 'exit'
+            },
+            pos: {x: 0.5, y: 0.7}
+        }
+    }, {
+        structure: {
+            data: {
+                sType: 'tunnel',
+                sourceText: 'welcome to the mazenet',
+                targetText: 'back',
+            },
+            pos: {x: 0.5, y: 0.2}
+        },
+        children: [{
+            structure: {
+                data: {
+                    sType: 'tunnel',
+                    sourceText: 'thanks for dropping by',
+                    targetText: 'back',
+                },
+                pos: {x: 0.5, y: 0.4}
+            }
+        }]
+    }, {
+        structure: {
+            data: {
+                sType: 'tunnel',
+                sourceText: 'moving through the world you leave your mark',
+                targetText: 'back',
+            },
+            pos: {x: 0.2, y: 0.4}
+        }
+    }, {
+        structure: {
+            data: {
+                sType: 'tunnel',
+                sourceText: 'bring a friend',
+                targetText: 'back',
+            },
+            pos: {x: 0.4, y: 0.425}
+        }
+    }, {
+        structure: {
+            data: {
+                sType: 'tunnel',
+                sourceText: 'explore the maze',
+                targetText: 'back',
+            },
+            pos: {x: 0.55, y: 0.45}
+        },
+        children: [{
+            structure: {
+                data: {
+                    sType: 'tunnel',
+                    sourceText: 'who knows where you will go',
+                    targetText: 'and what you will find!'
+                },
+                pos: {x: 0.7, y: 0.7}
+            }
+        }]
+    }, {
+        structure: {
+            data: {
+                sType: 'tunnel',
+                sourceText: 'and make it your own',
+                targetText: 'back',
+            },
+            pos: {x: 0.7, y: 0.5}
+        },
+        children: [{
+            structure: {
+                data: {
+                    sType: 'tunnel',
+                    sourceText: 'use the toolbar to dig a tunnel',
+                    targetText: 'what will you leave for others to find?'
+                },
+                pos: {x: 0.4, y: 0.65}
+            }
+        }]
+    }];
+    /* tslint:enable:object-literal-sort-keys, member-ordering */
 }
