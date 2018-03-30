@@ -5,13 +5,48 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/catch';
 
-import { AlreadyExistsError, NotFoundError } from '../../common';
-import { executeTransaction, handlePostgresError } from '../../util/postgres';
+import { AlreadyExistsError, NotFoundError, Position } from '../../common';
+import { buildQuery_SetColumns, executeTransaction, handlePostgresError, QueryData } from '../../util/postgres';
 
 import { ActiveUser } from '../../user/models';
 import { ActiveUserRoomData, Room, RoomDocument, RoomOptions, Structure, StructureData } from '../models';
 
 import { DataStore } from './index';
+
+// Structure constructor only takes api.v1
+// Structure patch only defined in API
+import * as Api from '../../../../common/api';
+
+function posToPoint(pos?: Position): string | undefined {
+    if(!pos) {
+        return pos;
+    }
+    return `(${pos.x},${pos.y})`;
+}
+
+function structureFromRow(row: any): Structure {
+    let structureData: StructureData;
+    switch(row.stype) {
+        case 'tunnel':
+            structureData = new StructureData.Tunnel({
+                sType: row.stype,
+                sourceId: row.sourceid,
+                sourceText: row.sourcetext,
+                targetId: row.targetid,
+                targetText: row.targettext,
+            });
+            break;
+        default:
+            throw new Error(`Unrecognized stype ${row.stype}`);
+    }
+
+    return new Structure({
+        creator: row.creator,
+        data: structureData,
+        id: row.structureid,
+        pos: row.pos,
+    });
+}
 
 export class PostgresDataStore implements DataStore {
 
@@ -62,15 +97,82 @@ export class PostgresDataStore implements DataStore {
         return executeTransaction(this.clientPool, [
             { query: insertRoomQuery, params: [room.id, room.creator, room.title, room.stylesheet] },
             { query: insertOwnersQuery, params: [room.id, ...room.owners] },
-        ]).map((results: QueryResult[]) => {
+        ]).map((results: Array<QueryResult | undefined>) => {
             // TODO: return DB results
             return room;
         }).catch((err: Error) => {
             if(err.message === 'already exists') {
-                return Observable.throw(new AlreadyExistsError(`Room with id '${room.id}' already exists`)) as Observable<Room>;
+                return Observable.throw(new AlreadyExistsError(`Room already exists: '${room.id}'`)) as Observable<Room>;
             }
             return Observable.throw(err) as Observable<Room>;
         }).catch(handlePostgresError<Room>('insertRoom', [insertRoomQuery, insertOwnersQuery].join('\n')));
+    }
+
+    public getStructure(id: Structure.Id) {
+        const query =
+            `SELECT *
+            FROM structures
+            JOIN structure_tunnels USING (structureid)
+            WHERE structures.structureid=$1`;
+
+        return Observable.fromPromise(this.clientPool.query(query, [id])
+        ).map((result: QueryResult) => {
+            if(result.rows.length === 0) {
+                throw new NotFoundError(`Structure not found: '${id}'`);
+            }
+            return structureFromRow(result.rows[0]);
+        }).catch(handlePostgresError<Structure>('getStructure', query));
+    }
+
+    // shouldn't use api here
+    public updateStructure(id: Structure.Id, patch: Api.v1.Models.Structure.Patch) {
+        // record queries for error logging
+        const queries: string[] = [];
+
+        const structureSetColumnsData = buildQuery_SetColumns([
+            ['pos', posToPoint(patch.pos)],
+        ], 2);
+
+        const structureQuery =
+            `UPDATE structures
+            ${structureSetColumnsData.query}
+            WHERE structureid=$1
+            RETURNING *;`;
+        queries.push(structureQuery);
+        return executeTransaction(this.clientPool, [
+            // update structure
+            {query: structureQuery, params: [id, ...structureSetColumnsData.params]},
+            // update structure data table based on stype
+            (result: QueryResult) => {
+                const row = result.rows[0];
+                switch(row.stype) {
+                    case 'tunnel':
+                        const patchData = patch.data as Api.v1.Models.StructureData.Tunnel.Patch;
+                        const setColumnsData = buildQuery_SetColumns([
+                            ['sourcetext', patchData.sourceText],
+                            ['targettext', patchData.targetText],
+                        ], 2);
+
+                        const structureDataQuery =
+                            `UPDATE structure_tunnels
+                            ${setColumnsData.query}
+                            WHERE structureid=$1
+                            RETURNING *;`;
+                        queries.push(structureDataQuery); 
+
+                        return {
+                            params: [id, ...setColumnsData.params],
+                            query: structureDataQuery,
+                        };
+                default:
+                    throw new Error(`Unrecognized stype ${row.stype}`);
+                }
+            },
+        ]).map((results: Array<QueryResult | undefined>) => {
+            const combinedRows = Object.assign({}, results[0]!.rows[0], results[1]!.rows[0]);
+            return structureFromRow(combinedRows);
+
+        }).catch(handlePostgresError<Structure>('updateStructure', queries.join('\n')));
     }
 
     public insertStructure(structure: Structure) {
@@ -87,9 +189,9 @@ export class PostgresDataStore implements DataStore {
                 // TODO: throw error
         }
         return executeTransaction(this.clientPool, [
-            { query: structureQuery, params: [structure.id, structure.data.sType, structure.creator, `(${structure.pos.x},${structure.pos.y})`] },
+            { query: structureQuery, params: [structure.id, structure.data.sType, structure.creator, posToPoint(structure.pos)] },
             { query: structureTypeQuery, params: [structure.id, ...structureTypeArgs] },
-        ]).map((results: QueryResult[]) => {
+        ]).map((results: Array<QueryResult | undefined>) => {
             // TODO: return db results
             return structure;
         }).catch((err: Error) => {
@@ -135,28 +237,12 @@ export class PostgresDataStore implements DataStore {
         ).map(([roomsResult, structuresResult]) => {
             // initialize structures and group them by room
             const roomStructures: Map<Room.Id, Structure[]> = structuresResult.rows.reduce((out: Map<Room.Id, Structure[]>, structureRow: any) => {
-                let structureData: StructureData;
                 let parentRooms: Room.Id[] = [];
-                switch(structureRow.stype) {
-                    case 'tunnel':
-                        structureData = new StructureData.Tunnel({
-                            sType: structureRow.stype,
-                            sourceId: structureRow.sourceid,
-                            sourceText: structureRow.sourcetext,
-                            targetId: structureRow.targetid,
-                            targetText: structureRow.targettext,
-                        });
-                        parentRooms = [structureData.sourceId, structureData.targetId];
-                        break;
-                    default:
-                        throw new Error(`Unrecognized stype ${structureRow.stype}`);
+                const structure = structureFromRow(structureRow);
+                if(structure.data.sType === 'tunnel') {
+                    parentRooms = [structure.data.sourceId, structure.data.targetId];
                 }
-                const structure = new Structure({
-                    creator: structureRow.creator,
-                    data: structureData,
-                    id: structureRow.structureid,
-                    pos: structureRow.pos,
-                });
+
                 parentRooms.forEach((roomId: Room.Id) => {
                     const structures = out.get(roomId) || [];
                     structures.push(structure);

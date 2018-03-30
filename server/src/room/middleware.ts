@@ -176,7 +176,7 @@ export class Middleware {
                 return Observable.forkJoin(
                     Observable.of(roomDocument),
                     Observable.of(activeUsers),
-                    this.service.enterRoom(body.id, socketData!.activeUser!));
+                    this.service.enterRoom(body.id, (req.socket as Socket).mazenet!.activeUser!));
             }).subscribe(([roomDoc, activeUsers]) => {
                 const activeUsersInRoom = mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1());
                 delete activeUsersInRoom[req.activeUser!.id];
@@ -185,24 +185,6 @@ export class Middleware {
                     users: activeUsersInRoom,
                 };
                 return res.status(200).json(response);
-            }, (err: Error) => {
-                return next(err);
-            });
-        });
-
-        roomsRouter.post('/structures/create', (req: Request, res: Response, next: Express.NextFunction) => {
-            if(!req.user) {
-                // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
-                throw new UnauthorizedError('You must be authenticated to create a structure');
-            }
-            let body: Api.v1.Routes.Rooms.Structures.Create.Post.Request;
-            try {
-                body = validateData(req.body, Api.v1.Routes.Rooms.Structures.Create.Post.Request, 'body');
-            } catch (err) {
-                throw new BadRequestError(err.message);
-            }
-            return this.service.createStructure(req.user, body.roomId, body.structure).subscribe((structure) => {
-                return res.status(201).json(structure.toV1());
             }, (err: Error) => {
                 return next(err);
             });
@@ -227,6 +209,45 @@ export class Middleware {
             });
         });
 
+        const structuresRouter = Express.Router();
+
+        structuresRouter.post('/create', (req: Request, res: Response, next: Express.NextFunction) => {
+            if(!req.user) {
+                // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
+                throw new UnauthorizedError('You must be authenticated to create a structure');
+            }
+            let body: Api.v1.Routes.Rooms.Structures.Create.Post.Request;
+            try {
+                body = validateData(req.body, Api.v1.Routes.Rooms.Structures.Create.Post.Request, 'body');
+            } catch (err) {
+                throw new BadRequestError(err.message);
+            }
+            return this.service.createStructure(req.user, body.roomId, body.structure).subscribe((structure) => {
+                return res.status(201).json(structure.toV1());
+            }, (err: Error) => {
+                return next(err);
+            });
+        });
+
+        structuresRouter.post('/update', (req: Request, res: Response, next: Express.NextFunction) => {
+            if(!req.user) {
+                // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
+                throw new UnauthorizedError('You must be authenticated to create a structure');
+            }
+            let body: Api.v1.Routes.Rooms.Structures.Update.Post.Request;
+            try {
+                body = validateData(req.body, Api.v1.Routes.Rooms.Structures.Update.Post.Request, 'body');
+            } catch (err) {
+                throw new BadRequestError(err.message);
+            }
+            return this.service.updateStructure(req.user, body.id, body.patch).subscribe((structure) => {
+                return res.status(200).json(structure.toV1());
+            }, (err: Error) => {
+                return next(err);
+            });
+        });
+
+        roomsRouter.use('/structures', structuresRouter);
         router.use('/rooms', roomsRouter);
         return router;
     }

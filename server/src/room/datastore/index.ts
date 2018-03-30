@@ -8,6 +8,9 @@ import { PostgresDataStore } from './postgres';
 
 import { InMemoryActiveUserRoomDataStore } from './in-memory-active-user-room';
 
+// Patch only defined in API
+import * as Api from '../../../../common/api';
+
 /* persistant room and structure data */
 interface DataStore {
     getRootRoomId: () => Observable<string>;
@@ -17,7 +20,8 @@ interface DataStore {
     insertRoom: (room: Room) => Observable<Room>;
     //updateRoom: (updatedRoom: Room) => Observable<Room>;
 
-    //getStructure: (structureId: Structure.Id) => Observable<Structure>;
+    getStructure: (structureId: Structure.Id) => Observable<Structure>;
+    updateStructure: (structureId: Structure.Id, patch: Api.v1.Models.Structure.Patch) => Observable<Structure>;
     insertStructure: (structure: Structure) => Observable<Structure>;
 
     getRoomDocument: (roomId: Room.Id) => Observable<RoomDocument>;

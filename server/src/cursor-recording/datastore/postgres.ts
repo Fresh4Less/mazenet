@@ -94,7 +94,7 @@ export class PostgresDataStore implements DataStore {
             queries.push({ query: framesQuery, params: [cursorRecording.id, ...frameValues] });
         }
         return executeTransaction(this.clientPool, queries
-        ).map((results: QueryResult[]) => {
+        ).map((results: Array<QueryResult | undefined>) => {
             // TODO: return DB results
             return cursorRecording;
         }).catch((err: Error) => {

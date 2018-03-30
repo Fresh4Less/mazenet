@@ -102,7 +102,7 @@ class Client {
 
     /** Handle initial /users/connect call */
     public connectSocket(): Observable<Client> {
-        return this.emitTransaction('POST', '/users/connect',
+        return this.emitTransaction('POST', Api.v1.Routes.Users.Connect.Route,
             {
                 cursorPos: {
                     x: 0.5,
@@ -121,7 +121,7 @@ class Client {
     /** Handle initial /users/connect then /rooms/enter the root room */
     public connectAndEnter(): Observable<Client> {
         return this.connectSocket().mergeMap((client) => {
-            return this.emitTransaction('POST', '/rooms/enter', {id: client.res.body.rootRoomId});
+            return this.emitTransaction('POST', Api.v1.Routes.Rooms.Enter.Route, {id: client.res.body.rootRoomId});
         }).map((client) => {
             expect(client.res.status).toBe(200);
             return client;
@@ -237,7 +237,7 @@ describe('single client', () => {
                     const client = new Client(baseUrl);
                     return client.connectAndEnter().mergeMap(() => {
                         const res = client.res;
-                        return client.emitTransaction('POST', '/rooms/structures/create', {
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Create.Route, {
                             roomId: res.body.room.id,
                             structure: {
                                 data: {
@@ -261,7 +261,7 @@ describe('single client', () => {
                         expect(res.body.data.targetText).toBe('mazenet');
 
                         // ensure the target room can be entered
-                        return client.emitTransaction('POST', '/rooms/enter', {id: res.body.data.targetId});
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Enter.Route, {id: res.body.data.targetId});
                     }).map(() => {
                         const res = client.res;
                         expect(res.status).toBe(200);
@@ -280,6 +280,50 @@ describe('single client', () => {
                         expect(tunnel.id).toBe(client.transactions[2][1].body.id);
                     }).first().toPromise();
                 });
+
+                test('POST /update', () => {
+                    const client = new Client(baseUrl);
+                    return client.connectAndEnter().mergeMap(() => {
+                        // create the structure
+                        const res = client.res;
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Create.Route, {
+                            roomId: res.body.room.id,
+                            structure: {
+                                data: {
+                                    sType: 'tunnel',
+                                    sourceText: 'the hills',
+                                    targetText: 'mazenet'
+                                },
+                                pos: {x: 0.1, y: 0.1},
+                            }
+                        });
+                    }).mergeMap(() => {
+                        const res = client.res;
+                        expect(typeof res.body.id).toBe('string');
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Update.Route, {
+                            id: res.body.id,
+                            patch: {
+                                data: {
+                                    sourceText: 'the caves'
+                                },
+                                pos: {x: 0.8, y: 0.8},
+                            }
+                        });
+                    }).map(() => {
+                        const res = client.res;
+                        const oldStructure = client.transactions[2][1].body;
+                        expect(res.status).toBe(200);
+                        expect(res.body.id).toBe(oldStructure.id);
+                        expect(res.body.creator).toBe(oldStructure.creator);
+                        expect(res.body.data.sType).toBe(oldStructure.data.sType);
+                        expect(res.body.data.sourceId).toBe(oldStructure.data.sourceId);
+                        expect(res.body.data.targetId).toBe(oldStructure.data.targetId);
+                        expect(res.body.data.targetText).toBe(oldStructure.data.targetText);
+
+                        expect(res.body.data.sourceText).toBe('the caves');
+                        expect(res.body.pos).toEqual({x: 0.8, y: 0.8});
+                    }).first().toPromise();
+                });
             });
         });
 
@@ -287,24 +331,21 @@ describe('single client', () => {
             test('cursor recording on disconnect', () => {
                 const client = new Client(baseUrl);
                 const client2 = new Client(baseUrl);
-                return client.connectAndEnter().mergeMap(() => {
+                return client.connectAndEnter().map(() => {
                     client.client.emit(
-                        '/rooms/active-users/desktop/cursor-moved',
+                        Api.v1.Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved.Route,
                         {pos: {x: 0.1, y: 0.1}});
-                    return Observable.timer(1000 / 30).take(1);
-                }).mergeMap(() => {
+                }).delay(30).map(() => {
                     client.client.emit(
-                        '/rooms/active-users/desktop/cursor-moved',
+                        Api.v1.Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved.Route,
                         {pos: {x: 0.2, y: 0.2}});
-                    return Observable.timer(10).take(1);
-                }).mergeMap(() => {
+                }).delay(30).map(() => {
                     client.client.close();
-                    return Observable.timer(10).take(1);
-                }).mergeMap(() => {
+                }).delay(30).mergeMap(() => {
                     return client2.connectAndEnter();
                 }).mergeMap(() => {
                     const res = client2.res;
-                    return client2.emitTransaction('GET', '/rooms/cursor-recordings', {
+                    return client2.emitTransaction('GET', Api.v1.Routes.Rooms.CursorRecordings.Route, {
                         roomId: res.body.room.id
                     });
                 }).map(() => {
@@ -372,7 +413,7 @@ describe('multi-client', () => {
                     }).mergeMap(() => {
                         client.listenEvent(Api.v1.Events.Server.Rooms.Structures.Created.Route);
                         const res = client2.res;
-                        return client2.emitTransaction('POST', '/rooms/structures/create', {
+                        return client2.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Create.Route, {
                             roomId: res.body.room.id,
                             structure: {
                                 data: {

@@ -2,6 +2,7 @@ import { Pool, PoolClient, QueryResult } from 'pg';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/observable/concat';
+import 'rxjs/add/operator/expand';
 
 import { NotFoundError } from '../common';
 
@@ -31,13 +32,32 @@ export interface QueryData {
     params: string[];
 }
 
-export function executeTransaction(clientPool: Pool, queries: QueryData[]): Observable<QueryResult[]> {
+export type QueryDataFunc = (result: QueryResult) => QueryData | undefined;
+
+export function executeTransaction(clientPool: Pool, queries: Array<QueryData | QueryDataFunc>): Observable<Array<QueryResult | undefined>> {
     return Observable.fromPromise(clientPool.connect()).mergeMap((client: PoolClient) => {
-        return Observable.concat(
-            Observable.fromPromise(client.query('BEGIN;')),
-            ...queries.map((queryData) => Observable.fromPromise(client.query(queryData.query, queryData.params))),
-            Observable.fromPromise(client.query('COMMIT;')),
-        ).toArray().map((results: QueryResult[]) => {
+        const transactionQueries: Array<QueryData | QueryDataFunc> = [
+            {query: 'BEGIN;', params: []},
+            ...queries,
+            {query: 'END;', params: []},
+        ];
+        return Observable.of(undefined).expand((result, index) => {
+            let queryData: QueryData | QueryDataFunc | undefined = transactionQueries[index];
+            // query data fields can be function or value
+            if(typeof queryData === 'function') {
+                if(!result) {
+                    // function queryData always needs the previous result to work off. If there is none, just skip
+                    return Observable.of(undefined);
+                }
+                queryData = queryData(result!);
+            }
+
+            if(!queryData) {
+                return Observable.of(undefined);
+            }
+
+            return Observable.fromPromise(client.query(queryData.query, queryData.params));
+        }).skip(1).take(transactionQueries.length).toArray().map((results) => {
             client.release();
             // don't return BEGIN and COMMIT query results
             return results.slice(1,-1);
@@ -48,4 +68,22 @@ export function executeTransaction(clientPool: Pool, queries: QueryData[]): Obse
             });
         });
     });
+}
+
+/** Build the SET section of an UPDATE query
+ * @argument columnData - tuple of [columnName, value]
+ * @argument startIndex - starting number for SQL parameters (e.g. 1 => $1)
+ */
+export function buildQuery_SetColumns(columnData: Array<[string, any]>, startIndex: number): QueryData {
+    const params: any[] = [];
+    const queries = columnData.filter((data) => data[1] !== undefined)
+        .map((data, i) => {
+            params.push(data[1]);
+            return `SET ${data[0]} = $${i+startIndex}`;
+    });
+
+    return {
+        params,
+        query: queries.join('\n'),
+    };
 }

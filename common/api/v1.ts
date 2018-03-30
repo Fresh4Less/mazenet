@@ -33,6 +33,12 @@ export namespace Models {
             @Validator.validate()
             cursorPos: Position;
         }
+        export namespace Desktop {
+            export class Patch {
+                @Validator.validate(true)
+                cursorPos?: Position;
+            }
+        }
 
         export class Mobile {
             @Validator.validate()
@@ -83,10 +89,21 @@ export namespace Models {
     export namespace Room {
         /** 128-bit UUID/v4 */
         export type Id = string;
+        export class Patch {
+            @Validator.validate(true)
+            title?: string;
+            @Validator.validate(true, String)
+            owners?: User.Id[];
+            @Validator.validate(true)
+            stylesheet?: string;
+        }
     }
 
     /** Data specific to each type of structure */
     export type StructureData = StructureData.Tunnel | StructureData.Text;
+    export namespace StructureData {
+        export type Patch = StructureData.Tunnel.Patch | StructureData.Text;
+    }
 
     export namespace StructureData {
         export class Tunnel {
@@ -106,6 +123,15 @@ export namespace Models {
             targetText: string;
         }
 
+        export namespace Tunnel {
+            export class Patch {
+                @Validator.validate(true)
+                sourceText?: string;
+                @Validator.validate(true)
+                targetText?: string;
+            }
+        }
+
         export class Text {
             @Validator.validate()
             sType: 'text';
@@ -113,6 +139,15 @@ export namespace Models {
             text: string;
             @Validator.validate()
             size: Position;
+        }
+
+        export namespace Text {
+            export class Patch {
+                @Validator.validate(true)
+                text?: string;
+                @Validator.validate(true)
+                size?: Position;
+            }
         }
     }
 
@@ -166,6 +201,15 @@ export namespace Models {
             @Validator.validate()
             data: Models.StructureDataBlueprint;
         }
+        export class Patch {
+            @Validator.validate(true)
+            pos?: Position;
+            @Validator.validate({union: {types: {
+                'tunnel': StructureData.Tunnel.Patch,
+                'text': StructureData.Text.Patch,
+            }}})
+            data: StructureData.Patch;
+        }
     }
 
     /* One frame of a cursor recording */
@@ -217,6 +261,7 @@ export namespace Routes {
          * route: '/users/connect'
          */
         export namespace Connect {
+            export const Route = '/users/connect';
             /** Connect to the mazenet and initiate a session.
              * Returns data about the user's account and the mazenet.
              * Should be the first event emitted to the server on connection.
@@ -243,17 +288,14 @@ export namespace Routes {
          * route: '/rooms/update'
          */
         export namespace Update {
+            export const Route = '/rooms/update';
             export namespace Post {
                 /** A Room containing `id` and any fields to be updated */
                 export class Request {
                     @Validator.validate()
                     id: Models.Room.Id;
-                    @Validator.validate(true)
-                    title?: string;
-                    @Validator.validate(true)
-                    owners?: { [userId: string]: Models.User };
-                    @Validator.validate(true)
-                    stylesheet?: string;
+                    @Validator.validate()
+                    patch: Models.Room.Patch;
                 }
 
                 /** Room succesfully updated. Emits a `/rooms/updated` event to all other users in the room. */
@@ -265,6 +307,7 @@ export namespace Routes {
          * route: '/rooms/enter'
          */
         export namespace Enter {
+            export const Route = '/rooms/enter';
             export namespace Post {
                 export class Request {
                     @Validator.validate()
@@ -292,6 +335,7 @@ export namespace Routes {
              * route: '/rooms/structures/create'
              */
             export namespace Create {
+                export const Route = '/rooms/structures/create';
                 export namespace Post {
                     export class Request {
                         @Validator.validate()
@@ -314,16 +358,14 @@ export namespace Routes {
              * route: '/rooms/structures/update'
              */
             export namespace Update {
+                export const Route = '/rooms/structures/update';
                 export namespace Post {
                     /** A Structure containing `id` and any fields to be updated */
                     export class Request {
                         @Validator.validate()
                         id: Models.Structure.Id;
-                        @Validator.validate(true)
-                        pos?: Models.Position;
-                        // @Validator.validate()
-                        // TODO: add validator support to allow all child properties to be optional
-                        data?: Models.StructureData;
+                        @Validator.validate()
+                        patch: Models.Structure.Patch;
                     }
 
                     export let Response200 = Models.Structure;
@@ -336,6 +378,7 @@ export namespace Routes {
          * route: '/rooms/cursor-recordings'
          */
         export namespace CursorRecordings {
+            export const Route = '/rooms/cursor-recordings';
             export namespace Get {
                 export class Request {
                     @Validator.validate()

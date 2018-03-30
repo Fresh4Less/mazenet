@@ -124,6 +124,14 @@ export class Service {
         });
     }
 
+    public updateStructure(
+        user: User,
+        id: Api.v1.Models.Structure.Id,
+        patch: Api.v1.Models.Structure.Patch
+    ): Observable<Structure> {
+        return this.dataStore.updateStructure(id, patch);
+    }
+
     public enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
         return this.exitRoom(activeUser.id)
         .mergeMap(() => {

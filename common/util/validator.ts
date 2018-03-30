@@ -52,15 +52,15 @@ export interface TypeInfo {
     /* if annotating an array and this argument is true, null/undefined elements of the array will not throw a
      * TypeError */
     arrayOptional?: boolean;
-    /** if this property is a discriminated union, you must provide extra information */
+    /** if this property is a union type, you must provide extra information */
     union?: UnionTypeInfo;
 }
 
 export interface UnionTypeInfo {
     /** discriminant property name */
-    discriminant: string;
+    discriminant?: string;
     /**
-     * mapping from discriminant value to typeConstructor
+     * mapping from discriminant value to typeConstructor. if discriminant is not defined, kind is ignored
      * NOTE: with a little work the implementation could be changed so 'kind' doesn't need to be specified
      * for each constructor.
      */
@@ -149,26 +149,54 @@ export function validateData<T, C extends Constructor<T>>(data: any, expected: C
                     return data;
                 }
 
+                /* tslint:disable:max-line-length */
                 for (let [pName, pTypeData] of propertyTypeMap) {
                     if (pTypeData.union) {
-                        // union type, check that we have a valid union type, then validate its properties recursively
-                        let validated = Object.keys(pTypeData.union.types).reduce((validated, unionTypeName) => {
-                            if (data[pName] && data[pName][pTypeData.union!.discriminant] === unionTypeName) {
-                                let typeData = Object.assign({}, pTypeData,
-                                                             {typeConstructor: pTypeData.union!.types[unionTypeName]});
-                                validateData(data[pName], typeData, `${variableName}.${pName}`);
-                                return true;
+                        // union type
+                        // if it is a discriminated UnionTypeInfo
+                        // validate the discriminant and the matching properties recursively
+                        // otherwise, accept first type in union that doesn't fail validation
+                        // TODO: non-discriminant unions types are validated in an indeterminante order
+                        // change the UnionTypeInfo to take an array of types. also just rewrite this
+                        if (pTypeData.union.discriminant) {
+                            let validated = Object.keys(pTypeData.union.types).reduce((validated, unionTypeName) => {
+                                if (data[pName] && data[pName][pTypeData.union!.discriminant!] === unionTypeName) {
+                                    let typeData = Object.assign({}, pTypeData, {typeConstructor: pTypeData.union!.types[unionTypeName]});
+                                    validateData(data[pName], typeData, `${variableName}.${pName}`);
+                                    return true;
+                                }
+                                return validated;
+                            }, false);
+                            if (!validated) {
+                                throw new TypeError(`property ${
+                                    variableName} is a discriminated union, but the descriminant ${
+                                    variableName}.${pTypeData.union.discriminant} is an unknown value ${
+                                    data[pName] && data[pName][pTypeData.union.discriminant]}`);
+                            } else {
+                                validateData(data[pName], pTypeData, `${variableName}.${pName}`);
                             }
-                            return validated;
-                        },                                                        false);
-                        if (!validated) {
-                            throw new TypeError(`property ${
-                                variableName} is a discriminated union, but the descriminant ${
-                                variableName}.${pTypeData.union.discriminant} is an unknown value ${
-                                data[pName] && data[pName][pTypeData.union.discriminant]}`);
+                        } else {
+                            let validated = false;
+                            for (const unionTypeName of Object.keys(pTypeData.union.types)) {
+                                if (data[pName]) {
+                                    let typeData = Object.assign({}, pTypeData, {typeConstructor: pTypeData.union!.types[unionTypeName]});
+                                    try {
+                                        validateData(data[pName], typeData, `${variableName}.${pName}`);
+                                        validated = true;
+                                        break;
+                                    } catch (error) {
+                                        if (!(error instanceof TypeError)) {
+                                            throw error;
+                                        }
+                                    }
+                                }
+                            }
+                            if (!validated) {
+                                throw new TypeError(`property ${variableName} did not match any of its union types: ${Object.keys(pTypeData.union.types)}`);
+                            } else {
+                                validateData(data[pName], pTypeData, `${variableName}.${pName}`);
+                            }
                         }
-                    } else {
-                        validateData(data[pName], pTypeData, `${variableName}.${pName}`);
                     }
                 }
             }

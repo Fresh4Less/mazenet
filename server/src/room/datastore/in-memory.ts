@@ -8,6 +8,9 @@ import { ActiveUserRoomData, Room, RoomDocument, Structure } from '../models';
 
 import { DataStore } from './index';
 
+// Patch only defined in API
+import * as Api from '../../../../common/api';
+
 export class InMemoryDataStore implements DataStore {
     public rootRoomId?: string;
     public rooms: Map<Room.Id, Room>;
@@ -69,10 +72,29 @@ export class InMemoryDataStore implements DataStore {
         return Observable.of(room);
     }
 
-    public getStructure(structureId: Structure.Id) {
-        const structure = this.structures.get(structureId);
+    public getStructure(id: Structure.Id) {
+        const structure = this.structures.get(id);
         if(!structure) {
-            return Observable.throw(new NotFoundError(`Structure '${structureId}' not found`)) as Observable<Structure>;
+            return Observable.throw(new NotFoundError(`Structure '${id}' not found`)) as Observable<Structure>;
+        }
+
+        return Observable.of(structure);
+    }
+
+    public updateStructure(id: Structure.Id, patch: Api.v1.Models.Structure.Patch) {
+        const structure = this.structures.get(id);
+        if(!structure) {
+            return Observable.throw(new NotFoundError(`Structure '${id}' not found`)) as Observable<Structure>;
+        }
+
+        // NOTE: fields that were explciitly set to undefined will overwrite
+        // delete data so it doesn't overwrite the StructureData class
+        const patchStructureData = patch.data;
+        delete patch.data;
+        Object.assign(structure, patch);
+        // TODO: do this with a generic recursive function
+        if(patchStructureData) {
+            Object.assign(structure.data, patchStructureData);
         }
 
         return Observable.of(structure);
