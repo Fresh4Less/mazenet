@@ -18,7 +18,7 @@ interface DataStore {
 
     //getRoom: (roomId: Room.Id) => Observable<Room>;
     insertRoom: (room: Room) => Observable<Room>;
-    //updateRoom: (updatedRoom: Room) => Observable<Room>;
+    updateRoom: (id: Room.Id, patch: Api.v1.Models.Room.Patch) => Observable<Room>;
 
     getStructure: (structureId: Structure.Id) => Observable<Structure>;
     updateStructure: (structureId: Structure.Id, patch: Api.v1.Models.Structure.Patch) => Observable<Structure>;

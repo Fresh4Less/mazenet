@@ -3,7 +3,7 @@ import { Observable } from 'rxjs/Observable';
 
 import { AlreadyExistsError, NotFoundError } from '../../common';
 
-import { ActiveUser } from '../../user/models';
+import { ActiveUser, User } from '../../user/models';
 import { ActiveUserRoomData, Room, RoomDocument, Structure } from '../models';
 
 import { DataStore } from './index';
@@ -62,13 +62,18 @@ export class InMemoryDataStore implements DataStore {
         return Observable.of(room);
     }
 
-    public updateRoom(updatedRoom: Room) {
-        const room = this.rooms.get(updatedRoom.id);
+    public updateRoom(id: Room.Id, patch: Api.v1.Models.Room.Patch) {
+        const room = this.rooms.get(id);
         if(!room) {
-            return Observable.throw(new NotFoundError(`Room '${updatedRoom.id}' not found`)) as Observable<Room>;
+            return Observable.throw(new NotFoundError(`Room '${id}' not found`)) as Observable<Room>;
         }
 
-        this.rooms.set(room.id, updatedRoom);
+        // NOTE: fields that were explciitly set to undefined will overwrite
+        Object.assign(room, patch);
+        if(patch.owners) {
+            room.owners = new Set<User.Id>(patch.owners);
+        }
+
         return Observable.of(room);
     }
 

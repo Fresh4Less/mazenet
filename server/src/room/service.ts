@@ -16,7 +16,7 @@ import { ActiveUser, User } from '../user/models';
 import { Service as UserService } from '../user/service';
 import { GlobalLogger } from '../util/logger';
 import { ActiveUserRoomDataStore, DataStore } from './datastore';
-import { ActiveUserRoomData, Room, RoomDocument, RoomEvent, Structure, StructureData } from './models';
+import { ActiveUserRoomData, getStructureRoomIds, Room, RoomDocument, RoomEvent, Structure, StructureData } from './models';
 
 /** blueprints to create structures in a subtree of rooms */
 export interface StructureBlueprintTree {
@@ -53,7 +53,7 @@ export class Service {
             }).mergeMap(([room]: [Room, null]) => {
                 return Observable.forkJoin(Observable.of(room), this.createStructureTrees(rootUser, room.id, Service.entranceSubTrees));
             }).mergeMap(([room, structures]: [Room, Structure[]]) => {
-                GlobalLogger.trace('init root room', {room});
+                GlobalLogger.trace('init root room', {room, rootUserId: rootUser.id});
                 return Observable.of(room);
             });
     }
@@ -83,7 +83,7 @@ export class Service {
         });
 
         return this.dataStore.insertRoom(newRoom).map((room) => {
-            GlobalLogger.trace('create room', {room});
+            GlobalLogger.trace('create room', {room, userId: user.id});
             return room;
         });
     }
@@ -115,11 +115,11 @@ export class Service {
         }).map((structure) => {
             this.eventObserver.next({
                 event: 'structure-create',
-                roomId,
+                roomIds: getStructureRoomIds(structure),
                 structure,
                 user,
             });
-            GlobalLogger.trace('create structure', {structure});
+            GlobalLogger.trace('create structure', {structure, userId: user.id});
             return structure;
         });
     }
@@ -129,7 +129,16 @@ export class Service {
         id: Api.v1.Models.Structure.Id,
         patch: Api.v1.Models.Structure.Patch
     ): Observable<Structure> {
-        return this.dataStore.updateStructure(id, patch);
+        return this.dataStore.updateStructure(id, patch).map((structure) => {
+            this.eventObserver.next({
+                event: 'structure-update',
+                roomIds: getStructureRoomIds(structure),
+                structure,
+                user,
+            });
+            GlobalLogger.trace('update structure', {structureId: id, patch, userId: user.id});
+            return structure;
+        });
     }
 
     public enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
@@ -164,6 +173,22 @@ export class Service {
                 });
             }
             return Observable.of(null);
+        });
+    }
+
+    public updateRoom(
+        user: User,
+        id: Api.v1.Models.Room.Id,
+        patch: Api.v1.Models.Room.Patch
+    ): Observable<Room> {
+        return this.dataStore.updateRoom(id, patch).map((room) => {
+            this.eventObserver.next({
+                event: 'update',
+                room,
+                user,
+            });
+            GlobalLogger.trace('update room', {roomId: id, patch, userId: user.id});
+            return room;
         });
     }
 
@@ -223,7 +248,7 @@ export class Service {
                 sourceText: 'enter',
                 targetText: 'exit'
             },
-            pos: {x: 0.5, y: 0.7}
+            pos: {x: 0.5, y: 0.6}
         }
     }, {
         structure: {

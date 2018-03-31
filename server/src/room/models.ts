@@ -128,6 +128,15 @@ export namespace Structure {
     export type Id = string;
 }
 
+export function getStructureRoomIds(structure: Structure): Room.Id[] {
+    switch(structure.data.sType) {
+        case 'tunnel':
+            return [structure.data.sourceId, structure.data.targetId];
+        default:
+            return [];
+    }
+}
+
 export class CursorRecording {
     public id: CursorRecording.Id;
     public activeUserId: ActiveUser.Id;
@@ -162,7 +171,7 @@ export interface ActiveUserRoomData {
     enterTime: string;
 }
 
-export type RoomEvent = EnteredRoomEvent | ExitedRoomEvent | StructureCreatedEvent ;
+export type RoomEvent = EnteredRoomEvent | ExitedRoomEvent | UpdatedEvent | StructureCreatedEvent | StructureUpdatedEvent;
 
 export interface EnteredRoomEvent {
     event: 'enter';
@@ -176,9 +185,22 @@ export interface ExitedRoomEvent {
     activeUser: ActiveUser;
 }
 
+export interface UpdatedEvent {
+    event: 'update';
+    room: Room;
+    user: User;
+}
+
 export interface StructureCreatedEvent {
     event: 'structure-create';
-    roomId: Room.Id;
+    roomIds: Room.Id[];
+    user: User;
+    structure: Structure;
+}
+
+export interface StructureUpdatedEvent {
+    event: 'structure-update';
+    roomIds: Room.Id[];
     user: User;
     structure: Structure;
 }

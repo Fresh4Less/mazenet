@@ -15,7 +15,7 @@ import { GlobalLogger } from '../util/logger';
 import { BadRequestError, ConflictError, mapToObject, Request, Response, Socket, UnauthorizedError } from '../common';
 import { ActiveUser, User } from '../user/models';
 import { ActiveUserRoomData, EnteredRoomEvent, ExitedRoomEvent, 
-    Room, RoomDocument, RoomEvent, Structure, StructureCreatedEvent } from './models';
+    Room, RoomDocument, RoomEvent, Structure, StructureCreatedEvent, StructureUpdatedEvent, UpdatedEvent } from './models';
 import { Service } from './service';
 
 import { CursorEvent, CursorMovedEvent, CursorRecording } from '../cursor-recording/models';
@@ -50,9 +50,16 @@ export class Middleware {
         service.events.filter((event) => event.event === 'exit').subscribe(
             (event) => this.onExitRoom(event as ExitedRoomEvent)
         );
+        service.events.filter((event) => event.event === 'update').subscribe(
+            (event) => this.onUpdateRoom(event as UpdatedEvent)
+        );
         service.events.filter((event) => event.event === 'structure-create').subscribe(
             (event) => this.onCreateStructure(event as StructureCreatedEvent)
         );
+        service.events.filter((event) => event.event === 'structure-update').subscribe(
+            (event) => this.onUpdateStructure(event as StructureUpdatedEvent)
+        );
+
         cursorService.events.filter((event) => event.event === 'move').subscribe(
             (event) => this.onCursorMoved(event as CursorMovedEvent)
         );
@@ -190,6 +197,27 @@ export class Middleware {
             });
         });
 
+        roomsRouter.post('/update', (req: Request, res: Response, next: Express.NextFunction) => {
+            if(!req.user) {
+                // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
+                throw new UnauthorizedError('You must be authenticated to update a room');
+            }
+            let body: Api.v1.Routes.Rooms.Update.Post.Request;
+            try {
+                body = validateData(req.body, Api.v1.Routes.Rooms.Update.Post.Request, 'body');
+            } catch (err) {
+                throw new BadRequestError(err.message);
+            }
+            return this.service.updateRoom(req.user, body.id, body.patch)
+                .mergeMap((room) => {
+                    return this.service.getRoomDocument(body.id);
+                }).subscribe((roomDocument) => {
+                return res.status(200).json(roomDocument.toV1());
+            }, (err: Error) => {
+                return next(err);
+            });
+        });
+
         roomsRouter.get('/cursor-recordings', (req: Request, res: Response, next: Express.NextFunction) => {
             let body: Api.v1.Routes.Rooms.CursorRecordings.Get.Request;
             try {
@@ -232,7 +260,7 @@ export class Middleware {
         structuresRouter.post('/update', (req: Request, res: Response, next: Express.NextFunction) => {
             if(!req.user) {
                 // should this error never occur/be 500? (unauthenticated user is given unique anonymous user data)
-                throw new UnauthorizedError('You must be authenticated to create a structure');
+                throw new UnauthorizedError('You must be authenticated to update a structure');
             }
             let body: Api.v1.Routes.Rooms.Structures.Update.Post.Request;
             try {
@@ -278,6 +306,19 @@ export class Middleware {
         ).subscribe();
     }
 
+    public onUpdateRoom(event: UpdatedEvent) {
+        // Note, we get this room document twice (when returning to /rooms/update transaction)
+        this.service.getRoomDocument(event.room.id)
+        .mergeMap((roomDocument) => {
+            return this.emitToSocketsInRoom(
+                event.room.id,
+                Api.v1.Events.Server.Rooms.Updated.Route,
+                roomDocument.toV1(),
+                event.user.id,
+                true);
+        }).subscribe();
+    }
+
     public onCursorMoved(event: CursorMovedEvent) {
         const data: Api.v1.Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved = {
             activeUserId: event.activeUser.id,
@@ -293,17 +334,29 @@ export class Middleware {
     }
 
     public onCreateStructure(event: StructureCreatedEvent) {
-        const data: Api.v1.Events.Server.Rooms.Structures.Created = {
-            roomId: event.roomId,
-            structure: event.structure.toV1()
-        };
-        this.emitToSocketsInRoom(
-            event.roomId,
-            Api.v1.Events.Server.Rooms.Structures.Created.Route,
-            data,
-            event.user.id,
-            true
-        ).subscribe();
+        const structure = event.structure.toV1();
+        event.roomIds.forEach((roomId) => {
+            this.emitToSocketsInRoom(
+                roomId,
+                Api.v1.Events.Server.Rooms.Structures.Created.Route,
+                {roomId, structure},
+                event.user.id,
+                true
+            ).subscribe();
+        });
+    }
+
+    public onUpdateStructure(event: StructureUpdatedEvent) {
+        const structure = event.structure.toV1();
+        event.roomIds.forEach((roomId) => {
+            this.emitToSocketsInRoom(
+                roomId,
+                Api.v1.Events.Server.Rooms.Structures.Updated.Route,
+                {roomId, structure},
+                event.user.id,
+                true
+            ).subscribe();
+        });
     }
 
     private emitToSocketsInRoom(

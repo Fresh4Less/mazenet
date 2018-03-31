@@ -79,11 +79,11 @@ export function buildQuery_SetColumns(columnData: Array<[string, any]>, startInd
     const queries = columnData.filter((data) => data[1] !== undefined)
         .map((data, i) => {
             params.push(data[1]);
-            return `SET ${data[0]} = $${i+startIndex}`;
+            return `${data[0]} = $${i+startIndex}`;
     });
 
     return {
         params,
-        query: queries.join('\n'),
+        query: 'SET ' + queries.join(', '),
     };
 }

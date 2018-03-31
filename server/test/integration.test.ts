@@ -231,6 +231,33 @@ describe('single client', () => {
             }).first().toPromise();
         });
 
+        test('POST /update', () => {
+            const client = new Client(baseUrl);
+            return client.connectAndEnter().mergeMap(() => {
+                const body = client.res.body as Api.v1.Routes.Rooms.Enter.Post.Response200;
+                return client.emitTransaction('POST', Api.v1.Routes.Rooms.Update.Route, {
+                    id: body.room.id,
+                    patch: {
+                        owners: [client.activeUser!.userId], // hehe >:)
+                        stylesheet: '/*test*/',
+                        title: 'my zone',
+                    },
+                });
+            }).map(() => {
+                expect(client.res.status).toBe(200);
+
+                const oldRoom: Api.v1.Models.Room = client.transactions[1][1].body.room;
+                const body = client.res.body as Api.v1.Routes.Rooms.Update.Post.Response200;
+                expect(body.id).toBe(oldRoom.id);
+                expect(body.creator).toBe(oldRoom.creator);
+                expect(body.structures).toEqual(oldRoom.structures);
+
+                expect(body.owners).toEqual([client.activeUser!.userId]);
+                expect(body.stylesheet).toEqual('/*test*/');
+                expect(body.title).toEqual('my zone');
+            }).first().toPromise();
+    });
+
         describe('structures', () => {
             describe('tunnel', () => {
                 test('POST /create', () => {

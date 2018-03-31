@@ -1,4 +1,26 @@
+/** Mazenet API v1 */
+/**
+ * NOTE: sometimes we want to use a model as a response, but aliasing classes doesn't fully work
+ * we work around this limitation by extending the class we want to alias
+ *        export class Response201 extends Models.User {};
+ * see issue: https://github.com/Microsoft/TypeScript/issues/2559
+ */
 import * as Validator from '../util/validator';
+
+export class ErrorResponse {
+    /** HTTP status code */
+    @Validator.validate()
+    code: number;
+    /** A short message describing the error */
+    @Validator.validate()
+    message: string;
+
+    data?: Error.Data;
+}
+
+export namespace Error {
+    export type Data = any;
+}
 
 export namespace Models {
     /** Absolute position on the page in range [0,1] */
@@ -254,7 +276,7 @@ export namespace Routes {
                 }
 
                 /** Information about the client's user account and the root room id. */
-                export type Response201 = Models.User;
+                export class Response201 extends Models.User {}
             }
         }
         /**
@@ -267,7 +289,8 @@ export namespace Routes {
              * Should be the first event emitted to the server on connection.
              */
             export namespace Post {
-                export let Request = Models.PlatformData;
+                // TODO: check if this union type validates correctly
+                export const Request = Models.PlatformData;
 
                 /** Information about the client's user account and the root room id. */
                 export class Response200 {
@@ -299,8 +322,8 @@ export namespace Routes {
                 }
 
                 /** Room succesfully updated. Emits a `/rooms/updated` event to all other users in the room. */
-                export let Response200 = Models.Room;
-                export let Response400 = {};
+                export class Response200 extends Models.Room {}
+                export type Response400 = any;
             }
         }
         /**
@@ -322,8 +345,8 @@ export namespace Routes {
                     users: { [activeUserId: string]: Models.ActiveUser };
                 }
 
-                export let Response400 = {};
-                export let Response404 = {};
+                export type Response400 = any;
+                export type Response404 = any;
             }
         }
 
@@ -348,10 +371,8 @@ export namespace Routes {
                      * Structure successfully created. Emits a `/rooms/structures/created event to all other users in
                      * the room
                      */
-                    // export type Response201 = Models.Structure;
-                    export let Response201 = Models.Structure;
-                    // export type Response201 = {};
-                    export let Response400 = {};
+                    export class Response201 extends Models.Structure {}
+                    export type Response400 = any;
                 }
             }
             /**
@@ -368,8 +389,8 @@ export namespace Routes {
                         patch: Models.Structure.Patch;
                     }
 
-                    export let Response200 = Models.Structure;
-                    export let Response400 = {};
+                    export class Response200 extends Models.Structure {}
+                    export type Response400 = any;
                 }
             }
         }
@@ -396,7 +417,7 @@ export namespace Routes {
                     cursorRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
                 }
 
-                export type Response400 = ErrorResponse;
+                export class Response400 extends ErrorResponse {}
             }
         }
     }
@@ -412,9 +433,8 @@ export namespace Events {
             /**
              * The room data was updated.
              */
-            export type Updated = Models.Room;
-            export namespace Updated {
-                export let Route = '/rooms/updated';
+            export class Updated extends Models.Room {
+                static Route = '/rooms/updated';
             }
             export namespace Structures {
                 /** A structure was created in the client's current room */
@@ -490,19 +510,4 @@ export namespace Events {
             }
         }
     }
-}
-
-export class ErrorResponse {
-    /** HTTP status code */
-    @Validator.validate()
-    code: number;
-    /** A short message describing the error */
-    @Validator.validate()
-    message: string;
-
-    data?: Error.Data;
-}
-
-export namespace Error {
-    export type Data = any;
 }

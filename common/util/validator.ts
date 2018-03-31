@@ -101,10 +101,10 @@ export function validate(options?: Partial<TypeInfo> | boolean, arrayType?: Cons
             Object.defineProperty(target, validatePropsStr, {value: new Map<string, TypeInfo>()});
         }
 
-        if(!target.hasOwnProperty(protoValidatePropsAddedStr)) {
+        if (!target.hasOwnProperty(protoValidatePropsAddedStr)) {
             const targetProto = Object.getPrototypeOf(target);
-            if(targetProto && targetProto[validateProps]) {
-                for(const [key, typeInfo] of targetProto[validateProps]) {
+            if (targetProto && targetProto[validateProps]) {
+                for (const [key, typeInfo] of targetProto[validateProps]) {
                     target[validateProps].set(key, typeInfo);
                 }
             }

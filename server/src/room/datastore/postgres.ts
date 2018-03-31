@@ -8,7 +8,7 @@ import 'rxjs/add/operator/catch';
 import { AlreadyExistsError, NotFoundError, Position } from '../../common';
 import { buildQuery_SetColumns, executeTransaction, handlePostgresError, QueryData } from '../../util/postgres';
 
-import { ActiveUser } from '../../user/models';
+import { ActiveUser, User } from '../../user/models';
 import { ActiveUserRoomData, Room, RoomDocument, RoomOptions, Structure, StructureData } from '../models';
 
 import { DataStore } from './index';
@@ -22,6 +22,16 @@ function posToPoint(pos?: Position): string | undefined {
         return pos;
     }
     return `(${pos.x},${pos.y})`;
+}
+
+function roomFromRow(row: any): Room {
+    return new Room({
+        creator: row.creator,
+        id: row.roomid,
+        owners: new Set<User.Id>(row.owners),
+        stylesheet: row.stylesheet,
+        title: row.title,
+    });
 }
 
 function structureFromRow(row: any): Structure {
@@ -106,6 +116,49 @@ export class PostgresDataStore implements DataStore {
             }
             return Observable.throw(err) as Observable<Room>;
         }).catch(handlePostgresError<Room>('insertRoom', [insertRoomQuery, insertOwnersQuery].join('\n')));
+    }
+
+    public updateRoom(id: Room.Id, patch: Api.v1.Models.Room.Patch) {
+        const queries: QueryData[] = [];
+        const roomSetColumnsData = buildQuery_SetColumns([
+            ['title', patch.title],
+            ['stylesheet', patch.stylesheet],
+        ], 2);
+
+        const roomQuery =
+            `UPDATE rooms
+            ${roomSetColumnsData.query}
+            WHERE roomid=$1
+            RETURNING *`;
+
+        queries.push({query: roomQuery, params: [id, ...roomSetColumnsData.params]});
+
+        if(patch.owners) {
+            const ownersDeleteQuery =
+                `DELETE FROM rooms_owners
+                WHERE roomid=$1
+                RETURNING *`;
+
+            // NOTE: this code is now duplicated. turn this into a generic function please
+            let ownerParamIndex = 2;
+            const ownerQueryParams = [];
+            for(const ownerId of patch.owners) {
+                ownerQueryParams.push(`($1, $${ownerParamIndex})`);
+                ownerParamIndex++;
+            }
+            const ownersInsertQuery =
+                `INSERT INTO rooms_owners (roomid, userid) VALUES ${ownerQueryParams.join(', ')} RETURNING *;`;
+
+            queries.push({query: ownersDeleteQuery, params: [id]});
+            queries.push({query: ownersInsertQuery, params: [id, ...patch.owners]});
+        }
+
+        return executeTransaction(this.clientPool, queries)
+        .map((results: Array<QueryResult | undefined>) => {
+            results[0]!.rows[0].owners = patch.owners;
+            return roomFromRow(results[0]!.rows[0]);
+
+        }).catch(handlePostgresError<Room>('updateRoom', queries.map((q)=>q.query).join('\n')));
     }
 
     public getStructure(id: Structure.Id) {
@@ -253,13 +306,7 @@ export class PostgresDataStore implements DataStore {
 
             // create rooms
             return roomsResult.rows.map((roomRow: any) => {
-                const room = new Room({
-                    creator: roomRow.creator,
-                    id: roomRow.roomid,
-                    owners: roomRow.owners,
-                    stylesheet: roomRow.stylesheet,
-                    title: roomRow.title,
-                });
+                const room = roomFromRow(roomRow);
                 const structures = new Map<Structure.Id, Structure>(
                     (roomStructures.get(room.id) || []).map((s: Structure) => [s.id, s] as [Structure.Id, Structure])
                 );
