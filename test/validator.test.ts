@@ -74,9 +74,9 @@ describe('validate primitives', () => {
             {enabled: true, count: 10, name: 1},
         ];
 
-        inputs.forEach((input) => {
+        inputs.forEach((input, index) => {
             expect(() => {
-                Validator.validateData(input, Primitives, 'input');
+                Validator.validateData(input, Primitives, `input-${index}`);
             }).toThrow(TypeError);
         });
     });
@@ -88,8 +88,8 @@ describe('validate primitives', () => {
                 {flags: [], counts: [0, null, undefined], names: []},
             ];
 
-            inputs.forEach((input) => {
-                let primitivesArray: PrimitivesArray = Validator.validateData(input, PrimitivesArray, 'input');
+            inputs.forEach((input, index) => {
+                let primitivesArray: PrimitivesArray = Validator.validateData(input, PrimitivesArray, `input-${index}`);
                 expect(primitivesArray).toBe(input);
             });
         });
@@ -105,9 +105,9 @@ describe('validate primitives', () => {
                 {flags: [true, false, true], counts: [0, 1], names: [undefined]},
             ];
 
-            inputs.forEach((input) => {
+            inputs.forEach((input, index) => {
                 expect(() => {
-                    Validator.validateData(input, Primitives, 'input');
+                    Validator.validateData(input, Primitives, `input-${index}`);
                 }).toThrow(TypeError);
             });
         });
@@ -124,8 +124,8 @@ describe('validate primitives', () => {
                 },
             ];
 
-            inputs.forEach((input) => {
-                let library: Library = Validator.validateData(input, Library, 'input');
+            inputs.forEach((input, index) => {
+                let library: Library = Validator.validateData(input, Library, `input-${index}`);
                 expect(library).toBe(input);
             });
         });
@@ -160,9 +160,9 @@ describe('validate primitives', () => {
                 {name: 'montlake', librarian: [1, 2, 3]},
             ];
 
-            inputs.forEach((input) => {
+            inputs.forEach((input, index) => {
                 expect(() => {
-                    Validator.validateData(input, Library, 'input');
+                    Validator.validateData(input, Library, `input-${index}`);
                 }).toThrow(TypeError);
             });
         });
@@ -211,8 +211,8 @@ describe('discriminated union', () => {
             {color: 'brown', fruit: {kind: 'coconut', cracked: false}},
         ];
 
-        inputs.forEach((input) => {
-            let fruitBasket: FruitBasket = Validator.validateData(input, FruitBasket, 'input');
+        inputs.forEach((input, index) => {
+            let fruitBasket: FruitBasket = Validator.validateData(input, FruitBasket, `input-${index}`);
             expect(fruitBasket).toBe(input);
         });
     });
@@ -227,9 +227,59 @@ describe('discriminated union', () => {
             {color: 'green', fruit: {kind: 'lettuce'}},
         ];
 
-        inputs.forEach((input) => {
+        inputs.forEach((input, index) => {
             expect(() => {
-                Validator.validateData(input, FruitBasket, 'input');
+                Validator.validateData(input, FruitBasket, `input-${index}`);
+            }).toThrow(TypeError);
+        });
+    });
+});
+
+class Grandparent {
+    @Validator.validate()
+    name: string;
+}
+
+class Parent extends Grandparent {
+    @Validator.validate(true)
+    job?: string;
+}
+
+class Child extends Parent {
+    @Validator.validate()
+    toys: number;
+}
+type PersonConstructor = Validator.Constructor<Grandparent | Parent | Child>;
+
+describe('inheritance', () => {
+    test('valid objects are accepted', () => {
+        let inputs: Array<[any, Grandparent | Parent | Child]> = [
+            [{name: 'alice'}, Grandparent],
+            [{name: 'alpha', job: 123, toys: 'matches'}, Grandparent],
+            [{name: 'beth'}, Parent],
+            [{name: 'beth2', job: 'farmer'}, Parent],
+            [{name: 'carol', job: 'miner', toys: 5}, Child],
+            [{name: 'dan', toys: 5}, Child],
+        ];
+
+        inputs.forEach(([input, inputConstructor], index) => {
+            let validatedInput = Validator.validateData(input, inputConstructor as PersonConstructor, `input-${index}`);
+            expect(validatedInput).toBe(input);
+        });
+    });
+
+    test('invalid objects', () => {
+        let inputs = [
+            [{name: false}, Grandparent],
+            [{job: 'farmer'}, Parent],
+            [{name: 'beth', job: 123}, Parent],
+            [{name: 'carol', job: 'miner', toys: null}, Child],
+            [{name: 666, toys: 5}, Child],
+        ];
+
+        inputs.forEach(([input, inputConstructor], index) => {
+            expect(() => {
+                Validator.validateData(input, inputConstructor as PersonConstructor, `input-${index}`);
             }).toThrow(TypeError);
         });
     });

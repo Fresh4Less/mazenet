@@ -5,9 +5,11 @@
  * Uses emitDecoratorMetadata to provide Typescript type information at runtime
  *
  * Caveats:
- *  - Does not work with `extends`. Properties on the prototype chain are not checked
- *  - Optional types must be indicated by passing `true` as the first argument to @validate
- *  - Array element type must be passed as the second argument to @validate
+ *  - Additional type data must be passed to @validate for some types:
+ *     - optional types
+ *     - arrays
+ *     - unions
+ *     - discriminated unions
  *
  * Usage:
  * ```
@@ -36,10 +38,17 @@
  */
 import 'reflect-metadata';
 
+/** we add these properties to class constructors that have @validate() properties
+ * Alias the symbols as strings to silence type errors in hasOwnProperty/defineProperty
+ */
 /** store a map of property names that need to be validated */
 const validateProps = Symbol('_validateProps');
+const validatePropsStr = (validateProps as any) as string;
+/** track if we have already added the validate properties from the superclass */
+const protoValidatePropsAdded = Symbol('_protoValidatePropsAdded');
+const protoValidatePropsAddedStr = (protoValidatePropsAdded as any) as string;
 
-interface Constructor<T> {
+export interface Constructor<T> {
     new(): T;
 }
 
@@ -68,21 +77,39 @@ export interface UnionTypeInfo {
 }
 
 /**
- * Method decorator factory
+ * Marks the property to be checked when using validateData(). Property decorator factory
  * @param options - a TypeInfo object with extra information about the data type.
  *   For convenience, this can be a boolean specifying if this property is optional
  * @param arrayType - if options is boolean andthe annotated type is an array, this must be provided to specify the
  *   array element type. If options is a TypeInfo object, this parameter is ignored and the arrayType must be specified
  *   in options
+ *
+ *   Traverses the prototype chain so inherited properties are also validated.
+ *   We do this once at startup, then validateData() looks up properties from a flat map
+ *   This code assumes that if @validate() is called for a propety on a subclass,
+ *   then all the @validate decorators were executed on the super class
  */
 export function validate(options?: Partial<TypeInfo> | boolean, arrayType?: Constructor<any>) {
+    if (typeof options === 'boolean') {
+        options = {optional: options, arrayType};
+    }
+
     return (target: any, propertyKey: string) => {
-        if (typeof options === 'boolean') {
-            options = {optional: options, arrayType};
-        }
         let typeConstructor = Reflect.getMetadata('design:type', target, propertyKey);
-        if (!target[validateProps]) {
-            target[validateProps] = new Map<string, TypeInfo>();
+
+        if (!target.hasOwnProperty(validatePropsStr)) {
+            Object.defineProperty(target, validatePropsStr, {value: new Map<string, TypeInfo>()});
+        }
+
+        if(!target.hasOwnProperty(protoValidatePropsAddedStr)) {
+            const targetProto = Object.getPrototypeOf(target);
+            if(targetProto && targetProto[validateProps]) {
+                for(const [key, typeInfo] of targetProto[validateProps]) {
+                    target[validateProps].set(key, typeInfo);
+                }
+            }
+
+            Object.defineProperty(target, protoValidatePropsAddedStr, {value: true});
         }
 
         target[validateProps].set(propertyKey, Object.assign({typeConstructor}, options));
@@ -172,8 +199,6 @@ export function validateData<T, C extends Constructor<T>>(data: any, expected: C
                                     variableName} is a discriminated union, but the descriminant ${
                                     variableName}.${pTypeData.union.discriminant} is an unknown value ${
                                     data[pName] && data[pName][pTypeData.union.discriminant]}`);
-                            } else {
-                                validateData(data[pName], pTypeData, `${variableName}.${pName}`);
                             }
                         } else {
                             let validated = false;
@@ -193,10 +218,10 @@ export function validateData<T, C extends Constructor<T>>(data: any, expected: C
                             }
                             if (!validated) {
                                 throw new TypeError(`property ${variableName} did not match any of its union types: ${Object.keys(pTypeData.union.types)}`);
-                            } else {
-                                validateData(data[pName], pTypeData, `${variableName}.${pName}`);
                             }
                         }
+                    } else {
+                        validateData(data[pName], pTypeData, `${variableName}.${pName}`);
                     }
                 }
             }
