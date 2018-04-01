@@ -429,6 +429,45 @@ describe('multi-client', () => {
             }).first().toPromise();
         });
 
+        test('POST /update', () => {
+            const client = new Client(baseUrl);
+            const client2 = new Client(baseUrl);
+
+            return client.connectAndEnter().mergeMap(() => {
+                return client2.connectAndEnter();
+            }).mergeMap(() => {
+                client.listenEvent(Api.v1.Events.Server.Rooms.Updated.Route);
+                const body = client2.res.body as Api.v1.Routes.Rooms.Enter.Post.Response200;
+                return client2.emitTransaction('POST', Api.v1.Routes.Rooms.Update.Route, {
+                    id: body.room.id,
+                    patch: {
+                        owners: [client2.activeUser!.userId], // hehe >:)
+                        stylesheet: '/*test*/',
+                        title: 'my zone',
+                    },
+                });
+            }).delay(30).map(() => {
+                expect(client2.res.status).toBe(200);
+
+                const events = client.receivedEvents.get(Api.v1.Events.Server.Rooms.Updated.Route);
+                expect(events).toBeDefined();
+                expect(events!.length).toBe(1);
+
+                const event: Api.v1.Events.Server.Rooms.Updated = events![0];
+
+                const oldRoom: Api.v1.Models.Room = client.transactions[1][1].body.room;
+
+                expect(event.id).toBe(oldRoom.id);
+                expect(event.creator).toBe(oldRoom.creator);
+                expect(event.structures).toEqual(oldRoom.structures);
+
+                expect(event.owners).toEqual([client2.activeUser!.userId]);
+                expect(event.stylesheet).toEqual('/*test*/');
+                expect(event.title).toEqual('my zone');
+
+            }).first().toPromise();
+        });
+
         describe('structures', () => {
             describe('tunnel', () => {
                 test('POST /create', () => {
@@ -464,6 +503,63 @@ describe('multi-client', () => {
                         expect(event.structure).toEqual(res.body);
                     }).first().toPromise();
                 });
+
+                test('POST /update', () => {
+                    const client = new Client(baseUrl);
+                    const client2 = new Client(baseUrl);
+                    return client.connectAndEnter().mergeMap(() => {
+                        return client2.connectAndEnter();
+                    }).mergeMap(() => {
+                        // create the structure
+                        const res = client2.res;
+                        return client2.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Create.Route, {
+                            roomId: res.body.room.id,
+                            structure: {
+                                data: {
+                                    sType: 'tunnel',
+                                    sourceText: 'the hills',
+                                    targetText: 'mazenet'
+                                },
+                                pos: {x: 0.1, y: 0.1},
+                            }
+                        });
+                    }).mergeMap(() => {
+                        const res = client2.res;
+                        expect(res.status).toBe(201);
+                        expect(typeof res.body.id).toBe('string');
+
+                        client.listenEvent(Api.v1.Events.Server.Rooms.Structures.Updated.Route);
+                        return client2.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Update.Route, {
+                            id: res.body.id,
+                            patch: {
+                                data: {
+                                    sourceText: 'the caves'
+                                },
+                                pos: {x: 0.8, y: 0.8},
+                            }
+                        });
+                    }).delay(30).map(() => {
+                        expect(client2.res.status).toBe(200);
+                        const events = client.receivedEvents.get(Api.v1.Events.Server.Rooms.Structures.Updated.Route);
+                        expect(events).toBeDefined();
+                        expect(events!.length).toBe(1);
+
+                        const event: Api.v1.Events.Server.Rooms.Structures.Updated = events![0];
+                        expect(event.roomId).toBe(client.transactions[1][1].body.room.id);
+
+                        const oldStructure = client2.transactions[2][1].body;
+                        expect(event.structure.id).toBe(oldStructure.id);
+                        expect(event.structure.creator).toBe(oldStructure.creator);
+                        expect(event.structure.data.sType).toBe(oldStructure.data.sType);
+                        const structureData = event.structure.data as Api.v1.Models.StructureData.Tunnel;
+                        expect(structureData.sourceId).toBe(oldStructure.data.sourceId);
+                        expect(structureData.targetId).toBe(oldStructure.data.targetId);
+                        expect(structureData.targetText).toBe(oldStructure.data.targetText);
+
+                        expect(event.structure.pos).toEqual({x: 0.8, y: 0.8});
+                        expect(structureData.sourceText).toBe('the caves');
+                    }).first().toPromise();
+                });
             });
         });
         test('cursor movement', () => {
@@ -485,7 +581,7 @@ describe('multi-client', () => {
                 cursorPositions.forEach((data) => {
                     client2.client.emit(clientRoute, {pos: data});
                 });
-            }).delay(200).map(() => {
+            }).delay(30).map(() => {
                 const events = client.receivedEvents.get(serverRoute);
                 expect(events).toBeDefined();
                 expect(events!.length).toBe(3);
