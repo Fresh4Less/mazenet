@@ -2,3 +2,27 @@
     text-decoration: underline;
     cursor: pointer;
 }
+
+/* Edit Mode */
+.tunnel-edit-top-text {
+    font-size: small;
+    font-family: "Gill Sans", sans-serif;
+}
+input {
+    border:none;
+    background-image:none;
+    background-color:transparent;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    color: black;
+    font-family: Lucida Console, Courier, monospace;
+}
+textarea:focus, input:focus {
+    outline: none;
+}
+
+::placeholder {
+    font-family: Lucida Console, Courier, monospace;
+    color: rgba(0,0,0,0.5);
+}

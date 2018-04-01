@@ -8,6 +8,7 @@ interface TunnelProps {
     room: Models.Room;
     structure: Models.Structure;
     tunnelData: Models.StructureData.Tunnel;
+    isEditing: boolean;
 }
 
 export default class Tunnel extends React.Component<TunnelProps, any> {
@@ -17,6 +18,18 @@ export default class Tunnel extends React.Component<TunnelProps, any> {
     }
 
     render() {
+        // Positioning
+        const x = Math.min(Math.max(this.props.structure.pos.x, 0.0), 1.0) * 100;
+        const y = Math.min(Math.max(this.props.structure.pos.y, 0.0), 1.0) * 100;
+        if (  this.props.isEditing) {
+            return this.renderEditing(x, y);
+        } else {
+            return this.renderDefault(x, y);
+        }
+
+    }
+
+    private renderDefault(x: number, y: number) {
         // Figure out if we are the source or the target.
         let text = '';
         let targetId = '';
@@ -28,12 +41,9 @@ export default class Tunnel extends React.Component<TunnelProps, any> {
             targetId = this.props.tunnelData.sourceId;
         }
 
-        // Positioning
-        const x = Math.min(Math.max(this.props.structure.pos.x, 0.0), 1.0) * 100;
-        const y = Math.min(Math.max(this.props.structure.pos.y, 0.0), 1.0) * 100;
         const style = {
-          left: `${x}%`,
-          top: `${y}%`
+            left: `${x}%`,
+            top: `${y}%`
         };
         return (
             <div
@@ -43,6 +53,24 @@ export default class Tunnel extends React.Component<TunnelProps, any> {
                 onClick={() => {SocketAPI.Instance.EnterPage(targetId); }}
             >
                 {text}
+            </div>
+        );
+    }
+
+    private renderEditing(x: number, y: number) {
+        const style = {
+            left: `${x}%`,
+            top: `${y}%`,
+        };
+        return (
+            <div
+                className={'structure'}
+                style={style}
+            >
+                <div className={'tunnel-edit-top-text'}>Tunnel Name:</div>
+                <input
+                    placeholder="Tunnel Name"
+                />
             </div>
         );
     }

@@ -77,7 +77,7 @@ export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
             const room: Models.Room = this.state.room;
             let structureElements: JSX.Element[] = Object.keys(this.state.room.structures).map((key) => {
                 const structure = room.structures[key];
-                return (<Structure key={structure.id} structure={structure} room={room}/>);
+                return (<Structure key={structure.id} structure={structure} room={room} isEditing={false}/>);
             });
 
             return (

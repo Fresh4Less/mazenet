@@ -1,41 +1,20 @@
 import * as React from 'react';
 import { Models } from '../../../../common/api/v1';
-import { SocketAPI } from '../../services/SocketAPI';
-import { RoomPositionCollector } from '../../services/RoomPositionCollector';
+import { StructureWorkshop } from '../../services/StructureWorkshop';
+import ToolbarToolInterface from './toolbarToolInterface';
 
 interface TunnelToolProps {
     room: Models.Room;
 }
 
-export default class TunnelTool extends React.PureComponent<TunnelToolProps, any> {
+export default class TunnelTool extends React.PureComponent<TunnelToolProps, any> implements ToolbarToolInterface {
 
     constructor(props: TunnelToolProps) {
         super(props);
-        this.tunnelRoom = this.tunnelRoom.bind(this);
     }
 
-    tunnelRoom() {
-        const sourceText = prompt('Text of this tunnel?');
-        if (sourceText) {
-            const targetText = prompt('Text of the tunnel on the other side?',
-                this.props.room.title);
-            if (targetText) {
-                RoomPositionCollector.Instance.GetPositionInRoom(this.props.room.id,
-                    (pos: Models.Position | null) => {
-                    if (pos) {
-                        const blueprint: Models.Structure.Blueprint = {
-                            pos: pos,
-                            data: {
-                               sType: 'tunnel',
-                               sourceText: sourceText,
-                               targetText: targetText
-                            }
-                        };
-                        SocketAPI.Instance.CreateStructure(this.props.room.id, blueprint);
-                    }
-                });
-            }
-        }
+    public Use() {
+        StructureWorkshop.Instance.CreateStructureTunnel(this.props.room);
     }
 
     render() {
@@ -43,8 +22,8 @@ export default class TunnelTool extends React.PureComponent<TunnelToolProps, any
         return  (
            <span
                className={'noselect tool'}
-               title={'Tunnel a new room.'}
-               onClick={this.tunnelRoom}
+               title={'(T)unnel a new room.'}
+               onClick={() => {this.Use(); }}
            >
                {tunnelToolIcon}
            </span>);

@@ -18,6 +18,11 @@ interface ToolbarState {
 
 export default class Toolbar extends React.PureComponent<any, ToolbarState> {
 
+    private tunnelTool: TunnelTool | null;
+    private textTool: TextTool | null;
+    private configTool: ConfigTool | null;
+    private homeTool: HomeTool | null;
+
     constructor(props: any) {
         super(props);
         this.state = {
@@ -37,6 +42,8 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
             });
         }));
 
+        document.body.addEventListener('keydown', this.handleKeyDown.bind(this));
+
     }
 
     render() {
@@ -44,10 +51,23 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
         if (this.state.room) {
             tools = (
                 <span className={'right'}>
-                    <TunnelTool room={this.state.room}/>
-                    <TextTool room={this.state.room}/>
-                    <ConfigTool room={this.state.room}/>
-                    <HomeTool room={this.state.room} rootRoomId={this.state.rootRoomId}/>
+                    <TunnelTool
+                        room={this.state.room}
+                        ref={(tool) => {this.tunnelTool = tool; }}
+                    />
+                    <TextTool
+                        room={this.state.room}
+                        ref={(tool) => {this.textTool = tool; }}
+                    />
+                    <ConfigTool
+                        room={this.state.room}
+                        ref={(tool) => {this.configTool = tool; }}
+                    />
+                    <HomeTool
+                        room={this.state.room}
+                        rootRoomId={this.state.rootRoomId}
+                        ref={(tool) => {this.homeTool = tool; }}
+                    />
                 </span>
             );
         }
@@ -65,4 +85,22 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
         );
     }
 
+    private handleKeyDown(event: KeyboardEvent) {
+        switch (event.key) {
+            case 't':
+                if (this.tunnelTool) {this.tunnelTool.Use(); }
+                break;
+            case 'w':
+                if (this.textTool) {this.textTool.Use(); }
+                break;
+            case 'c':
+                if (this.configTool) {this.configTool.Use(); }
+                break;
+            case 'r':
+                if (this.homeTool) {this.homeTool.Use(); }
+                break;
+            default:
+                break;
+        }
+    }
 }

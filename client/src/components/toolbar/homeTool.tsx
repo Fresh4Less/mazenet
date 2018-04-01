@@ -1,20 +1,20 @@
 import * as React from 'react';
 import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
+import ToolbarToolInterface from './toolbarToolInterface';
 
 interface HomeToolProps {
     rootRoomId: string;
     room: Models.Room;
 }
 
-export default class HomeTool extends React.PureComponent<HomeToolProps, any> {
+export default class HomeTool extends React.PureComponent<HomeToolProps, any> implements ToolbarToolInterface {
     private enabled: boolean;
 
-    private returnConfirmation() {
+    public Use() {
         if (this.enabled && window.confirm('Leave the current room and return to the root?')) {
             SocketAPI.Instance.EnterRootPage();
         }
-
     }
 
     render() {
@@ -25,8 +25,8 @@ export default class HomeTool extends React.PureComponent<HomeToolProps, any> {
         return  (
             <span
                 className={'noselect tool' + disabledClass}
-                title={'Return to the root room.'}
-                onClick={() => {this.returnConfirmation(); }}
+                title={'(R)eturn to the root room.'}
+                onClick={() => {this.Use(); }}
             >
                {homeToolIcon}
             </span>

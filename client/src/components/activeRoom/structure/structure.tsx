@@ -9,6 +9,7 @@ import './structure.css';
 interface StructureProps {
     room: Models.Room;
     structure: Models.Structure;
+    isEditing: boolean;
 }
 
 export default class Structure extends React.Component<StructureProps, any> {
@@ -27,6 +28,7 @@ export default class Structure extends React.Component<StructureProps, any> {
                         structure={this.props.structure}
                         tunnelData={tunnelData}
                         room={this.props.room}
+                        isEditing={this.props.isEditing}
                     />
                 );
                 break;
