@@ -38,7 +38,7 @@ export class StructureWorkshop {
     public CreateStructureTunnel(room: Models.Room) {
         if (this.openWorkshop(room)) {
             this.getPosition((pos: Models.Position | null) => {
-                this.textH1.innerText = '';
+                this.textH1.innerText = 'Type Tunnel Text';
                     if (pos) {
                         const sourceText = prompt('Text of this tunnel?');
                         if (sourceText) {

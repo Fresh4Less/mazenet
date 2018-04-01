@@ -4,9 +4,39 @@
 }
 
 /* Edit Mode */
+.tunnel-edit {
+    text-align: center;
+}
 .tunnel-edit-top-text {
     font-size: small;
     font-family: "Gill Sans", sans-serif;
+}
+.input-text {
+    color: black;
+    font-family: Lucida Console, Courier, monospace;
+}
+.input-underline-container {
+    margin: auto;
+}
+.input-underline {
+    display: block;
+    border: none;
+    color: #00000000;
+    height: 1px;
+    background: -moz-radial-gradient(center, ellipse cover, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 75%);
+    background: -webkit-gradient(radial, center center, 0px, center center, 75%, color-stop(0%, rgba(0, 0, 0, 0.2)), color-stop(75%, rgba(0, 0, 0, 0)));
+    background: -webkit-radial-gradient(center, ellipse cover, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 75%);
+    background: -o-radial-gradient(center, ellipse cover, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 75%);
+    background: -ms-radial-gradient(center, ellipse cover, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 75%);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0) 75%);
+
+}
+.input-text-width-tester {
+    position: absolute;
+    visibility: hidden;
+    height: auto;
+    width: auto;
+    white-space: nowrap;
 }
 input {
     border:none;
@@ -15,8 +45,7 @@ input {
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
-    color: black;
-    font-family: Lucida Console, Courier, monospace;
+    text-align: center;
 }
 textarea:focus, input:focus {
     outline: none;

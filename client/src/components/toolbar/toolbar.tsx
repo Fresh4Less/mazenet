@@ -86,6 +86,11 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
     }
 
     private handleKeyDown(event: KeyboardEvent) {
+        // TODO: turn these off conditionally.
+        if (event.key) {
+            return;
+        }
+
         switch (event.key) {
             case 't':
                 if (this.tunnelTool) {this.tunnelTool.Use(); }
