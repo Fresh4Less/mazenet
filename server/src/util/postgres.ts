@@ -29,7 +29,7 @@ export function handlePostgresError<T>(queryName: string, query: string): (err: 
 
 export interface QueryData {
     query: string;
-    params: string[];
+    params: any[];
 }
 
 export type QueryDataFunc = (result: QueryResult) => QueryData | undefined;

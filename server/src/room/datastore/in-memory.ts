@@ -115,18 +115,11 @@ export class InMemoryDataStore implements DataStore {
         // establish structure-room relations. each structure type can map to rooms in a unique way
         switch (structure.data.sType) {
             case 'tunnel':
-                let sourceRoomStructures = this.structuresInRoom.get(structure.data.sourceId);
-                if(!sourceRoomStructures) {
-                    sourceRoomStructures = new Set<Structure.Id>();
-                    this.structuresInRoom.set(structure.data.sourceId, sourceRoomStructures);
-                }
-                sourceRoomStructures.add(structure.id);
-                let targetRoomStructures = this.structuresInRoom.get(structure.data.targetId);
-                if(!targetRoomStructures) {
-                    targetRoomStructures = new Set<Structure.Id>();
-                    this.structuresInRoom.set(structure.data.targetId, targetRoomStructures);
-                }
-                targetRoomStructures.add(structure.id);
+                this.addStructureToRoom(structure.id, structure.data.sourceId);
+                this.addStructureToRoom(structure.id, structure.data.targetId);
+                break;
+            case 'text':
+                this.addStructureToRoom(structure.id, structure.data.roomId);
                 break;
             default:
                 break;
@@ -186,5 +179,16 @@ export class InMemoryDataStore implements DataStore {
         }
         this.activeUserRoomData.delete(activeUserId);
         return Observable.of(null);
+    }
+
+    protected addStructureToRoom(structureId: Structure.Id, roomId: Room.Id): Set<Structure.Id> {
+        let structures = this.structuresInRoom.get(roomId);
+        if(!structures) {
+            structures = new Set<Structure.Id>();
+            this.structuresInRoom.set(roomId, structures);
+        }
+
+        structures.add(structureId);
+        return structures;
     }
 }

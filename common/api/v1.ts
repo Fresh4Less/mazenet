@@ -124,7 +124,7 @@ export namespace Models {
     /** Data specific to each type of structure */
     export type StructureData = StructureData.Tunnel | StructureData.Text;
     export namespace StructureData {
-        export type Patch = StructureData.Tunnel.Patch | StructureData.Text;
+        export type Patch = StructureData.Tunnel.Patch | StructureData.Text.Patch;
     }
 
     export namespace StructureData {
@@ -157,10 +157,15 @@ export namespace Models {
         export class Text {
             @Validator.validate()
             sType: 'text';
+            /** id of the room where text is displayed */
+            @Validator.validate()
+            roomId: Room.Id;
+            /** text contents of the textbox */
             @Validator.validate()
             text: string;
+            /** percent width of the view */
             @Validator.validate()
-            size: Position;
+            width: number;
         }
 
         export namespace Text {
@@ -168,7 +173,7 @@ export namespace Models {
                 @Validator.validate(true)
                 text?: string;
                 @Validator.validate(true)
-                size?: Position;
+                width?: number;
             }
         }
     }
@@ -193,7 +198,7 @@ export namespace Models {
             @Validator.validate()
             text: string;
             @Validator.validate()
-            size: Position;
+            width: number;
         }
     }
 

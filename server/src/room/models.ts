@@ -83,8 +83,9 @@ export namespace StructureData {
 
     export class Text {
         public readonly sType = 'text';
+        public roomId: Room.Id;
         public text: string;
-        public size: Position;
+        public width: number;
 
         constructor(v1: Api.v1.Models.StructureData.Text) {
             Object.assign(this, v1);
@@ -93,8 +94,10 @@ export namespace StructureData {
         public toV1(): Api.v1.Models.StructureData.Text {
             return {
                 sType: this.sType,
-                size: this.size,
+
+                roomId: this.roomId,
                 text: this.text,
+                width: this.width,
             };
         }
     }
@@ -132,6 +135,8 @@ export function getStructureRoomIds(structure: Structure): Room.Id[] {
     switch(structure.data.sType) {
         case 'tunnel':
             return [structure.data.sourceId, structure.data.targetId];
+        case 'text':
+            return [structure.data.roomId];
         default:
             return [];
     }

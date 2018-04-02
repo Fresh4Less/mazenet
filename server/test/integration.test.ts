@@ -352,6 +352,80 @@ describe('single client', () => {
                     }).first().toPromise();
                 });
             });
+
+            describe('text', () => {
+                test('POST /create', () => {
+                    const client = new Client(baseUrl);
+                    return client.connectAndEnter().mergeMap(() => {
+                        const res = client.res;
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Create.Route, {
+                            roomId: res.body.room.id,
+                            structure: {
+                                data: {
+                                    sType: 'text',
+                                    text: 'words',
+                                    width: 0.1,
+                                },
+                                pos: {x: 0.1, y: 0.1},
+                            }
+                        });
+                    }).map(() => {
+                        const res = client.res;
+                        expect(res.status).toBe(201);
+                        expect(typeof res.body.id).toBe('string');
+                        expect(res.body.creator).toBe(client.activeUser!.userId);
+                        expect(res.body.pos).toEqual({x: 0.1, y: 0.1});
+
+                        expect(res.body.data.sType).toBe('text');
+                        expect(res.body.data.roomId).toBe(client.transactions[1][1].body.room.id);
+                        expect(res.body.data.text).toBe('words');
+                        expect(res.body.data.width).toBe(0.1);
+                    }).first().toPromise();
+                });
+
+                test('POST /update', () => {
+                    const client = new Client(baseUrl);
+                    return client.connectAndEnter().mergeMap(() => {
+                        const res = client.res;
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Create.Route, {
+                            roomId: res.body.room.id,
+                            structure: {
+                                data: {
+                                    sType: 'text',
+                                    text: 'words',
+                                    width: 0.1,
+                                },
+                                pos: {x: 0.1, y: 0.1},
+                            }
+                        });
+                    }).mergeMap(() => {
+                        const res = client.res;
+                        expect(typeof res.body.id).toBe('string');
+                        return client.emitTransaction('POST', Api.v1.Routes.Rooms.Structures.Update.Route, {
+                            id: res.body.id,
+                            patch: {
+                                data: {
+                                    text: 'words change',
+                                    width: 0.15,
+                                },
+                                pos: {x: 0.8, y: 0.8},
+                            }
+                        });
+                    }).map(() => {
+                        const res = client.res;
+                        const oldStructure = client.transactions[2][1].body;
+                        expect(res.status).toBe(200);
+                        expect(res.body.id).toBe(oldStructure.id);
+                        expect(res.body.creator).toBe(oldStructure.creator);
+                        expect(res.body.data.sType).toBe(oldStructure.data.sType);
+                        expect(res.body.data.roomId).toBe(oldStructure.data.roomId);
+
+                        expect(res.body.pos).toEqual({x: 0.8, y: 0.8});
+                        expect(res.body.data.text).toBe('words change');
+                        expect(res.body.data.width).toBe(0.15);
+                    }).first().toPromise();
+                });
+            });
         });
 
         describe('cursors', () => {

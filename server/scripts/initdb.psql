@@ -74,6 +74,13 @@ CREATE TABLE structure_tunnels (
 	targettext text NOT NULL
 );
 
+CREATE TABLE structure_texts (
+	structureid uuid REFERENCES structures ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	roomid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	textcontent text NOT NULL,
+	width real NOT NULL
+);
+
 CREATE TABLE cursorrecordings (
 	cursorrecordingid uuid PRIMARY KEY,
 	activeuserid uuid REFERENCES activeusers ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,

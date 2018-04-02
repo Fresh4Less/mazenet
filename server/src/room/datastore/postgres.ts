@@ -46,6 +46,15 @@ function structureFromRow(row: any): Structure {
                 targetText: row.targettext,
             });
             break;
+        case 'text':
+            structureData = new StructureData.Text({
+                sType: row.stype,
+
+                roomId: row.roomid,
+                text: row.textcontent,
+                width: row.width,
+            });
+            break;
         default:
             throw new Error(`Unrecognized stype ${row.stype}`);
     }
@@ -166,6 +175,7 @@ export class PostgresDataStore implements DataStore {
             `SELECT *
             FROM structures
             JOIN structure_tunnels USING (structureid)
+            JOIN structure_texts USING (structureid)
             WHERE structures.structureid=$1`;
 
         return Observable.fromPromise(this.clientPool.query(query, [id])
@@ -198,8 +208,9 @@ export class PostgresDataStore implements DataStore {
             // update structure data table based on stype
             (result: QueryResult) => {
                 const row = result.rows[0];
+                let queryData: QueryData;
                 switch(row.stype) {
-                    case 'tunnel':
+                    case 'tunnel': {
                         const patchData = patch.data as Api.v1.Models.StructureData.Tunnel.Patch;
                         const setColumnsData = buildQuery_SetColumns([
                             ['sourcetext', patchData.sourceText],
@@ -213,13 +224,37 @@ export class PostgresDataStore implements DataStore {
                             RETURNING *;`;
                         queries.push(structureDataQuery); 
 
-                        return {
+                        queryData = {
                             params: [id, ...setColumnsData.params],
                             query: structureDataQuery,
                         };
+                        break;
+                    }
+                    case 'text': {
+                        const patchData = patch.data as Api.v1.Models.StructureData.Text.Patch;
+                        const setColumnsData = buildQuery_SetColumns([
+                            ['textcontent', patchData.text],
+                            ['width', patchData.width],
+                        ], 2);
+
+                        const structureDataQuery =
+                            `UPDATE structure_texts
+                            ${setColumnsData.query}
+                            WHERE structureid=$1
+                            RETURNING *;`;
+
+                        queryData = {
+                            params: [id, ...setColumnsData.params],
+                            query: structureDataQuery,
+                        };
+                        break;
+                    }
                 default:
                     throw new Error(`Unrecognized stype ${row.stype}`);
                 }
+
+                queries.push(queryData.query); 
+                return queryData;
             },
         ]).map((results: Array<QueryResult | undefined>) => {
             const combinedRows = Object.assign({}, results[0]!.rows[0], results[1]!.rows[0]);
@@ -229,22 +264,29 @@ export class PostgresDataStore implements DataStore {
     }
 
     public insertStructure(structure: Structure) {
+        const queries: QueryData[] = [{
+            params: [structure.id, structure.data.sType, structure.creator, posToPoint(structure.pos)],
+            query: `INSERT INTO structures (structureid, stype, creator, pos) VALUES ($1, $2, $3, $4)`,
+        }];
 
-        const structureQuery = `INSERT INTO structures (structureid, stype, creator, pos) VALUES ($1, $2, $3, $4)`;
-        let structureTypeQuery = '';
-        let structureTypeArgs: any[] = [];
         switch(structure.data.sType) {
             case 'tunnel':
-                structureTypeQuery = `INSERT INTO structure_tunnels (structureid, sourceid, sourcetext, targetid, targettext) VALUES ($1, $2, $3, $4, $5);`;
-                structureTypeArgs = [structure.data.sourceId, structure.data.sourceText, structure.data.targetId, structure.data.targetText];
+                queries.push({
+                    params: [structure.id, structure.data.sourceId, structure.data.sourceText, structure.data.targetId, structure.data.targetText],
+                    query: `INSERT INTO structure_tunnels (structureid, sourceid, sourcetext, targetid, targettext) VALUES ($1, $2, $3, $4, $5);`,
+                });
+                break;
+            case 'text':
+                queries.push({
+                    params: [structure.id, structure.data.roomId, structure.data.text, structure.data.width],
+                    query: `INSERT INTO structure_texts (structureid, roomid, textcontent, width) VALUES ($1, $2, $3, $4);`,
+                });
                 break;
             default:
                 // TODO: throw error
         }
-        return executeTransaction(this.clientPool, [
-            { query: structureQuery, params: [structure.id, structure.data.sType, structure.creator, posToPoint(structure.pos)] },
-            { query: structureTypeQuery, params: [structure.id, ...structureTypeArgs] },
-        ]).map((results: Array<QueryResult | undefined>) => {
+        return executeTransaction(this.clientPool, queries)
+        .map((results: Array<QueryResult | undefined>) => {
             // TODO: return db results
             return structure;
         }).catch((err: Error) => {
@@ -253,7 +295,7 @@ export class PostgresDataStore implements DataStore {
                 return Observable.throw(new AlreadyExistsError(`Structure with id '${structure.id}' already exists`)) as Observable<Structure>;
             }
             return Observable.throw(err) as Observable<Structure>;
-        }).catch(handlePostgresError<Structure>('insertStructure', [structureQuery, structureTypeQuery].join('\n')));
+        }).catch(handlePostgresError<Structure>('insertStructure', queries.join('\n')));
     }
 
     public getRoomDocument(roomId: Room.Id) {

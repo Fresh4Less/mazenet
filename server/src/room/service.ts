@@ -93,14 +93,18 @@ export class Service {
         roomId: Api.v1.Models.Room.Id,
         structureBlueprint: Api.v1.Models.Structure.Blueprint
     ): Observable<Structure> {
-        //TODO: make this logic a dispatch
+        //TODO: make this logic a dispatch?
         let initStructureDataObservable: Observable<StructureData>;
         switch (structureBlueprint.data.sType) {
             case 'tunnel':
                 initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
                 break;
+            case 'text':
+                initStructureDataObservable = Observable.of(new StructureData.Text(
+                    Object.assign({}, structureBlueprint.data, {roomId})));
+                break;
             default:
-                throw new Error(`Failed to create ${structureBlueprint.data.sType}. Unrecognized structure type: '${structureBlueprint.data.sType}'`);
+                throw new Error(`Failed to create ${(structureBlueprint.data as StructureData).sType}: unrecognized structure type`);
         }
         return initStructureDataObservable
         .mergeMap((structureData) => {
