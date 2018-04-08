@@ -1,4 +1,5 @@
 import * as Api from '../../../common/api';
+import { SafeStylesheet } from '../../../common/util/stylesheet';
 
 import { mapToObject, objectToMap, Position } from '../common';
 import { ActiveUser, User } from '../user/models';
@@ -29,7 +30,7 @@ export interface RoomOptions {
     creator: User.Id;
     title: string;
     owners: Set<User.Id>;
-    stylesheet: string;
+    stylesheet: SafeStylesheet;
 }
 
 /** Room. has no structure data */
@@ -38,7 +39,7 @@ export class Room {
     public creator: User.Id;
     public title: string;
     public owners: Set<User.Id>;
-    public stylesheet: string;
+    public stylesheet: SafeStylesheet;
 
     constructor(options: RoomOptions) {
         this.id = options.id;

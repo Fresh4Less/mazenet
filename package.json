@@ -6,9 +6,13 @@
     "test": "jest --coverage --verbose"
   },
   "dependencies": {
+    "css": "^2.2.1",
+    "postcss-selector-parser": "^3.1.1",
+    "postcss-values-parser": "^1.5.0",
     "reflect-metadata": "^0.1.12"
   },
   "devDependencies": {
+    "@types/css": "0.0.31",
     "@types/jest": "^22.1.1",
     "jest": "^22.1.4",
     "ts-jest": "^22.0.3",

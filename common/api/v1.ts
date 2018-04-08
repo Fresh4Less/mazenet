@@ -88,6 +88,21 @@ export namespace Models {
         export type Id = string;
     }
 
+    /** A single rule in a stylesheet. e.g. 'a { color: blue; }' */
+    export class StylesheetRule {
+        @Validator.validate(false, String)
+        selectors: string[];
+        @Validator.validate()
+        /** maps css property names to values */
+        properties: { [name: string]: string };
+    }
+
+    /** css AST */
+    export class Stylesheet {
+        @Validator.validate(false, StylesheetRule)
+        rules: StylesheetRule[];
+    }
+
     /** Room that users can create and occupy */
     export class Room {
         @Validator.validate()
@@ -105,7 +120,7 @@ export namespace Models {
         structures: { [structureId: string]: Structure };
         /** sanitized CSS for the room */
         @Validator.validate()
-        stylesheet: string;
+        stylesheet: Stylesheet;
     }
 
     export namespace Room {

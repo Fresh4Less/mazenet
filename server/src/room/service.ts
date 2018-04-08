@@ -78,7 +78,7 @@ export class Service {
             creator: user.id,
             id: roomId,
             owners: new Set<User.Id>([user.id]),
-            stylesheet: '',
+            stylesheet: {rules: []},
             title: roomBlueprint.title
         });
 
