@@ -5,6 +5,8 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/catch';
 
+import { parseCss, SafeStylesheet, stylesheetToString } from '../../../../common/util/stylesheet';
+
 import { AlreadyExistsError, NotFoundError, Position } from '../../common';
 import { buildQuery_SetColumns, executeTransaction, handlePostgresError, QueryData } from '../../util/postgres';
 
@@ -29,7 +31,7 @@ function roomFromRow(row: any): Room {
         creator: row.creator,
         id: row.roomid,
         owners: new Set<User.Id>(row.owners),
-        stylesheet: row.stylesheet,
+        stylesheet: parseCss(row.stylesheet) as SafeStylesheet,
         title: row.title,
     });
 }
@@ -114,7 +116,7 @@ export class PostgresDataStore implements DataStore {
             `INSERT INTO rooms_owners (roomid, userid) VALUES ${ownerQueryParams.join(', ')} RETURNING *;`;
         // TODO: throw error if room has no owners
         return executeTransaction(this.clientPool, [
-            { query: insertRoomQuery, params: [room.id, room.creator, room.title, room.stylesheet] },
+            { query: insertRoomQuery, params: [room.id, room.creator, room.title, stylesheetToString(room.stylesheet)] },
             { query: insertOwnersQuery, params: [room.id, ...room.owners] },
         ]).map((results: Array<QueryResult | undefined>) => {
             // TODO: return DB results
@@ -131,7 +133,7 @@ export class PostgresDataStore implements DataStore {
         const queries: QueryData[] = [];
         const roomSetColumnsData = buildQuery_SetColumns([
             ['title', patch.title],
-            ['stylesheet', patch.stylesheet],
+            ['stylesheet', patch.stylesheet && stylesheetToString(patch.stylesheet)],
         ], 2);
 
         const roomQuery =

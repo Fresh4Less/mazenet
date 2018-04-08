@@ -202,7 +202,7 @@ describe('single client', () => {
                 expect(typeof res.body.room.id).toBe('string');
                 expect(typeof res.body.room.creator).toBe('string');
                 expect(typeof res.body.room.title).toBe('string');
-                expect(typeof res.body.room.stylesheet).toBe('string');
+                expect(res.body.room.stylesheet).toEqual({rules: []});
 
                 expect(Array.isArray(res.body.room.owners)).toBe(true);
                 expect(res.body.room.owners).toHaveLength(1);
@@ -239,7 +239,7 @@ describe('single client', () => {
                     id: body.room.id,
                     patch: {
                         owners: [client.activeUser!.userId], // hehe >:)
-                        stylesheet: '/*test*/',
+                        stylesheet: {rules: [{selectors: ['a'], properties: {color: 'blue'}}]},
                         title: 'my zone',
                     },
                 });
@@ -253,7 +253,7 @@ describe('single client', () => {
                 expect(body.structures).toEqual(oldRoom.structures);
 
                 expect(body.owners).toEqual([client.activeUser!.userId]);
-                expect(body.stylesheet).toEqual('/*test*/');
+                expect(body.stylesheet).toEqual({rules: [{selectors: ['a'], properties: {color: 'blue'}}]});
                 expect(body.title).toEqual('my zone');
             }).first().toPromise();
     });
@@ -516,7 +516,7 @@ describe('multi-client', () => {
                     id: body.room.id,
                     patch: {
                         owners: [client2.activeUser!.userId], // hehe >:)
-                        stylesheet: '/*test*/',
+                        stylesheet: {rules: [{selectors: ['a'], properties: {color: 'blue'}}]},
                         title: 'my zone',
                     },
                 });
@@ -536,7 +536,7 @@ describe('multi-client', () => {
                 expect(event.structures).toEqual(oldRoom.structures);
 
                 expect(event.owners).toEqual([client2.activeUser!.userId]);
-                expect(event.stylesheet).toEqual('/*test*/');
+                expect(event.stylesheet).toEqual({rules: [{selectors: ['a'], properties: {color: 'blue'}}]});
                 expect(event.title).toEqual('my zone');
 
             }).first().toPromise();

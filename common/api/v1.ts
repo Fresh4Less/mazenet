@@ -132,7 +132,7 @@ export namespace Models {
             @Validator.validate(true, String)
             owners?: User.Id[];
             @Validator.validate(true)
-            stylesheet?: string;
+            stylesheet?: Stylesheet;
         }
     }
 

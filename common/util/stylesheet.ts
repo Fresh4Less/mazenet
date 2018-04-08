@@ -7,15 +7,6 @@ import * as Api from '../api';
 import Stylesheet = Api.v1.Models.Stylesheet;
 import StylesheetRule = Api.v1.Models.StylesheetRule;
 
-// selectors:
-// TODO: check security for id, wildcards (universal), attribute, combinator, pseudo-class
-// selectors shouldn't be able to "jump out" of the room" and affect the toolbar, etc
-// always disallow psuedo elements
-
-// rules
-// don't allow at-rules?
-//    font-face, host, import, keyframes, keyframe, media, namespace, page, supports
-
 /** A stylesheet we trust does not have malicious CSS */
 export type SafeStylesheet = Stylesheet;
 
@@ -44,6 +35,15 @@ export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean):
 
 }
 
+/** remove selectors and properties that aren't whitelisted. prune empty rules
+ * rules:
+ *    don't allow at-rules like @media, @keyframe
+ * selectors:
+ *    only allow .classes and a subset of tags
+ *    never allow ids, wildcards, attribute selectors, or pseudo-elements like ::before
+ * only allow whitelisted properties
+ * only allow whitelisted functions in property values, no at-values
+ */
 export function cleanStylesheet (stylesheet: Stylesheet): SafeStylesheet {
     const cleanStylesheet: Stylesheet = {
         rules: stylesheet.rules.reduce((safeRules: StylesheetRule[], rule: StylesheetRule) => {
@@ -98,7 +98,9 @@ export function validatePropertyValue(value: string): boolean {
     return valid;
 }
 
-/** remove invalid and banned selectors, split up comma separated selectors */
+/** remove invalid and banned selectors, split up comma separated selectors
+ * @returns Array of valid selectors
+ */
 export function cleanSelector(selector: string): string[] {
     const transform = (selectors: any) => {
         // only keep whitelisted tags
