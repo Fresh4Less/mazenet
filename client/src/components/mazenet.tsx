@@ -5,8 +5,9 @@ import Toolbar from './toolbar/toolbar';
 
 import './mazenet.css';
 import ActiveRoom from './activeRoom/activeRoom';
-import MouseCanvas from './background/mouseCanvas';
+import MouseCanvas from './mouseCanvas/mouseCanvas';
 import ActiveUsers from './activeUsers/activeUsers';
+import StructureWorkshop from './structureWorkshop/structureWorkshop';
 
 export default class Mazenet extends React.PureComponent<any, any> {
 
@@ -21,6 +22,7 @@ export default class Mazenet extends React.PureComponent<any, any> {
                     <MouseCanvas/>
                     <ActiveRoom/>
                     <ActiveUsers/>
+                    <StructureWorkshop/>
                 </div>
             </div>
         );

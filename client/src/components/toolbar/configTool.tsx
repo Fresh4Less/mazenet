@@ -1,6 +1,7 @@
 import { Models } from '../../../../common/api/v1';
 import * as React from 'react';
 import ToolbarToolInterface from './toolbarToolInterface';
+import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 
 interface ConfigToolProps {
     room: Models.Room;
@@ -9,7 +10,7 @@ interface ConfigToolProps {
 export default class ConfigTool extends React.PureComponent<ConfigToolProps, any> implements ToolbarToolInterface {
 
     public Use() {
-        alert('Room Config!');
+        StructureWorkshopService.Instance.SelectStructureAndEdit(this.props.room);
     }
 
     render() {
@@ -17,7 +18,7 @@ export default class ConfigTool extends React.PureComponent<ConfigToolProps, any
         return  (
             <span
                 className={'noselect tool'}
-                title={'(C)onfigure the current room.'}
+                title={'(E)dit structures in the room.'}
                 onClick={() => {this.Use(); }}
             >
                {configToolIcon}

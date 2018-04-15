@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Models } from '../../../../common/api/v1';
-import { StructureWorkshop } from '../../services/StructureWorkshop';
+import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 import ToolbarToolInterface from './toolbarToolInterface';
 
 interface TunnelToolProps {
@@ -14,7 +14,7 @@ export default class TunnelTool extends React.PureComponent<TunnelToolProps, any
     }
 
     public Use() {
-        StructureWorkshop.Instance.CreateStructureTunnel(this.props.room);
+        StructureWorkshopService.Instance.CreateStructureTunnel(this.props.room);
     }
 
     render() {

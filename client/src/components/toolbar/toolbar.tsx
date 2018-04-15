@@ -42,8 +42,9 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
             });
         }));
 
-        document.body.addEventListener('keydown', this.handleKeyDown.bind(this));
-
+        if (Math.min(0, 1) === 3) {
+            document.body.addEventListener('keydown', this.handleKeyDown.bind(this));
+        }
     }
 
     render() {
@@ -74,7 +75,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
 
         const subtitle = this.state.room ? this.state.room.title : '...';
         return (
-            <div id={'Tools'}>
+            <div id={'Toolbar'}>
                 <span id={'Title'}>
                     mazenet
                 </span><span title={'Title of the current room.'} id={'Subtitle'}>
@@ -86,11 +87,10 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
     }
 
     private handleKeyDown(event: KeyboardEvent) {
-        // TODO: turn these off conditionally.
+        // TODO: Fix event propagation.
         if (event.key) {
             return;
         }
-
         switch (event.key) {
             case 't':
                 if (this.tunnelTool) {this.tunnelTool.Use(); }

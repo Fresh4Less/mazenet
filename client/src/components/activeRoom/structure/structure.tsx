@@ -6,9 +6,10 @@ import Text from './text';
 
 import './structure.css';
 
-interface StructureProps {
+export interface StructureProps {
     room: Models.Room;
     structure: Models.Structure;
+    doneEditingCb: ((m: Models.Structure | null) => void) | null;
     isEditing: boolean;
 }
 
@@ -26,9 +27,10 @@ export default class Structure extends React.Component<StructureProps, any> {
                 structureElement = (
                     <Tunnel
                         structure={this.props.structure}
-                        tunnelData={tunnelData}
                         room={this.props.room}
+                        doneEditingCb={this.props.doneEditingCb}
                         isEditing={this.props.isEditing}
+                        tunnelData={tunnelData}
                     />
                 );
                 break;
@@ -37,8 +39,10 @@ export default class Structure extends React.Component<StructureProps, any> {
                 structureElement = (
                     <Text
                         structure={this.props.structure}
-                        textData={textData}
                         room={this.props.room}
+                        doneEditingCb={this.props.doneEditingCb}
+                        isEditing={this.props.isEditing}
+                        textData={textData}
                     />
                 );
                 break;

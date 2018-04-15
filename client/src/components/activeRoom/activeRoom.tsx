@@ -21,7 +21,7 @@ interface ActiveRoomState {
 
 export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
 
-    private boundMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
+    private mouseMoveHandler: (e: React.MouseEvent<HTMLDivElement>) => void;
     private mouseMoveObserver: Observer<MouseMoveInfo>;
 
     constructor(props: any) {
@@ -36,17 +36,20 @@ export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
             });
         }));
 
-        SocketAPI.Instance.structureCreatedObservable.subscribe(value => {
+        let structureChangeCallback = (value: Models.Structure) => {
             if (this.state.room) {
                 this.state.room.structures[value.id] = value;
                 this.setState({
                     room: this.state.room
                 });
             }
-        });
+        };
+
+        SocketAPI.Instance.structureCreatedObservable.subscribe(structureChangeCallback);
+        SocketAPI.Instance.structureUpdatedObservable.subscribe(structureChangeCallback);
 
         /* Mouse Recording Stuff */
-        this.boundMouseMove = this.mouseMove.bind(this);
+        this.mouseMoveHandler = this.mouseMove.bind(this);
         new Observable<MouseMoveInfo>((observer: Observer<MouseMoveInfo>) => {
             this.mouseMoveObserver = observer;
         }).throttleTime(1000 / 30).subscribe(info => {
@@ -77,11 +80,18 @@ export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
             const room: Models.Room = this.state.room;
             let structureElements: JSX.Element[] = Object.keys(this.state.room.structures).map((key) => {
                 const structure = room.structures[key];
-                return (<Structure key={structure.id} structure={structure} room={room} isEditing={false}/>);
+                return (
+                    <Structure
+                        key={structure.id}
+                        structure={structure}
+                        room={room}
+                        doneEditingCb={null}
+                        isEditing={false}
+                    />);
             });
 
             return (
-                <div id={room.id} className={'active-room'} onMouseMove={this.boundMouseMove}>
+                <div id={room.id} className={'active-room'} onMouseMove={this.mouseMoveHandler}>
                     {structureElements}
                 </div>
             );

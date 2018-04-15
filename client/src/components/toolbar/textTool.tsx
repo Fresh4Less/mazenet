@@ -1,6 +1,7 @@
 import { Models } from '../../../../common/api/v1';
 import * as React from 'react';
 import ToolbarToolInterface from './toolbarToolInterface';
+import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 
 interface TextToolProps {
     room: Models.Room;
@@ -8,10 +9,10 @@ interface TextToolProps {
 
 export default class TextTool extends React.PureComponent<TextToolProps, any> implements ToolbarToolInterface {
 
-    private enabled: boolean = false;
+    private enabled: boolean = true;
 
     public Use() {
-        alert('Create Text!');
+        StructureWorkshopService.Instance.CreateStructureText(this.props.room);
     }
 
     render() {
@@ -21,6 +22,7 @@ export default class TextTool extends React.PureComponent<TextToolProps, any> im
             <span
                 className={'noselect tool' + disabledClass}
                 title={'(W)rite room text.'}
+                onClick={() => {this.Use(); }}
             >
                {textToolIcon}
             </span>

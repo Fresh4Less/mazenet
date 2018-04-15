@@ -1,0 +1,24 @@
+.structure.text {
+    z-index: 1; /* text = 1; tunnel = 2; */
+}
+
+textarea {
+    min-width: 20px;
+    font-size: 14px;
+    overflow: hidden;
+    resize: horizontal;
+    background: rgba(255, 255, 255, 0.5);
+    border: rgba(0,0,0,0.6) solid 1px;
+}
+
+pre {
+    white-space: pre-wrap;
+    font-size: 14px;
+}
+
+button {
+    cursor: pointer;
+    border: rgba(0,0,0,0.6) solid 1px;
+    background: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+}
