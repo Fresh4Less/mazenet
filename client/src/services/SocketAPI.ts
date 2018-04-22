@@ -9,6 +9,7 @@ import { ErrorService } from './ErrorService';
 
 import { Observable, Observer } from 'rxjs';
 import TransactionManager from './TransactionManager';
+import URLManager from './URLManager';
 
 export class SocketAPI {
 
@@ -26,9 +27,9 @@ export class SocketAPI {
 
     private socket: Socket;
     private uniqueIdCounter: number;
-    private rootPage: string;
+    private rootPage: Models.Room.Id;
     private cursorRecordingTransactionManager: TransactionManager;
-    private activePageId: string;
+    private activePageId: Models.Room.Id;
 
     /*
      * Managers for transactional SocketIO requests. Maps callbacks
@@ -58,9 +59,9 @@ export class SocketAPI {
         this.activeUserExitedObservable = this.initActiveUserExitedObservable();
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
 
+        window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
         const device: Models.PlatformData.Desktop = {pType: 'desktop', cursorPos: {x: 0, y: 0}};
         this.socket.emit('/users/connect', new WebRequest('POST', device, '1'));
-
     }
 
     public static get Instance(): SocketAPI {
@@ -126,10 +127,13 @@ export class SocketAPI {
                 this.socket.on('/users/connect', (res: WebResponse) => {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
-                        this.rootPage = res200.rootRoomId;
                         observer.next(res200);
+                        this.rootPage = res200.rootRoomId;
+                        let urlRoom = URLManager.ParseRoomId();
+                        let roomToLoad = urlRoom ? urlRoom : this.rootPage;
+
                         this.socket.emit('/rooms/enter',
-                            new WebRequest('POST', {id: res200.rootRoomId}, '1'));
+                            new WebRequest('POST', {id: roomToLoad}, '1'));
                         observer.complete();
                     } else {
                         ErrorService.Fatal('Could not connect to the server.', res);
@@ -146,10 +150,15 @@ export class SocketAPI {
                 if (res.status === 200) {
                     const res200 = (res.body as Routes.Rooms.Enter.Post.Response200);
                     this.activePageId = res200.room.id;
+                    URLManager.UpdateRoomId(this.activePageId);
                     observer.next(res200);
                 } else {
-                    ErrorService.Warning('Error entering room.',  res);
-                    observer.error(res.body);
+                    ErrorService.Warning('could not enter room.',  res);
+                    if (this.activePageId === '') {
+                        this.activePageId = this.rootPage;
+                        ErrorService.Warning('Entering root room instead.');
+                        this.EnterRootPage();
+                    }
                 }
             });
         }).share();
@@ -223,5 +232,12 @@ export class SocketAPI {
 
             });
         }).share();
+    }
+
+    private checkURLAndLoadPage() {
+        let urlRoom = URLManager.ParseRoomId();
+        if (urlRoom && urlRoom !== this.activePageId) {
+            this.EnterRoom(urlRoom);
+        }
     }
 }
