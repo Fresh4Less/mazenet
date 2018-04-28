@@ -9,6 +9,7 @@ import { Models } from '../../../../common/api/v1';
 import TextTool from './textTool';
 import HomeTool from './homeTool';
 import ConfigTool from './configTool';
+import StyleTool from './styleTool';
 
 interface ToolbarState {
     room: Models.Room | null;
@@ -22,6 +23,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
     private textTool: TextTool | null;
     private configTool: ConfigTool | null;
     private homeTool: HomeTool | null;
+    private styleTool: StyleTool | null;
 
     constructor(props: any) {
         super(props);
@@ -64,6 +66,10 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                         room={this.state.room}
                         ref={(tool) => {this.configTool = tool; }}
                     />
+                    <StyleTool
+                        room={this.state.room}
+                        ref={(tool) => {this.styleTool = tool; }}
+                    />
                     <HomeTool
                         room={this.state.room}
                         rootRoomId={this.state.rootRoomId}
@@ -103,6 +109,9 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                 break;
             case 'r':
                 if (this.homeTool) {this.homeTool.Use(); }
+                break;
+            case 's':
+                if (this.styleTool) {this.styleTool.Use(); }
                 break;
             default:
                 break;

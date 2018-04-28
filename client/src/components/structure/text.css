@@ -1,8 +1,8 @@
 .structure.text {
-    z-index: 1; /* text = 1; tunnel = 2; */
+    z-index: 1; /* text = 1; tunnel = 2; StructureWorkshop = 10; StylePane = 20; */
 }
 
-textarea {
+.structure.text textarea {
     min-width: 20px;
     font-size: 14px;
     overflow: hidden;
@@ -11,13 +11,13 @@ textarea {
     border: rgba(0,0,0,0.6) solid 1px;
 }
 
-pre {
+.structure.text pre {
     padding: 2px;
     white-space: pre-wrap;
     font-size: 14px;
 }
 
-button {
+.structure.text button {
     cursor: pointer;
     border: rgba(0,0,0,0.6) solid 1px;
     background: rgba(255, 255, 255, 0.5);

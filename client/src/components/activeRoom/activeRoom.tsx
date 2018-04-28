@@ -8,6 +8,7 @@ import Structure from '../structure/structure';
 import { SocketAPI } from '../../services/SocketAPI';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
+import { StylePane } from '../stylePane/stylePane';
 
 interface MouseMoveInfo {
     element: HTMLDivElement;
@@ -92,6 +93,7 @@ export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
 
             return (
                 <div id={room.id} className={'active-room'} onMouseMove={this.mouseMoveHandler}>
+                    <StylePane room={room}/>
                     {structureElements}
                 </div>
             );
