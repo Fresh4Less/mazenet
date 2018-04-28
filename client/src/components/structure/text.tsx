@@ -29,15 +29,9 @@ export default class Text extends React.Component<TextProps, TextState> {
     }
 
     render() {
-        // Positioning
         const x = Math.min(Math.max(this.props.structure.pos.x, 0.0), 1.0) * 100;
         const y = Math.min(Math.max(this.props.structure.pos.y, 0.0), 1.0) * 100;
-
-        if (this.props.isEditing) {
-            return this.renderEditing(x, y);
-        } else {
-            return this.renderDefault(x, y);
-        }
+        return this.props.isEditing ? this.renderEditing(x, y) : this.renderDefault(x, y);
     }
 
     private renderDefault(x: number, y: number) {
@@ -124,12 +118,6 @@ export default class Text extends React.Component<TextProps, TextState> {
     private updateTextArea(el: HTMLTextAreaElement): void {
         let oldHeight = el.style.height;
         el.style.height = '5px';
-        // let width = this.state.width;
-        // if (el.style.width) {
-        //     console.log(el.style.width);
-        //     width = parseInt(el.style.width, 10) / window.innerWidth;
-        //     console.log(width);
-        // }
         if (this.state.text !== el.value || this.state.height !== el.scrollHeight) {
             this.setState({
                 height: el.scrollHeight,

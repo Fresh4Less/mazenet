@@ -1,4 +1,5 @@
 .structure {
+    margin: 0;
     display: inline-block;
     position: absolute;
     word-wrap: break-word;

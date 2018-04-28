@@ -24,7 +24,8 @@
     border: none;
     color: #00000000;
     height: 1px;
-    background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.3) 85%, transparent 100%);
+
+    background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.3) 95%, transparent 100%);
 
 }
 .input-text-width-tester {
@@ -36,8 +37,7 @@
 }
 input {
     border:none;
-    background-image:none;
-    background-color:transparent;
+    background: linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.6) 95%, transparent 100%);
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;

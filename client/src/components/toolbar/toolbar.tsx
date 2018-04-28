@@ -78,7 +78,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
             <div id={'Toolbar'}>
                 <span id={'Title'}>
                     mazenet
-                </span><span title={'Title of the current room.'} id={'Subtitle'}>
+                </span><span title={`In the room '${subtitle}'`} id={'Subtitle'}>
                     {subtitle}
                 </span>
                 {tools}

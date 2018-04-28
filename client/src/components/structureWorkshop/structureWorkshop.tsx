@@ -10,7 +10,6 @@ interface StructureWorkshopState {
     active: boolean;
     positioning: boolean;
     structure: Models.Structure | null;
-    backgroundText: string;
 }
 
 export default class StructureWorkshop extends React.Component<any, StructureWorkshopState> {
@@ -27,7 +26,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             room: null,
             positioning: true,
             structure: null,
-            backgroundText: '',
         };
         StructureWorkshopService.Instance.SetStructureWorkshopComponent(this);
 
@@ -43,7 +41,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             active: true,
             positioning: false,
             structure: null,
-            backgroundText: 'Click Structure To Edit',
         });
     }
 
@@ -56,7 +53,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             active: true,
             positioning: true,
             structure: structure,
-            backgroundText: 'Click Anywhere to Position',
         });
     }
 
@@ -73,7 +69,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             active: false,
             positioning: true,
             structure: null,
-            backgroundText: '',
         });
         return true;
     }
@@ -133,10 +128,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
                 }}
                 onClick={this.clickHandler}
             >
-                <h1
-                    id={'BackgroundText'}
-                >{this.state.backgroundText}
-                </h1>
                 {structure}
                 {roomStructureSelectors}
             </div>
@@ -148,7 +139,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             return [];
         }
         let room = this.state.room;
-
         let notNull = function (value: JSX.Element | null): value is JSX.Element { // Hack to make TS happy :)
             return value !== null;
         };
@@ -163,13 +153,15 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             const style = {
                 top: `${structure.pos.y * 100}%`,
                 left: `${structure.pos.x * 100}%`,
-                width: `${rect.width}px`,
-                height: `${rect.height}px`,
+                width: `${rect.width + 4}px`,
+                height: `${rect.height + 4}px`,
+                transform: `translate(-2px, -2px)`,
             };
             return (
                 <div
                     key={id}
                     className={'structure-selector'}
+                    title={`Structure ID: ${structure.id}`}
                     style={style}
                     onClick={(e) => {
                         let copiedStructure = JSON.parse(JSON.stringify(structure)); // deep copy
