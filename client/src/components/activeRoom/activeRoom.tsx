@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import './activeRoom.css';
 import { Models } from '../../../../common/api/v1';
-import Structure from './structure/structure';
+import Structure from '../structure/structure';
 import { SocketAPI } from '../../services/SocketAPI';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';

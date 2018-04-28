@@ -89,7 +89,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
     private handleKeyDown(event: KeyboardEvent) {
         // TODO: Fix event propagation.
         if (event.key) {
-            return;
+            return; // Always return, don't execute below.
         }
         switch (event.key) {
             case 't':

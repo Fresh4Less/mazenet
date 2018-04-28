@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Models } from '../../../../../common/api/v1';
+import { Models } from '../../../../common/api/v1';
 import Tunnel from './tunnel';
 import Text from './text';
 

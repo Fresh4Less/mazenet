@@ -3,6 +3,11 @@
     text-decoration: underline;
     cursor: pointer;
 }
+.tunnel-font {
+    color: black;
+    font-family: Lucida Console, Courier, monospace;
+    font-size: 14px;
+}
 
 /* Edit Mode */
 .tunnel-edit {}
@@ -10,10 +15,9 @@
     color: rgba(0,0,0,0.9);
     font-size: small;
     font-family: "Gill Sans", sans-serif;
-}
-.input-text {
-    color: black;
-    font-family: Lucida Console, Courier, monospace;
+    position: absolute;
+    transform: translateY(-100%);
+    white-space: nowrap;
 }
 .input-underline {
     display: block;
@@ -40,9 +44,4 @@ input {
 }
 textarea:focus, input:focus {
     outline: none;
-}
-
-::placeholder {
-    font-family: Lucida Console, Courier, monospace;
-    color: rgba(0,0,0,0.5);
 }

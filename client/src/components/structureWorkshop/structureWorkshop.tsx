@@ -3,7 +3,7 @@ import * as React from 'react';
 import './structureWorkshop.css';
 import { Models } from '../../../../common/api/v1';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
-import Structure from '../activeRoom/structure/structure';
+import Structure from '../structure/structure';
 
 interface StructureWorkshopState {
     room: Models.Room | null;

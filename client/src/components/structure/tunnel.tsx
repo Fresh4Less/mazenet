@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Models } from '../../../../../common/api/v1';
+import { Models } from '../../../../common/api/v1';
 
 import './tunnel.css';
-import { SocketAPI } from '../../../services/SocketAPI';
+import { SocketAPI } from '../../services/SocketAPI';
 import { ChangeEvent } from 'react';
 import { StructureProps } from './structure';
 
@@ -19,15 +19,18 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
 
     private editInput: HTMLInputElement | null;
     private editOnChangeHandler: (event: ChangeEvent<HTMLInputElement>) => void;
+    private characterWidth: number;
 
     constructor(props: TunnelProps) {
         super(props);
 
         this.state = this.generateStateFromProps(props);
         this.editOnChangeHandler = this.editOnChange.bind(this);
+        this.characterWidth = this.getCharacterWidth();
     }
 
     componentWillReceiveProps(props: TunnelProps) {
+        this.characterWidth = this.getCharacterWidth();
         this.setState(this.generateStateFromProps(props));
     }
 
@@ -51,7 +54,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
             <div
                 id={this.props.structure.id}
                 style={style}
-                className={'structure tunnel noselect'}
+                className={'structure tunnel noselect tunnel-font'}
                 onClick={() => {SocketAPI.Instance.EnterRoom(this.state.targetId); }}
             >
                 {this.state.text}
@@ -60,14 +63,13 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
     }
 
     private renderEditing(x: number, y: number) {
-        let width = this.getWidthOfDisplayText();
         const containerStyle = {
             cursor: 'text',
             left: `${x}%`,
             top: `${y}%`,
         };
         const widthStyle = {
-            width: width,
+            width: this.characterWidth * this.state.text.length,
         };
         return (
             <div
@@ -80,7 +82,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
             >
                 <div className={'tunnel-edit-top-text'}>Tunnel Name</div>
                 <input
-                    className={'input-text'}
+                    className={'tunnel-font'}
                     style={widthStyle}
                     value={this.state.text}
                     onKeyPress={(e) => {
@@ -137,14 +139,14 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
         };
     }
 
-    private getWidthOfDisplayText(): number {
+    private getCharacterWidth(): number {
         let sizerDiv = document.createElement('div');
-        sizerDiv.className = 'input-text input-text-width-tester';
-        sizerDiv.innerText = this.state.text;
+        sizerDiv.className = 'input-text-width-tester tunnel-font';
+        sizerDiv.innerText = 'c';
         document.body.appendChild(sizerDiv);
         let width = sizerDiv.clientWidth;
         document.body.removeChild(sizerDiv);
-        return width;
+        return width + 1;
     }
 
     private editOnChange(event: ChangeEvent<HTMLInputElement>): void {

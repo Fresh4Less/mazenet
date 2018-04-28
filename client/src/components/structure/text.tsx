@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Models } from '../../../../../common/api/v1';
+import { Models } from '../../../../common/api/v1';
 import { StructureProps } from './structure';
 
 import './text.css';
