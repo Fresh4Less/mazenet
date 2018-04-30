@@ -27,7 +27,7 @@ export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean):
     const propertyStrings = Object.keys(rule.properties).map((propName: string) => {
         return `${propName}: ${rule.properties[propName]};`;
     });
-    if(compact) {
+    if (compact) {
         return `${rule.selectors.join(', ')} {${propertyStrings.join(' ')}}`;
     } else {
         return `${rule.selectors.join(', ')} {\n\t${propertyStrings.join('\n\t')}\n}`;
@@ -44,22 +44,24 @@ export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean):
  * only allow whitelisted properties
  * only allow whitelisted functions in property values, no at-values
  */
-export function cleanStylesheet (stylesheet: Stylesheet): SafeStylesheet {
+export function cleanStylesheet(stylesheet: Stylesheet): SafeStylesheet {
     const cleanStylesheet: Stylesheet = {
         rules: stylesheet.rules.reduce((safeRules: StylesheetRule[], rule: StylesheetRule) => {
             const safeSelectors = rule.selectors.reduce((safeSelectors: string[], selector: string) => {
                 return safeSelectors.concat(cleanSelector(selector));
             }, []);
 
-            const safeProperties = Object.keys(rule.properties).reduce((safeProps: {[name: string]:string}, propName: string) => {
+            const safeProperties = Object.keys(rule.properties).reduce(
+                (safeProps: { [name: string]: string }, propName: string) => {
                 const value = rule.properties[propName];
-                if(CssWhitelist.safeProperties.indexOf(propName.toLowerCase()) !== -1 && validatePropertyValue(value)) {
+                if (CssWhitelist.safeProperties.indexOf(propName.toLowerCase()) !== -1 &&
+                    validatePropertyValue(value)) {
                     safeProps[propName] = value;
                 }
                 return safeProps;
             }, {});
 
-            if(safeSelectors.length > 0 && Object.keys(safeProperties).length > 0) {
+            if (safeSelectors.length > 0 && Object.keys(safeProperties).length > 0) {
                 safeRules.push({
                     selectors: safeSelectors,
                     properties: safeProperties
@@ -75,19 +77,18 @@ export function validatePropertyValue(value: string): boolean {
     let ast: any;
     try {
         ast = ValueParser(value).parse();
-    }
-    catch(error) {
+    } catch (error) {
         return false;
     }
 
     let valid = true;
     // don't allow banned functions or at-words
     ast.walk((node: any) => {
-        if(node.type === 'func') {
-            if(CssWhitelist.safeFunctions.indexOf(node.value.toLowerCase()) === -1) {
+        if (node.type === 'func') {
+            if (CssWhitelist.safeFunctions.indexOf(node.value.toLowerCase()) === -1) {
                 valid = false;
             }
-        } else if(node.type === 'atword') {
+        } else if (node.type === 'atword') {
             valid = false;
         }
     });
@@ -105,7 +106,7 @@ export function cleanSelector(selector: string): string[] {
     const transform = (selectors: any) => {
         // only keep whitelisted tags
         selectors.walkTags((tag: any) => {
-            if(CssWhitelist.safeSelectorTags.indexOf(tag.value) === -1) {
+            if (CssWhitelist.safeSelectorTags.indexOf(tag.value) === -1) {
                 tag.parent.remove();
             }
         });
@@ -113,7 +114,7 @@ export function cleanSelector(selector: string): string[] {
         // delete forbidden selectors
         // - pseudo elements
         selectors.walkPseudos((pseudo: any) => {
-            if(pseudo.value.startsWith('::')) {
+            if (pseudo.value.startsWith('::')) {
                 pseudo.parent.remove();
             }
         });
@@ -131,12 +132,14 @@ export function cleanSelector(selector: string): string[] {
         selectors.walkUniversals((universal: any) => {
             universal.parent.remove();
         });
-    }
+    };
 
     try {
-        return SelectorParser(transform).processSync(selector as never /*@types broken*/).split(',').filter((css: string) => css.length > 0);
-    }
-    catch(error) {
+        return SelectorParser(transform)
+            .processSync(selector as never /*@types broken*/)
+            .split(',')
+            .filter((css: string) => css.length > 0);
+    } catch (error) {
         return [];
     }
 }
@@ -145,16 +148,17 @@ export function parseCss(css: string): Stylesheet {
     const ast = Css.parse(css);
     return {
         rules: ast.stylesheet!.rules.filter((node) => ['rule'].indexOf(node.type!) !== -1)
-        .map((rule: Css.Rule) => {
-            return {
-                selectors: rule.selectors!.filter((selector?: string) => (selector != null)),
-                properties: rule.declarations!.reduce((props: {[name:string]: string}, declaration: Css.Declaration) => {
-                    if(declaration.type === 'declaration') {
-                        props[declaration.property!] = declaration.value!;
-                    }
-                    return props;
-                }, {}),
-            };
-        })
+            .map((rule: Css.Rule) => {
+                return {
+                    selectors: rule.selectors!.filter((selector?: string) => (selector != null)),
+                    properties: rule.declarations!.reduce(
+                        (props: { [name: string]: string }, declaration: Css.Declaration) => {
+                        if (declaration.type === 'declaration') {
+                            props[declaration.property!] = declaration.value!;
+                        }
+                        return props;
+                    }, {}),
+                };
+            })
     };
 }

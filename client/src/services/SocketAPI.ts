@@ -15,6 +15,9 @@ export class SocketAPI {
 
     private static _instance: SocketAPI;
 
+    /*
+     * Managers for transactional SocketIO requests. Maps callbacks
+     */
     readonly connectedObservable: Observable<Routes.Users.Connect.Post.Response200>;
     readonly userCreateObservable: Observable<Models.User>;
     readonly roomEnteredObservable: Observable<Routes.Rooms.Enter.Post.Response200>;
@@ -30,10 +33,6 @@ export class SocketAPI {
     private rootPage: Models.Room.Id;
     private cursorRecordingTransactionManager: TransactionManager;
     private activePageId: Models.Room.Id;
-
-    /*
-     * Managers for transactional SocketIO requests. Maps callbacks
-     */
 
     /*
     * Constructor for the API singleton service.
@@ -58,10 +57,9 @@ export class SocketAPI {
         this.activeUserEnteredObservable = this.initActiveUserEnteredObservable();
         this.activeUserExitedObservable = this.initActiveUserExitedObservable();
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
-
         window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
         const device: Models.PlatformData.Desktop = {pType: 'desktop', cursorPos: {x: 0, y: 0}};
-        this.socket.emit('/users/connect', new WebRequest('POST', device, '1'));
+        this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', device, '1'));
     }
 
     public static get Instance(): SocketAPI {
@@ -70,35 +68,35 @@ export class SocketAPI {
 
     public EnterRootPage(): void {
         if (this.rootPage.length > 0) {
-            this.socket.emit('/rooms/enter', new WebRequest('POST', {id: this.rootPage}, 'todo'));
+            this.socket.emit(Routes.Rooms.Enter.Route, new WebRequest('POST', {id: this.rootPage}, 'todo'));
         }
     }
 
     public EnterRoom(roomId: string): void {
-        this.socket.emit('/rooms/enter', new WebRequest('POST', {id: roomId}, 'todo'));
+        this.socket.emit(Routes.Rooms.Enter.Route, new WebRequest('POST', {id: roomId}, 'todo'));
     }
 
     public UpdateRoom(pageData: Models.Room): void {
 
-        this.socket.emit('/pages/update', new WebRequest('GET', pageData, 'todo'));
+        this.socket.emit(Routes.Rooms.Update.Route, new WebRequest('GET', pageData, 'todo'));
     }
 
     public CreateStructure(roomId: string, blueprint: Models.Structure.Blueprint): void {
-        this.socket.emit('/rooms/structures/create', new WebRequest('POST', {
+        this.socket.emit(Routes.Rooms.Structures.Create.Route, new WebRequest('POST', {
             roomId: roomId,
             structure: blueprint
         }, 'todo'));
     }
 
     public UpdateStructure(structureId: string, patch: Models.Structure.Patch): void {
-        this.socket.emit('/rooms/structures/update' , new WebRequest('POST', {
+        this.socket.emit(Routes.Rooms.Structures.Update.Route , new WebRequest('POST', {
             id: structureId,
             patch: patch,
         }, 'todo'));
     }
 
     public CursorMove(cursor: Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved): void {
-        this.socket.emit('/rooms/active-users/desktop/cursor-moved', cursor);
+        this.socket.emit(Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved.Route, cursor);
     }
 
     public GetRecordingForRoom(roomId: string): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
@@ -113,7 +111,7 @@ export class SocketAPI {
                     }
                     observer.complete();
                 });
-                this.socket.emit('/rooms/cursor-recordings', new WebRequest('GET', {
+                this.socket.emit(Routes.Rooms.CursorRecordings.Route, new WebRequest('GET', {
                     roomId: roomId
                 }, uniqueId));
             });
@@ -124,7 +122,7 @@ export class SocketAPI {
     private initConnectedObservable() {
         return new Observable<Routes.Users.Connect.Post.Response200>(
             (observer: Observer<Routes.Users.Connect.Post.Response200>) => {
-                this.socket.on('/users/connect', (res: WebResponse) => {
+                this.socket.on(Routes.Users.Connect.Route, (res: WebResponse) => {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
                         observer.next(res200);
@@ -132,7 +130,7 @@ export class SocketAPI {
                         let urlRoom = URLManager.ParseRoomId();
                         let roomToLoad = urlRoom ? urlRoom : this.rootPage;
 
-                        this.socket.emit('/rooms/enter',
+                        this.socket.emit(Routes.Rooms.Enter.Route,
                             new WebRequest('POST', {id: roomToLoad}, '1'));
                         observer.complete();
                     } else {
@@ -166,7 +164,7 @@ export class SocketAPI {
 
     private initStructureCreatedObservable() {
         return new Observable((observer: Observer<Models.Structure>) => {
-            this.socket.on('/rooms/structures/create', (res: WebResponse) => {
+            this.socket.on(Routes.Rooms.Structures.Create.Route, (res: WebResponse) => {
                 if (res.status === 201) {
                    const struct = (res.body as Models.Structure);
                    observer.next(struct);
@@ -175,7 +173,8 @@ export class SocketAPI {
                    observer.error(res.body);
                 }
             });
-            this.socket.on('/rooms/structures/created', (created: Events.Server.Rooms.Structures.Created) => {
+            this.socket.on(Events.Server.Rooms.Structures.Created.Route,
+                (created: Events.Server.Rooms.Structures.Created) => {
                 if (this.activePageId === created.roomId) {
                     observer.next(created.structure);
                 }
@@ -185,7 +184,7 @@ export class SocketAPI {
 
     private initStructureUpdatedObservable() {
         return new Observable((observer: Observer<Models.Structure>) => {
-            this.socket.on('/rooms/structures/update', (res: WebResponse) => {
+            this.socket.on(Routes.Rooms.Structures.Update.Route, (res: WebResponse) => {
                 if (res.status === 200) {
                     const structure = (res.body as Models.Structure);
                     observer.next(structure);
@@ -194,7 +193,8 @@ export class SocketAPI {
                     observer.error(res.body);
                 }
             });
-            this.socket.on('/rooms/structures/updated', (updated: Events.Server.Rooms.Structures.Updated) => {
+            this.socket.on(Events.Server.Rooms.Structures.Updated.Route,
+                (updated: Events.Server.Rooms.Structures.Updated) => {
                 if (this.activePageId === updated.roomId) {
                     observer.next(updated.structure);
                 }
@@ -204,7 +204,7 @@ export class SocketAPI {
 
     private initActiveUserEnteredObservable() {
         return new Observable((observer: Observer<Models.ActiveUser>) => {
-            this.socket.on('/rooms/active-users/entered', (user: Events.Server.Rooms.ActiveUsers.Entered) => {
+            this.socket.on(Events.Server.Rooms.ActiveUsers.Entered.Route, (user: Events.Server.Rooms.ActiveUsers.Entered) => {
                 if (this.activePageId === user.roomId) {
                     observer.next(user.activeUser);
                 }
@@ -214,7 +214,7 @@ export class SocketAPI {
 
     private initActiveUserExitedObservable() {
         return new Observable((observer: Observer<Models.ActiveUser.Id>) => {
-            this.socket.on('/rooms/active-users/exited', (user: Events.Server.Rooms.ActiveUsers.Exited) => {
+            this.socket.on(Events.Server.Rooms.ActiveUsers.Exited.Route, (user: Events.Server.Rooms.ActiveUsers.Exited) => {
                 if (this.activePageId === user.roomId) {
                     observer.next(user.activeUserId);
                 }
@@ -224,7 +224,7 @@ export class SocketAPI {
 
     private initActiveUserDesktopCursorMovedObservable() {
         return new Observable((observer: Observer<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>) => {
-            this.socket.on('/rooms/active-users/desktop/cursor-moved',
+            this.socket.on(Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved.Route,
                 (cursor: Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved) => {
                 if (this.activePageId === cursor.roomId) {
                     observer.next(cursor);
