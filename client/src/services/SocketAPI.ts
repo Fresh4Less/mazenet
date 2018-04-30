@@ -68,7 +68,8 @@ export class SocketAPI {
 
     public EnterRootPage(): void {
         if (this.rootPage.length > 0) {
-            this.socket.emit(Routes.Rooms.Enter.Route, new WebRequest('POST', {id: this.rootPage}, 'todo'));
+            this.socket.emit(Routes.Rooms.Enter.Route,
+                new WebRequest('POST', {id: this.rootPage}, 'todo'));
         }
     }
 
@@ -204,7 +205,8 @@ export class SocketAPI {
 
     private initActiveUserEnteredObservable() {
         return new Observable((observer: Observer<Models.ActiveUser>) => {
-            this.socket.on(Events.Server.Rooms.ActiveUsers.Entered.Route, (user: Events.Server.Rooms.ActiveUsers.Entered) => {
+            this.socket.on(Events.Server.Rooms.ActiveUsers.Entered.Route,
+                (user: Events.Server.Rooms.ActiveUsers.Entered) => {
                 if (this.activePageId === user.roomId) {
                     observer.next(user.activeUser);
                 }
@@ -214,7 +216,8 @@ export class SocketAPI {
 
     private initActiveUserExitedObservable() {
         return new Observable((observer: Observer<Models.ActiveUser.Id>) => {
-            this.socket.on(Events.Server.Rooms.ActiveUsers.Exited.Route, (user: Events.Server.Rooms.ActiveUsers.Exited) => {
+            this.socket.on(Events.Server.Rooms.ActiveUsers.Exited.Route,
+                (user: Events.Server.Rooms.ActiveUsers.Exited) => {
                 if (this.activePageId === user.roomId) {
                     observer.next(user.activeUserId);
                 }

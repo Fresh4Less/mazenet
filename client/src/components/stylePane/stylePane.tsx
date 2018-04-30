@@ -4,6 +4,7 @@ import { Models } from '../../../../common/api/v1';
 
 import './stylePane.css';
 import { StylePaneService } from '../../services/StylePaneService';
+import { stylesheetToString } from '../../../../common/util/stylesheet';
 
 interface StylePaneProps {
     room: Models.Room;
@@ -46,8 +47,15 @@ export class StylePane extends React.PureComponent<StylePaneProps, StylePaneStat
                 x: 0,
                 y: 0,
             },
-            cssSheet: '',
+            cssSheet: stylesheetToString(props.room.stylesheet, false),
         };
+    }
+
+    componentWillReceiveProps(nextProps: StylePaneProps) {
+        console.log('receive new props', stylesheetToString(nextProps.room.stylesheet, false));
+        this.setState({
+            cssSheet: stylesheetToString(nextProps.room.stylesheet, false),
+        });
     }
 
     public Activate(): void {

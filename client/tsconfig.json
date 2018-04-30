@@ -21,7 +21,7 @@
     "experimentalDecorators": true,
     "typeRoots": [
       "node_modules/@types",
-      "node_modules/mazenet/common/types"
+      "../common/types"
     ]
   },
   "exclude": [
