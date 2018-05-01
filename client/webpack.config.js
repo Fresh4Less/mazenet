@@ -1,12 +1,14 @@
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var CopyWebpackPlugin = require('copy-webpack-plugin');
-var path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
+const path = require('path');
 
 module.exports = {
     entry: './src/index.tsx',
     mode: 'production',
     output: {
-        filename: 'static/js/bundle.js',
+        filename: 'static/js/bundle.[hash:8].js',
         path: path.resolve(__dirname, 'build')
     },
 
@@ -24,15 +26,12 @@ module.exports = {
             {
                 test: /\.tsx?$/,
                 loader: 'awesome-typescript-loader',
-                options: {
-                    name: 'static/js/bundle.[hash:8].js'
-                }
             },
             {
                 test: /\.css$/,
                 use: [
-                    { loader: 'style-loader' },
-                    { loader: 'css-loader' }
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
                 ]
             },
             {
@@ -49,7 +48,7 @@ module.exports = {
                 test: /\.js$/,
                 loader: 'source-map-loader',
                 include: [
-                   path.resolve(__dirname, 'src')
+                    path.resolve(__dirname, 'src')
                 ]
             }
         ]
@@ -69,7 +68,16 @@ module.exports = {
                 to: '[name].[ext]',
                 test: /\.(png|json)$/
             }
-        ])
+        ]),
+        new MiniCssExtractPlugin({
+            // Options similar to the same options in webpackOptions.output
+            // both options are optional
+            filename: 'static/css/[name].[hash:8].css',
+            chunkFilename: 'static/css/[id].[hash:8].css'
+        }),
+        // Hack to make the following warning under `source-map` disappear.
+        // `Critical dependency: require function is used in a way in which dependencies cannot be statically extracted`
+        new webpack.ContextReplacementPlugin(/source-map/, /^$/)
     ],
     node: {
         fs: 'empty'
