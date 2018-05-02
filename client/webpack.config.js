@@ -1,25 +1,26 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
-    entry: './src/index.tsx',
+    entry: {
+        vendor: ['react', 'react-dom', 'rxjs', 'css', 'reflect-metadata'],
+        client: './src/index.tsx'
+    },
     mode: 'production',
     output: {
-        filename: 'static/js/bundle.[hash:8].js',
+        filename: 'static/js/[name].[hash:8].js',
+        chunkFilename: 'static/js/[name].js',
         path: path.resolve(__dirname, 'build')
     },
-
-    // Enable sourcemaps for debugging webpack's output.
     devtool: 'source-map',
-
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
         extensions: ['.ts', '.tsx', '.js', '.json']
     },
-
     module: {
         rules: [
             // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
@@ -38,7 +39,7 @@ module.exports = {
                 test: /\.(png|jpg|gif)$/,
                 loader: 'file-loader',
                 options: {
-                    name: 'static/media/[name].[hash:8].[ext]'
+                    name: 'static/media/[name].[ext]'
                 }
             },
 
@@ -53,10 +54,23 @@ module.exports = {
             }
         ]
     },
+    optimization: {
+      splitChunks: {
+          cacheGroups: {
+              vendor: {
+                  test: 'vendor',
+                  name: 'vendor',
+                  chunks: 'initial',
+                  enforce: true
+              }
+          }
+      }
+    },
     plugins: [
         new HtmlWebpackPlugin({
             inject: true,
             title: 'Mazenet',
+            filename: 'index.html',
             template: './public/index.html',
             minify: {
                 removeComments: true
@@ -77,7 +91,8 @@ module.exports = {
         }),
         // Hack to make the following warning under `source-map` disappear.
         // `Critical dependency: require function is used in a way in which dependencies cannot be statically extracted`
-        new webpack.ContextReplacementPlugin(/source-map/, /^$/)
+        new webpack.ContextReplacementPlugin(/source-map/, /^$/),
+        new BundleAnalyzerPlugin()
     ],
     node: {
         fs: 'empty'
