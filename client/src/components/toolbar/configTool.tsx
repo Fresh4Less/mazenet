@@ -3,6 +3,8 @@ import * as React from 'react';
 import ToolbarToolInterface from './toolbarToolInterface';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 
+import svg from './config.svg';
+
 interface ConfigToolProps {
     room: Models.Room;
 }
@@ -14,15 +16,13 @@ export default class ConfigTool extends React.PureComponent<ConfigToolProps, any
     }
 
     render() {
-        const configToolIcon = '⚙️';
         return  (
             <span
                 className={'noselect tool'}
                 title={'(E)dit structures in the room.'}
                 onClick={() => {this.Use(); }}
-            >
-               {configToolIcon}
-            </span>
+                dangerouslySetInnerHTML={{__html: svg}}
+            />
         );
     }
 }

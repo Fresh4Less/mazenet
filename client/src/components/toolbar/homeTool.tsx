@@ -3,6 +3,8 @@ import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
 import ToolbarToolInterface from './toolbarToolInterface';
 
+import svg from './home.svg';
+
 interface HomeToolProps {
     rootRoomId: string;
     room: Models.Room;
@@ -18,7 +20,6 @@ export default class HomeTool extends React.PureComponent<HomeToolProps, any> im
     }
 
     render() {
-        const homeToolIcon = '🏠';
         this.enabled = this.props.room.id !== this.props.rootRoomId;
 
         const disabledClass = this.enabled ? '' : ' disabled';
@@ -27,9 +28,8 @@ export default class HomeTool extends React.PureComponent<HomeToolProps, any> im
                 className={'noselect tool' + disabledClass}
                 title={'(R)eturn to the root room.'}
                 onClick={() => {this.Use(); }}
-            >
-               {homeToolIcon}
-            </span>
+                dangerouslySetInnerHTML={{__html: svg}}
+            />
         );
     }
 }

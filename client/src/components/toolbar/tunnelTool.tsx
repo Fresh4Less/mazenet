@@ -3,6 +3,8 @@ import { Models } from '../../../../common/api/v1';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 import ToolbarToolInterface from './toolbarToolInterface';
 
+import svg from './tunnel.svg';
+
 interface TunnelToolProps {
     room: Models.Room;
 }
@@ -18,14 +20,12 @@ export default class TunnelTool extends React.PureComponent<TunnelToolProps, any
     }
 
     render() {
-        const tunnelToolIcon = '⛏️';
         return  (
            <span
                className={'noselect tool'}
                title={'(T)unnel a new room.'}
                onClick={() => {this.Use(); }}
-           >
-               {tunnelToolIcon}
-           </span>);
+               dangerouslySetInnerHTML={{__html: svg}}
+           />);
     }
 }

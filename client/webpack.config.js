@@ -6,17 +6,18 @@ const webpack = require('webpack');
 const path = require('path');
 
 module.exports = {
+    mode: 'production',
+    bail: true,
+    devtool: 'source-map',
     entry: {
         vendor: ['react', 'react-dom', 'rxjs', 'css', 'reflect-metadata'],
         client: './src/index.tsx'
     },
-    mode: 'production',
     output: {
         filename: 'static/js/[name].[hash:8].js',
         chunkFilename: 'static/js/[name].js',
         path: path.resolve(__dirname, 'build')
     },
-    devtool: 'source-map',
     resolve: {
         // Add '.ts' and '.tsx' as resolvable extensions.
         extensions: ['.ts', '.tsx', '.js', '.json']
@@ -42,7 +43,14 @@ module.exports = {
                     name: 'static/media/[name].[ext]'
                 }
             },
-
+            {
+                test: /\.svg$/,
+                use: [
+                    {
+                        loader: 'svg-inline-loader'
+                    }
+                ]
+            },
             // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
             {
                 enforce: 'pre',
@@ -92,7 +100,8 @@ module.exports = {
         // Hack to make the following warning under `source-map` disappear.
         // `Critical dependency: require function is used in a way in which dependencies cannot be statically extracted`
         new webpack.ContextReplacementPlugin(/source-map/, /^$/),
-        new BundleAnalyzerPlugin()
+        // Uncomment if you want a pretty visual view of the bundles and their sizes. :)
+        // new BundleAnalyzerPlugin()
     ],
     node: {
         fs: 'empty'

@@ -10,6 +10,7 @@ import TextTool from './textTool';
 import HomeTool from './homeTool';
 import ConfigTool from './configTool';
 import StyleTool from './styleTool';
+import { InfoTool } from './infoTool';
 
 interface ToolbarState {
     room: Models.Room | null;
@@ -75,6 +76,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                         rootRoomId={this.state.rootRoomId}
                         ref={(tool) => {this.homeTool = tool; }}
                     />
+                    <InfoTool/>
                 </span>
             );
         }

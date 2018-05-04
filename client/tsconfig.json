@@ -21,6 +21,7 @@
     "experimentalDecorators": true,
     "typeRoots": [
       "node_modules/@types",
+      "types",
       "../common/types"
     ]
   },
