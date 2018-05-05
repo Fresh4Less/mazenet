@@ -11,11 +11,12 @@ import HomeTool from './homeTool';
 import ConfigTool from './configTool';
 import StyleTool from './styleTool';
 import { InfoTool } from './infoTool';
+import { UserTool } from './userTool';
 
 interface ToolbarState {
     room: Models.Room | null;
     rootRoomId: string;
-    username: string;
+    user: Models.ActiveUser | null;
 }
 
 export default class Toolbar extends React.PureComponent<any, ToolbarState> {
@@ -31,12 +32,12 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
         this.state = {
             room: null,
             rootRoomId: '',
-            username: ''
+            user: null
         };
         SocketAPI.Instance.connectedObservable.subscribe(value => {
             this.setState({
                 rootRoomId: value.rootRoomId,
-                username: value.activeUser.username
+                user: value.activeUser
             });
         });
         SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
@@ -52,7 +53,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
 
     render() {
         let tools: JSX.Element | null = null;
-        if (this.state.room) {
+        if (this.state.room && this.state.user) {
             tools = (
                 <span className={'right'}>
                     <TunnelTool
@@ -77,6 +78,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                         ref={(tool) => {this.homeTool = tool; }}
                     />
                     <InfoTool/>
+                    <UserTool user={this.state.user}/>
                 </span>
             );
         }

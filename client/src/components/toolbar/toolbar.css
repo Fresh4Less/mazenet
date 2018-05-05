@@ -24,8 +24,9 @@
 }
 
 #Toolbar .tool {
+    display: inline-block;
+    margin-right: 3px;
     font-size: 40px;
-    vertical-align: center;
     cursor: pointer;
 }
 
