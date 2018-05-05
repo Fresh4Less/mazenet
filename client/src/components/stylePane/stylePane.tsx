@@ -16,7 +16,7 @@ interface StylePaneState {
     dragging: boolean;
     draggingMouseRelation: Models.Position;
     draggingContainerOffset: Models.Position;
-    cssSheet: string;
+    cssSheetText: string;
 }
 
 export class StylePane extends React.PureComponent<StylePaneProps, StylePaneState> {
@@ -47,14 +47,14 @@ export class StylePane extends React.PureComponent<StylePaneProps, StylePaneStat
                 x: 0,
                 y: 0,
             },
-            cssSheet: stylesheetToString(props.room.stylesheet, false),
+            cssSheetText: stylesheetToString(props.room.stylesheet, false),
         };
     }
 
     componentWillReceiveProps(nextProps: StylePaneProps) {
         console.log('receive new props', stylesheetToString(nextProps.room.stylesheet, false));
         this.setState({
-            cssSheet: stylesheetToString(nextProps.room.stylesheet, false),
+            cssSheetText: stylesheetToString(nextProps.room.stylesheet, false),
         });
     }
 
@@ -96,19 +96,38 @@ export class StylePane extends React.PureComponent<StylePaneProps, StylePaneStat
                         ❌
                     </span>
                 </div>
-                <div>
-                    <div>
-                        <button>Reset</button>
-                        <button>Save</button>
+                <div className={'content'}>
+                    <div className={'header'}>
+                        Styles for the room "{this.props.room.title}"
                     </div>
-                    Room {this.props.room.id}
+                    <textarea
+                        className={'body'}
+                        placeholder="Type some styles."
+                        value={this.state.cssSheetText}
+                        onChange={(e) => {
+                            this.setState({cssSheetText: e.target.value});
+                        }}
+                    />
+                    <div className={'footer'}>
+                        <div>
+                            <button
+                                title={'Reset the styles to whatever was last saved.'}
+                            >
+                                Reset
+                            </button>
+                            <button
+                                title={'Apply the current styles to this room without saving.'}
+                            >
+                                Try
+                            </button>
+                            <button
+                                title={'Save the current styles to this room.'}
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <textarea
-                    value={this.state.cssSheet}
-                    onChange={(e) => {
-                        this.setState({cssSheet: e.target.value});
-                    }}
-                />
             </div>
         );
     }

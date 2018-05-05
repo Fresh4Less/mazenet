@@ -54,6 +54,7 @@ export namespace Room {
     export type Id = string;
     export interface Blueprint {
         title: string;
+        stylesheet: Api.v1.Models.Stylesheet;
     }
 }
 

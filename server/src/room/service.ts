@@ -42,12 +42,23 @@ export class Service {
             this.eventObserver = observer;
         }).share();
     }
-
     public initRootRoom(): Observable<Room> {
         let rootUser: User;
         return this.userService.getRootUser().mergeMap((user) => {
             rootUser = user;
-            return this.createRoom(rootUser, Uuid(), {title: 'mazenet'});
+            return this.createRoom(rootUser, Uuid(), {
+                stylesheet: {
+                    rules: [
+                        {
+                            properties: {
+                                background: 'linear-gradient(rgb(200, 38, 170), rgb(63, 236, 219))'
+                            },
+                            selectors: ['room']
+                        }
+                    ]
+                },
+                title: 'mazenet'
+            });
         }).mergeMap((room: Room) => {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
             }).mergeMap(([room]: [Room, null]) => {
@@ -78,7 +89,7 @@ export class Service {
             creator: user.id,
             id: roomId,
             owners: new Set<User.Id>([user.id]),
-            stylesheet: {rules: []},
+            stylesheet: roomBlueprint.stylesheet,
             title: roomBlueprint.title
         });
 
@@ -238,6 +249,7 @@ export class Service {
         });
 
         return this.createRoom(user, tunnelData.targetId, {
+            stylesheet: {rules: []},
             title: tunnelBlueprintData.sourceText
         }).map((room: Room) => {
             return tunnelData;

@@ -30,7 +30,7 @@ export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean):
     if (compact) {
         return `${rule.selectors.join(', ')} {${propertyStrings.join(' ')}}`;
     } else {
-        return `${rule.selectors.join(', ')} {\n\t${propertyStrings.join('\n\t')}\n}`;
+        return `${rule.selectors.join(', ')} {\n  ${propertyStrings.join('\n  ')}\n}`;
     }
 
 }
