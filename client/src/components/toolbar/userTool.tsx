@@ -50,7 +50,7 @@ export class UserTool extends React.PureComponent<UserToolProps, UserToolState> 
             <span
                 className={'noselect tool'}
                 style={spanStyle}
-                title={'What you look like to others'}
+                title={'What your cursor looks like to others.'}
                 onClick={() => {
                     this.Use();
                 }}

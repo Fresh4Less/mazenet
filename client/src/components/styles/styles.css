@@ -1,0 +1,38 @@
+
+
+.styles {
+    height: calc(100% - 20px);
+    display: flex;
+    flex-flow: column;
+}
+.styles .header {
+    flex: 0 1 auto;
+}
+.styles .body {
+    flex: 1 1 auto;
+}
+.styles .footer {
+    flex: 0 1 auto;
+}
+
+.styles button {
+    background: none;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+}
+.styles button:not:first-of-type {
+    border-left: solid black 1px;
+}
+
+.styles textarea {
+    padding: 0 0 0 10px;
+    margin: 0;
+    border: 0;
+    resize: none;
+    box-sizing: border-box;
+    background: none;
+    width: 100%;
+    border-top: solid 1px rgba(0,0,0,0.3);
+    border-bottom: solid 1px rgba(0,0,0,0.3);
+}

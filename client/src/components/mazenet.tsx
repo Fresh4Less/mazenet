@@ -14,6 +14,7 @@ export default class Mazenet extends React.PureComponent<any, any> {
     constructor(props: any) {
         super(props);
     }
+
     render() {
         return (
             <div id={'Mazenet'}>

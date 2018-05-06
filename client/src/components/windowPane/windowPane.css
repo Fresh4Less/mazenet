@@ -1,0 +1,39 @@
+.windowPane {
+    z-index: 20; /* text = 1; tunnel = 2; StructureWorkshop = 10; StylePane = 20; */
+    overflow: auto;
+    position:absolute;
+    display: inline-block;
+    background-color: rgba(255, 255, 255, 0.76);
+    min-height: 200px;
+    min-width: 200px;
+
+    border: 2px solid rgba(0, 0, 0, 0.9);
+}
+.windowPane.hidden {
+    display: none;
+}
+
+.windowPane .toolbar {
+    background-color: rgb(64,64,64);
+    color: white;
+    font-size: 18px;
+    line-height: 20px;
+    height: 20px;
+    cursor: move;
+}
+
+.windowPane .toolbar .close {
+    cursor: pointer;
+    float: right;
+
+}
+
+.windowPane .resizer {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(-45deg, rgba(0, 0, 0, 0.9) 29%, transparent 30%);
+    bottom: 0;
+    right: 0;
+    cursor: nwse-resize;
+}
