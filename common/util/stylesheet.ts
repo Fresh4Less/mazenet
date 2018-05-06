@@ -14,8 +14,8 @@ export type SafeStylesheet = Stylesheet;
  * @argument stylesheet
  * @argument compact - if true, each rule will only take up a single line
  */
-export function stylesheetToString(stylesheet: Stylesheet, compact?: boolean): string {
-    return stylesheet.rules.map((rule) => stylesheetRuleToString(rule, compact))
+export function stylesheetToString(stylesheet: Stylesheet, compact?: boolean, selectorPrefix?: string): string {
+    return stylesheet.rules.map((rule) => stylesheetRuleToString(rule, compact, selectorPrefix))
         .join('\n');
 }
 
@@ -23,14 +23,16 @@ export function stylesheetToString(stylesheet: Stylesheet, compact?: boolean): s
  * @argument rule
  * @argument compact - if true, the output will be a single line.
  */
-export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean): string {
+export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean, selectorPrefix?: string): string {
     const propertyStrings = Object.keys(rule.properties).map((propName: string) => {
         return `${propName}: ${rule.properties[propName]};`;
     });
+    const prefix = selectorPrefix ? selectorPrefix + ' ' : '';
+    const selectors = rule.selectors.map(selector => prefix + selector);
     if (compact) {
-        return `${rule.selectors.join(', ')} {${propertyStrings.join(' ')}}`;
+        return `${selectors.join(', ')} {${propertyStrings.join(' ')}}`;
     } else {
-        return `${rule.selectors.join(', ')} {\n  ${propertyStrings.join('\n  ')}\n}`;
+        return `${selectors.join(', ')} {\n  ${propertyStrings.join('\n  ')}\n}`;
     }
 
 }
