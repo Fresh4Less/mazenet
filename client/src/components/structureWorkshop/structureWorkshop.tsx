@@ -145,7 +145,7 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
 
         return Object.keys(room.structures).map((id) => {
             const structure = room.structures[id];
-            const structureElement = document.getElementById(id);
+            const structureElement = document.getElementById(`id-${id}`);
             if (structureElement === null) {
                 return null;
             }

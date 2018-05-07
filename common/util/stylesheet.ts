@@ -27,8 +27,7 @@ export function stylesheetRuleToString(rule: StylesheetRule, compact?: boolean, 
     const propertyStrings = Object.keys(rule.properties).map((propName: string) => {
         return `${propName}: ${rule.properties[propName]};`;
     });
-    const prefix = selectorPrefix ? selectorPrefix + ' ' : '';
-    const selectors = rule.selectors.map(selector => prefix + selector);
+    const selectors = rule.selectors.map(selector => (selectorPrefix || '') + selector);
     if (compact) {
         return `${selectors.join(', ')} {${propertyStrings.join(' ')}}`;
     } else {
@@ -125,11 +124,6 @@ export function cleanSelector(selector: string): string[] {
             attribute.parent.remove();
         });
 
-        // - ids
-        selectors.walkIds((id: any) => {
-            id.parent.remove();
-        });
-
         // - universals (*)
         selectors.walkUniversals((universal: any) => {
             universal.parent.remove();
@@ -147,7 +141,7 @@ export function cleanSelector(selector: string): string[] {
 }
 
 export function parseCss(css: string): Stylesheet {
-    const ast = Css.parse(css);
+    const ast = Css.parse(css, {source: 'stylesheet'});
     return {
         rules: ast.stylesheet!.rules.filter((node) => ['rule'].indexOf(node.type!) !== -1)
             .map((rule: Css.Rule) => {

@@ -51,7 +51,7 @@ export class SocketAPI {
         this.connectedObservable = this.initConnectedObservable();
         // TODO userCreatedObservable
         this.roomEnteredObservable = this.initRoomEnteredObservable();
-        // TODO roomUpdatedObservable
+        this.roomUpdatedObservable = this.initRoomUpdatedObservable();
         this.structureCreatedObservable = this.initStructureCreatedObservable();
         this.structureUpdatedObservable = this.initStructureUpdatedObservable();
         this.activeUserEnteredObservable = this.initActiveUserEnteredObservable();
@@ -77,9 +77,8 @@ export class SocketAPI {
         this.socket.emit(Routes.Rooms.Enter.Route, new WebRequest('POST', {id: roomId}, 'todo'));
     }
 
-    public UpdateRoom(pageData: Models.Room): void {
-
-        this.socket.emit(Routes.Rooms.Update.Route, new WebRequest('GET', pageData, 'todo'));
+    public UpdateRoom(roomId: string, data: Models.Room.Patch): void {
+        this.socket.emit(Routes.Rooms.Update.Route, new WebRequest('POST', {id: roomId, patch: data}, 'todo'));
     }
 
     public CreateStructure(roomId: string, blueprint: Models.Structure.Blueprint): void {
@@ -145,7 +144,7 @@ export class SocketAPI {
 
     private initRoomEnteredObservable() {
         return new Observable((observer: Observer<Routes.Rooms.Enter.Post.Response200>) => {
-            this.socket.on('/rooms/enter', (res: WebResponse) => {
+            this.socket.on(Routes.Rooms.Enter.Route, (res: WebResponse) => {
                 if (res.status === 200) {
                     const res200 = (res.body as Routes.Rooms.Enter.Post.Response200);
                     this.activePageId = res200.room.id;
@@ -163,12 +162,29 @@ export class SocketAPI {
         }).share();
     }
 
+    private initRoomUpdatedObservable() {
+        return new Observable((observer: Observer<Models.Room>) => {
+            this.socket.on(Routes.Rooms.Update.Route, (res: WebResponse) => {
+                if (res.status === 200) {
+                    observer.next(res.body as Models.Room);
+                } else {
+                    ErrorService.Warning('Could not update room.', res);
+                    observer.error(res.body);
+                }
+            });
+            this.socket.on(Events.Server.Rooms.Updated.Route, (res: Models.Room) => {
+                if (this.activePageId === res.id) {
+                    observer.next(res);
+                }
+            });
+        }).share();
+    }
+
     private initStructureCreatedObservable() {
         return new Observable((observer: Observer<Models.Structure>) => {
             this.socket.on(Routes.Rooms.Structures.Create.Route, (res: WebResponse) => {
                 if (res.status === 201) {
-                   const struct = (res.body as Models.Structure);
-                   observer.next(struct);
+                   observer.next(res.body as Models.Structure);
                 }  else {
                    ErrorService.Warning('Could not create structure.', res);
                    observer.error(res.body);
@@ -187,8 +203,7 @@ export class SocketAPI {
         return new Observable((observer: Observer<Models.Structure>) => {
             this.socket.on(Routes.Rooms.Structures.Update.Route, (res: WebResponse) => {
                 if (res.status === 200) {
-                    const structure = (res.body as Models.Structure);
-                    observer.next(structure);
+                    observer.next(res.body as Models.Structure);
                 } else {
                     ErrorService.Warning('Could not create structure.', res);
                     observer.error(res.body);

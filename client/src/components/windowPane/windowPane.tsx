@@ -3,9 +3,12 @@ import * as ReactDOM from 'react-dom';
 import { Models } from '../../../../common/api/v1';
 
 import './windowPane.css';
+import svg from './close.svg';
 
 interface WindowPaneProps {
     startPos: Models.Position;
+    startWidth: number;
+    startHeight: number;
     hidden: boolean;
     closePressed: () => void;
     title: string;
@@ -43,8 +46,8 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
 
         this.state = {
             pos: props.startPos,
-            width: 0.4,
-            height: 0.5,
+            width: props.startWidth,
+            height: props.startHeight,
             dragging: false,
             mouseRelation: zero,
             containerOffset: zero,
@@ -70,21 +73,23 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
             >
                 <div
                     className={'toolbar'}
-                    title={this.props.title}
                     onMouseDown={(e) => {
                         this.draggingOnMouseDown(e);
                     }}
                 >
-                    {this.props.title}
+                    <span
+                        className={'title'}
+                    >
+                        {this.props.title}
+                    </span>
                     <span
                         className={'close'}
                         title={'Close'}
                         onClick={() => {
                             this.props.closePressed();
                         }}
-                    >
-                        ❌
-                    </span>
+                        dangerouslySetInnerHTML={{__html: svg}}
+                    />
                 </div>
                 {this.props.children}
                 <div

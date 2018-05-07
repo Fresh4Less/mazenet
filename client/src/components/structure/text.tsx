@@ -42,7 +42,7 @@ export default class Text extends React.Component<TextProps, TextState> {
         };
         return (
             <pre
-                id={this.props.structure.id}
+                id={`id-${this.props.structure.id}`}
                 style={style}
                 className={'structure text'}
             >

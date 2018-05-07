@@ -3,8 +3,9 @@ import { Models } from '../../../../common/api/v1';
 
 import './styles.css';
 import { StylesService } from '../../services/StylesService';
-import { stylesheetToString } from '../../../../common/util/stylesheet';
+import { parseCss, stylesheetToString } from '../../../../common/util/stylesheet';
 import { WindowPane } from '../windowPane/windowPane';
+import { SocketAPI } from '../../services/SocketAPI';
 
 interface StylesProps {
     room: Models.Room;
@@ -12,10 +13,12 @@ interface StylesProps {
 
 interface StylesState {
     active: boolean;
-    cssSheetText: string;
+    cssString: string;
+    errorText: string;
+    helpActive: boolean;
 }
 
-export class Styles extends React.PureComponent<StylesProps, StylesState> {
+export class Styles extends React.Component<StylesProps, StylesState> {
 
     constructor(props: StylesProps) {
         super(props);
@@ -24,14 +27,15 @@ export class Styles extends React.PureComponent<StylesProps, StylesState> {
 
         this.state = {
             active: false,
-            cssSheetText: stylesheetToString(props.room.stylesheet, false),
+            cssString: stylesheetToString(props.room.stylesheet, false),
+            errorText: '',
+            helpActive: true,
         };
     }
 
     componentWillReceiveProps(nextProps: StylesProps) {
-        console.log('receive new props', stylesheetToString(nextProps.room.stylesheet, false));
         this.setState({
-            cssSheetText: stylesheetToString(nextProps.room.stylesheet, false),
+            cssString: stylesheetToString(nextProps.room.stylesheet, false),
         });
     }
 
@@ -44,7 +48,9 @@ export class Styles extends React.PureComponent<StylesProps, StylesState> {
     public render(): JSX.Element {
         return (
             <WindowPane
-                startPos={{x: 0.2, y: 0.2}}
+                startPos={{x: 0.1, y: 0.2}}
+                startWidth={0.7}
+                startHeight={0.6}
                 closePressed={() => {
                     this.setState({
                         active: false
@@ -55,37 +61,145 @@ export class Styles extends React.PureComponent<StylesProps, StylesState> {
             >
                 <div className={'styles'}>
                     <div className={'header'}>
-                        {this.props.room.title}
+                        <button
+                            title={'Reset the styles to whatever was last saved.'}
+                            onClick={() => {
+                                this.resetCSS();
+                            }}
+                        >
+                            Reset
+                        </button>
+                        <button
+                            title={'Save the current styles to this room.'}
+                            onClick={() => {
+                                this.saveCSS();
+                            }}
+                        >
+                            Save
+                        </button>
+                        <button
+                            onClick={() => {
+                                this.setState({
+                                    helpActive: !this.state.helpActive
+                                });
+                            }}
+                        >
+                            Toggle Help
+                        </button>
                     </div>
-                    <textarea
-                        className={'body'}
-                        placeholder="Type some styles."
-                        value={this.state.cssSheetText}
-                        onChange={(e) => {
-                            this.setState({cssSheetText: e.target.value});
-                        }}
-                    />
+                    <div className={'body'}>
+                        <textarea
+                            placeholder="Type some styles."
+                            value={this.state.cssString}
+                            onChange={(e) => {
+                                this.setState({cssString: e.target.value});
+                            }}
+                        />
+                        {this.renderHelp()}
+                    </div>
                     <div className={'footer'}>
-                        <div>
-                            <button
-                                title={'Reset the styles to whatever was last saved.'}
-                            >
-                                Reset
-                            </button>
-                            <button
-                                title={'Apply the current styles to this room without saving.'}
-                            >
-                                Try
-                            </button>
-                            <button
-                                title={'Save the current styles to this room.'}
-                            >
-                                Save
-                            </button>
+                        <div className={'error'}>
+                            {this.state.errorText}
                         </div>
                     </div>
                 </div>
             </WindowPane>
         );
+    }
+
+    private renderHelp(): JSX.Element | null {
+        if (!this.state.helpActive) {
+            return null;
+        }
+
+        const sharedSelectors = [
+            {selector: '.room', description: 'Selects this room.'},
+            {selector: '.structure', description: 'Selects all structures.'},
+            {selector: '.tunnel', description: 'Selects all tunnel structures.'},
+            {selector: '.text', description: 'Selects all text structures.'},
+        ];
+        const sharedSelectorElements = sharedSelectors.map((e) => {
+            return (
+                <li
+                    key={e.selector}
+                    className={'selector'}
+                    onClick={() => {
+                        this.addSelectorToSheet(e.selector);
+                    }}
+                    title={`Click to append a ${e.selector} selector.`}
+                >
+                    <b>{e.selector}</b> - <i>{e.description}</i>
+                </li>
+            );
+        });
+
+        const structureSelectorElements = Object.keys(this.props.room.structures).map((id) => {
+            const structure = this.props.room.structures[id];
+            const selector = `#id-${id}`;
+            return (
+                <li
+                    key={id}
+                    className={'selector'}
+                    onClick={() => {
+                        this.addSelectorToSheet(selector);
+                    }}
+                    title={`Click to append a ${selector} selector.`}
+                >
+                    <b>{selector}</b> - <i>{structure.data.sType} at
+                        (x: {Math.floor(structure.pos.x * 100)}%,
+                        y: {Math.floor(structure.pos.y * 100)}%)</i>
+                </li>
+            );
+        });
+
+        return (
+            <div className={'help'}>
+                <h1>Styles Help</h1>
+                <h2>Info</h2>
+                <ul>
+                    <li>- The CSS you are writing will be filtered of illegal rules and namespaced within the room.</li>
+                    <li>- Hover over structures with the Structure Workshop open see their IDs.</li>
+                    <li>- Custom classes and a better UI are coming soon.</li>
+                </ul>
+                <h2>Selectors</h2>
+                (You can click the selectors.)
+                <h3>Shared</h3>
+                <ul>{sharedSelectorElements}</ul>
+                <h3>Structures</h3>
+                <ul>{structureSelectorElements}</ul>
+            </div>
+        );
+    }
+
+    private addSelectorToSheet(selector: string) {
+        const selectorString = `\n${selector} {\n  \n}`;
+        this.setState({
+            cssString: this.state.cssString + selectorString
+        });
+    }
+
+    private resetCSS() {
+        this.setState({
+            cssString: stylesheetToString(this.props.room.stylesheet, false),
+        });
+    }
+
+    private saveCSS() {
+        let stylesheet: Models.Stylesheet | null = null;
+        try {
+            stylesheet = parseCss(this.state.cssString);
+        } catch (e) {
+            this.setState({
+                errorText: e.message
+            });
+            return;
+        }
+        this.setState({
+            errorText: ''
+        });
+        SocketAPI.Instance.UpdateRoom(this.props.room.id, {
+            stylesheet: stylesheet
+        });
+
     }
 }

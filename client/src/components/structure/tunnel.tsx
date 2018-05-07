@@ -52,7 +52,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
         };
         return (
             <div
-                id={this.props.structure.id}
+                id={`id-${this.props.structure.id}`}
                 style={style}
                 className={'structure tunnel noselect tunnel-font'}
                 onClick={() => {SocketAPI.Instance.EnterRoom(this.state.targetId); }}

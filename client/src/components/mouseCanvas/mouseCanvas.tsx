@@ -6,7 +6,6 @@ import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
-import { MazenetUtils } from '../../services/MazenetUtils';
 
 const cursorIcon = require('./../../media/cursor.png');
 
@@ -42,20 +41,8 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
     }
 
     render() {
-        // Set the background gradient to be a fun rainbow based on the room id.
-        // TODO: Delete this when room CSS is implemented.
-        let bg = 'white';
-        if (this.state.room !== null) {
-            const twoColors = MazenetUtils.GetColorsForUUIDv4(this.state.room.id).slice(0, 2);
-            bg = `linear-gradient(${twoColors.join(', ')}`;
-        }
-
-        const style = {
-            background: bg
-        };
-        // END of background stuff.
         return (
-            <canvas ref={(c) => { this.initAnimation(c); }} id={'Background'} style={style}/>
+            <canvas ref={(c) => { this.initAnimation(c); }} id={'MouseCanvas'}/>
         );
     }
 

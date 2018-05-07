@@ -53,7 +53,7 @@ export class Service {
                             properties: {
                                 background: 'linear-gradient(rgb(200, 38, 170), rgb(63, 236, 219))'
                             },
-                            selectors: ['room']
+                            selectors: ['.room']
                         }
                     ]
                 },

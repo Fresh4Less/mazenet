@@ -1,38 +1,98 @@
 
-
 .styles {
     height: calc(100% - 20px);
     display: flex;
     flex-flow: column;
 }
+
 .styles .header {
     flex: 0 1 auto;
 }
-.styles .body {
-    flex: 1 1 auto;
-}
-.styles .footer {
-    flex: 0 1 auto;
-}
 
-.styles button {
+.styles .header button {
     background: none;
     font-weight: bold;
     cursor: pointer;
     border: none;
+    margin: 5px;
 }
-.styles button:not:first-of-type {
+
+.styles .header button:not:first-of-type {
     border-left: solid black 1px;
 }
 
-.styles textarea {
+.styles .body {
+    flex: 1 1 auto;
+    border-top: solid 1px rgba(0, 0, 0, 0.3);
+    border-bottom: solid 1px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-flow: row;
+}
+
+.styles .body textarea {
+    flex: 1 1 auto;
     padding: 0 0 0 10px;
     margin: 0;
     border: 0;
     resize: none;
     box-sizing: border-box;
     background: none;
-    width: 100%;
-    border-top: solid 1px rgba(0,0,0,0.3);
-    border-bottom: solid 1px rgba(0,0,0,0.3);
+    border-right: solid 1px rgba(0, 0, 0, 0.3);
+}
+
+.styles .body .help {
+    background: rgba(255,255,255, 0.8);
+    font-family: Arial, sans-serif;
+    width: 40%;
+    min-width: 150px;
+    font-size: 12px;
+    padding: 3px;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.styles .body .help h1 {
+    margin-top: 0;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    color: rgba(0, 0, 0, 1);
+}
+
+.styles .body .help h2 {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.9);
+}
+
+.styles .body .help h3 {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.styles .body .help ul {
+    list-style-type: none;
+    padding: 5px;
+}
+
+.styles .body .help li.selector {
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.styles .body .help li.selector:hover {
+    border: 1px solid black;
+}
+
+.styles .footer {
+    flex: 0 1 auto;
+}
+
+.styles .footer .error {
+    font-family: Courier New, monospace;
+    color: rgb(255, 52, 59);
 }

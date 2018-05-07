@@ -20,12 +20,19 @@
     line-height: 20px;
     height: 20px;
     cursor: move;
+    display: flex;
+}
+.windowPane .toolbar .title {
+    flex: 1 1 auto;
 }
 
 .windowPane .toolbar .close {
+    padding-right: 2px;
     cursor: pointer;
-    float: right;
-
+}
+.windowPane .toolbar .close svg {
+    width: 15px;
+    height: 20px;
 }
 
 .windowPane .resizer {
