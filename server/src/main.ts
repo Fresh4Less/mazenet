@@ -54,7 +54,12 @@ const options = copyProperties(configSources, [
     'securePort',
     'sslCertPath',
     'env',
+    'clientPath',
 ]);
+
+if(options.clientPath === undefined) {
+    options.clientPath = Path.join(__dirname, '..', '..', '..', '..', 'client', 'build');
+}
 
 // set property doesn't assign undefined, which prevents Object.assign() from overwriting properties with undefined
 setProperty(options, 'postgres', copyProperties(configSources, [

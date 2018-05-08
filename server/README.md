@@ -62,6 +62,12 @@ If the postgres option specified, you must provide matching credentials for the 
  - timeout (number, optional) - query timeout in milliseconds. If 0, never timeout. Default: 0
  - user (string) - Postgres user
 
+### clientPath (string)
+Path to a directory of static files to serve.
+Default: `../../../../client/build`
+
+If explicitly set to `null`, no files are be served.
+
 ### Logging
 Each enabled logger outputs line seperated JSON to stdout.
 Log levels:

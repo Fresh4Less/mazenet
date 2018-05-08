@@ -22,6 +22,8 @@ import * as Mazenet from './mazenet';
 export namespace Server {
     /** Server constructor options */
     export interface Options {
+        /** path to directory of cilent files that will be served on the root route */
+        clientPath?: string;
         /** Insecure HTTP port, if 0, let OS pick */
         port: number;
         /** HTTPS port, if0, let OS pick */
@@ -155,6 +157,10 @@ export class Server {
             this.app.use(Compression());
             this.app.use(BodyParser.json());
             this.app.use(CookieParser());
+            if(this.options.clientPath) {
+                console.log(this.options.clientPath);
+                this.app.use(Express.static(this.options.clientPath));
+            }
 
             // setting wsEngine prevents crash when starting more than one websocket instance (e.g. in tests)
             // https://github.com/socketio/engine.io/issues/521
