@@ -33,11 +33,12 @@ export class Styles extends React.Component<StylesProps, StylesState> {
         };
     }
 
-    componentWillReceiveProps(nextProps: StylesProps) {
-        this.setState({
-            cssString: stylesheetToString(nextProps.room.stylesheet, false),
-        });
-    }
+    // TODO: Figure out a "dirty" system so this isn't constantly refreshed when other users edit the page.
+    // componentWillReceiveProps(nextProps: StylesProps) {
+    //     this.setState({
+    //         cssString: stylesheetToString(nextProps.room.stylesheet, false),
+    //     });
+    // }
 
     public Activate(): void {
         this.setState({
@@ -62,12 +63,12 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                 <div className={'styles'}>
                     <div className={'header'}>
                         <button
-                            title={'Reset the styles to whatever was last saved.'}
+                            title={'Reset the styles to whatever is currently saved within this room.'}
                             onClick={() => {
                                 this.resetCSS();
                             }}
                         >
-                            Reset
+                            Reset/Refresh
                         </button>
                         <button
                             title={'Save the current styles to this room.'}
@@ -157,7 +158,14 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                 <h1>Styles Help</h1>
                 <h2>Info</h2>
                 <ul>
-                    <li>- The CSS you are writing will be filtered of illegal rules and namespaced within the room.</li>
+                    <li>- You are writing&nbsp;
+                        <a
+                            title="Mozilla's introduction to CSS."
+                            target="_blank"
+                            href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Syntax"
+                        >CSS
+                        </a>.
+                        It will be filtered of illegal rules and namespaced within the room.</li>
                     <li>- Hover over structures with the Structure Workshop open see their IDs.</li>
                     <li>- Custom classes and a better UI are coming soon.</li>
                 </ul>

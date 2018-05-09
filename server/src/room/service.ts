@@ -25,6 +25,28 @@ export interface StructureBlueprintTree {
 }
 
 export class Service {
+
+    /** Produces a stylesheet with a .room selector containing a gradient background of two randomly chosen colors
+     *  and at a randomly chosen angle.
+     *  TODO: Add more variety of background types rather than gradients.
+     */
+    private static generateRandomStylesheet(): Api.v1.Models.Stylesheet {
+        const r = (max: number) => {
+            return Math.floor(Math.random() * Math.floor(max));
+        };
+        return {
+            rules: [
+                {
+                    properties: {
+                        background: `linear-gradient(${r(180)}deg, rgb(${r(256)}, ${r(256)}, ${r(256)}),` +
+                        `rgb(${r(256)}, ${r(256)}, ${r(256)}))`
+                    },
+                    selectors: ['.room']
+                }
+            ]
+        };
+    }
+
     public dataStore: DataStore;
     public activeUserRoomDataStore: ActiveUserRoomDataStore;
     public userService: UserService;
@@ -47,17 +69,8 @@ export class Service {
         return this.userService.getRootUser().mergeMap((user) => {
             rootUser = user;
             return this.createRoom(rootUser, Uuid(), {
-                stylesheet: {
-                    rules: [
-                        {
-                            properties: {
-                                background: 'linear-gradient(rgb(200, 38, 170), rgb(63, 236, 219))'
-                            },
-                            selectors: ['.room']
-                        }
-                    ]
-                },
-                title: 'mazenet'
+                stylesheet: Service.generateRandomStylesheet(),
+                title: 'The Root Room'
             });
         }).mergeMap((room: Room) => {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
@@ -249,7 +262,7 @@ export class Service {
         });
 
         return this.createRoom(user, tunnelData.targetId, {
-            stylesheet: {rules: []},
+            stylesheet: Service.generateRandomStylesheet(),
             title: tunnelBlueprintData.sourceText
         }).map((room: Room) => {
             return tunnelData;
@@ -261,86 +274,42 @@ export class Service {
         structure: {
             data: {
                 sType: 'tunnel',
-                sourceText: 'enter',
-                targetText: 'exit'
+                sourceText: 'WELCOME PARTY',
+                targetText: 'leave the party',
             },
-            pos: {x: 0.5, y: 0.6}
+            pos: {x: 0.48, y: 0.2}
         }
     }, {
         structure: {
             data: {
                 sType: 'tunnel',
-                sourceText: 'welcome to the mazenet',
-                targetText: 'back',
+                sourceText: 'ADVENTURE ZONE',
+                targetText: 'back to root',
             },
-            pos: {x: 0.5, y: 0.2}
-        },
-        children: [{
-            structure: {
-                data: {
-                    sType: 'tunnel',
-                    sourceText: 'thanks for dropping by',
-                    targetText: 'back',
-                },
-                pos: {x: 0.5, y: 0.4}
-            }
-        }]
-    }, {
-        structure: {
-            data: {
-                sType: 'tunnel',
-                sourceText: 'moving through the world you leave your mark',
-                targetText: 'back',
-            },
-            pos: {x: 0.2, y: 0.4}
+            pos: {x: 0.2, y: 0.8}
         }
     }, {
+            structure: {
+                data: {
+                    sType: 'tunnel',
+                    sourceText: 'MYSTERIOUS MANOR',
+                    targetText: 'back where ye came from',
+                },
+                pos: {x: 0.7, y: 0.8}
+            }
+
+    }, {
         structure: {
             data: {
-                sType: 'tunnel',
-                sourceText: 'bring a friend',
-                targetText: 'back',
+                sType: 'text',
+                text: 'Welcome to the Mazenet.\n\nThis is the root room.\n\nFrom here you can begin your journey of ' +
+                'exploration, creativity, and socialization. Click any tunnel link to go exploring or try out a ' +
+                'tool on the toolbar.\n\nThe ghostly cursors floating around are recordings of you and other users ' +
+                'exploring the Mazenet.',
+                width: 0.2
             },
-            pos: {x: 0.4, y: 0.425}
+            pos: {x: 0.42, y: 0.41}
         }
-    }, {
-        structure: {
-            data: {
-                sType: 'tunnel',
-                sourceText: 'explore the maze',
-                targetText: 'back',
-            },
-            pos: {x: 0.55, y: 0.45}
-        },
-        children: [{
-            structure: {
-                data: {
-                    sType: 'tunnel',
-                    sourceText: 'who knows where you will go',
-                    targetText: 'and what you will find!'
-                },
-                pos: {x: 0.7, y: 0.7}
-            }
-        }]
-    }, {
-        structure: {
-            data: {
-                sType: 'tunnel',
-                sourceText: 'and make it your own',
-                targetText: 'back',
-            },
-            pos: {x: 0.7, y: 0.5}
-        },
-        children: [{
-            structure: {
-                data: {
-                    sType: 'tunnel',
-                    sourceText: 'use the toolbar to dig a tunnel',
-                    targetText: 'what will you leave for others to find?'
-                },
-                pos: {x: 0.4, y: 0.65}
-            }
-        }]
     }];
     /* tslint:enable:object-literal-sort-keys, member-ordering */
 }
