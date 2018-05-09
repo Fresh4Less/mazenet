@@ -158,7 +158,6 @@ export class Server {
             this.app.use(BodyParser.json());
             this.app.use(CookieParser());
             if(this.options.clientPath) {
-                console.log(this.options.clientPath);
                 this.app.use(Express.static(this.options.clientPath));
             }
 

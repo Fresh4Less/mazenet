@@ -11,7 +11,7 @@ module.exports = {
     devtool: 'source-map',
     entry: {
         vendor: ['react', 'react-dom', 'rxjs', 'css', 'reflect-metadata'],
-        client: './src/index.tsx'
+        client: path.resolve(__dirname, 'src/index.tsx')
     },
     output: {
         filename: 'static/js/[name].[hash:8].js',

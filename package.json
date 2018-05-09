@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "mazenet",
   "scripts": {
+    "start": "cd server && npm start",
     "test": "jest --coverage --verbose"
   },
   "dependencies": {
