@@ -13,6 +13,7 @@ interface StylesProps {
 
 interface StylesState {
     active: boolean;
+    dirty: boolean;
     cssString: string;
     errorText: string;
     helpActive: boolean;
@@ -27,18 +28,20 @@ export class Styles extends React.Component<StylesProps, StylesState> {
 
         this.state = {
             active: false,
+            dirty: false,
             cssString: stylesheetToString(props.room.stylesheet, false),
             errorText: '',
             helpActive: true,
         };
     }
 
-    // TODO: Figure out a "dirty" system so this isn't constantly refreshed when other users edit the page.
-    // componentWillReceiveProps(nextProps: StylesProps) {
-    //     this.setState({
-    //         cssString: stylesheetToString(nextProps.room.stylesheet, false),
-    //     });
-    // }
+    componentWillReceiveProps(nextProps: StylesProps) {
+        if (!this.state.dirty) {
+            this.setState({
+                cssString: stylesheetToString(nextProps.room.stylesheet, false),
+            });
+        }
+    }
 
     public Activate(): void {
         this.setState({
@@ -93,7 +96,10 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                             placeholder="Type some styles."
                             value={this.state.cssString}
                             onChange={(e) => {
-                                this.setState({cssString: e.target.value});
+                                this.setState({
+                                    dirty: true,
+                                    cssString: e.target.value
+                                });
                             }}
                         />
                         {this.renderHelp()}
@@ -188,6 +194,7 @@ export class Styles extends React.Component<StylesProps, StylesState> {
 
     private resetCSS() {
         this.setState({
+            dirty: false,
             cssString: stylesheetToString(this.props.room.stylesheet, false),
         });
     }
@@ -203,6 +210,7 @@ export class Styles extends React.Component<StylesProps, StylesState> {
             return;
         }
         this.setState({
+            dirty: false,
             errorText: ''
         });
         SocketAPI.Instance.UpdateRoom(this.props.room.id, {

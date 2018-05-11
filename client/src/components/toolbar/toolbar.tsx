@@ -7,7 +7,6 @@ import { SocketAPI } from '../../services/SocketAPI';
 import TunnelTool from './tunnelTool';
 import { Models } from '../../../../common/api/v1';
 import TextTool from './textTool';
-import HomeTool from './homeTool';
 import ConfigTool from './configTool';
 import StyleTool from './styleTool';
 import { InfoTool } from './infoTool';
@@ -24,7 +23,6 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
     private tunnelTool: TunnelTool | null;
     private textTool: TextTool | null;
     private configTool: ConfigTool | null;
-    private homeTool: HomeTool | null;
     private styleTool: StyleTool | null;
 
     constructor(props: any) {
@@ -72,11 +70,6 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
                         room={this.state.room}
                         ref={(tool) => {this.styleTool = tool; }}
                     />
-                    <HomeTool
-                        room={this.state.room}
-                        rootRoomId={this.state.rootRoomId}
-                        ref={(tool) => {this.homeTool = tool; }}
-                    />
                     <InfoTool/>
                     <UserTool user={this.state.user}/>
                 </span>
@@ -86,9 +79,18 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
         const subtitle = this.state.room ? this.state.room.title : '...';
         return (
             <div id={'Toolbar'}>
-                <span id={'Title'}>
+                <span
+                    id={'Title'}
+                    title={this.notInRoot() ? 'Return to the root room.' : 'Welcome to Mazenet!'}
+                    onClick={() => {
+                        if (this.notInRoot() && window.confirm('Leave the current room and return to the root?')) {
+                            SocketAPI.Instance.EnterRootPage();
+                        }
+                    }}
+                >
                     mazenet
-                </span><span title={`In the room '${subtitle}'`} id={'Subtitle'}>
+                </span>
+                <span title={`In the room '${subtitle}'`} id={'Subtitle'}>
                     {subtitle}
                 </span>
                 {tools}
@@ -111,14 +113,15 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
             case 'c':
                 if (this.configTool) {this.configTool.Use(); }
                 break;
-            case 'r':
-                if (this.homeTool) {this.homeTool.Use(); }
-                break;
             case 's':
                 if (this.styleTool) {this.styleTool.Use(); }
                 break;
             default:
                 break;
         }
+    }
+
+    private notInRoot(): boolean {
+        return this.state.room ? this.state.room.id !== this.state.rootRoomId : false;
     }
 }

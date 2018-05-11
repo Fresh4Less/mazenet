@@ -10,6 +10,7 @@
 #Toolbar #Title {
     font-size: 40px;
     padding-left: 10px;
+    cursor: pointer;
 }
 #Toolbar #Subtitle {
     font-family: sans-serif;
