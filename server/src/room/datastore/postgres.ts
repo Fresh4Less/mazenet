@@ -320,8 +320,10 @@ export class PostgresDataStore implements DataStore {
         const structuresQuery =
         `SELECT *
         FROM structures
-        JOIN structure_tunnels USING (structureid)
-        WHERE structure_tunnels.sourceId = ANY($1) OR structure_tunnels.targetId = ANY($1);`;
+        FULL JOIN structure_tunnels USING (structureid)
+        FULL JOIN structure_texts USING (structureid)
+        WHERE structure_tunnels.sourceid = ANY($1) OR structure_tunnels.targetid = ANY($1) OR
+              structure_texts.roomid = ANY($1);`;
         return Observable.forkJoin(
             Observable.fromPromise(this.clientPool.query(
                 roomsQuery,
@@ -336,8 +338,15 @@ export class PostgresDataStore implements DataStore {
             const roomStructures: Map<Room.Id, Structure[]> = structuresResult.rows.reduce((out: Map<Room.Id, Structure[]>, structureRow: any) => {
                 let parentRooms: Room.Id[] = [];
                 const structure = structureFromRow(structureRow);
-                if(structure.data.sType === 'tunnel') {
-                    parentRooms = [structure.data.sourceId, structure.data.targetId];
+                switch(structure.data.sType) {
+                    case 'tunnel':
+                        parentRooms = [structure.data.sourceId, structure.data.targetId];
+                        break;
+                    case 'text':
+                        parentRooms = [structure.data.roomId];
+                        break;
+                    default:
+                        //TODO: throw error
                 }
 
                 parentRooms.forEach((roomId: Room.Id) => {

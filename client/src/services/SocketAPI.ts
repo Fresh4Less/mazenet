@@ -40,9 +40,8 @@ export class SocketAPI {
     */
     private constructor() {
         const loc = window.location;
-        const serverPort = 8080; // TODO Edit when server serves front end.
         this.activePageId = '';
-        this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${serverPort}/mazenet`);
+        this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${loc.port}/mazenet`);
         this.uniqueIdCounter = 0;
         this.rootPage = '';
         this.cursorRecordingTransactionManager = new TransactionManager(this.socket, '/rooms/cursor-recordings');
