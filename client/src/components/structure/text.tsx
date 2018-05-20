@@ -11,21 +11,38 @@ interface TextProps extends StructureProps {
 interface TextState {
     width: number;
     height: number;
+    dirty: boolean;
     text: string;
 }
 
 export default class Text extends React.Component<TextProps, TextState> {
 
+    private previousPosition: Models.Position | null = null;
     private editTextArea: HTMLTextAreaElement | null;
 
     constructor(props: TextProps) {
         super(props);
 
+        this.previousPosition = props.structure.pos;
         this.state = {
             width: props.textData.width,
             height: 22,
+            dirty: false,
             text: props.textData.text,
         };
+    }
+
+    componentWillReceiveProps(props: TextProps) {
+        // If it was repositioned mark it as dirty.
+        if (this.previousPosition &&
+            (props.structure.pos.x !== this.previousPosition.x ||
+                props.structure.pos.y !== this.previousPosition.y)) {
+            this.setState({
+                dirty: true
+            });
+        }
+        this.previousPosition = props.structure.pos;
+
     }
 
     render() {
@@ -88,6 +105,14 @@ export default class Text extends React.Component<TextProps, TextState> {
                 </div>
                 <button
                     onClick={() => {
+                        this.cancel();
+                    }}
+                >
+                    Cancel
+                </button>
+                <button
+                    disabled={!this.state.dirty}
+                    onClick={() => {
                         this.submit();
                     }}
                 >
@@ -95,7 +120,15 @@ export default class Text extends React.Component<TextProps, TextState> {
                 </button>
             </div>
         );
+    }
 
+    private cancel() {
+        if (!this.props.doneEditingCb) {
+            return;
+        }
+        if (!this.state.dirty || confirm('Unsaved changes will be lost. Are you sure?')) {
+            this.props.doneEditingCb(null);
+        }
     }
 
     private submit() {
@@ -103,7 +136,7 @@ export default class Text extends React.Component<TextProps, TextState> {
             return;
         }
         if (!this.editTextArea ||
-            this.state.text.length === 0) {
+            !this.state.dirty) {
             this.props.doneEditingCb(null);
             return;
         }
@@ -118,9 +151,11 @@ export default class Text extends React.Component<TextProps, TextState> {
     private updateTextArea(el: HTMLTextAreaElement): void {
         let oldHeight = el.style.height;
         el.style.height = '5px';
-        if (this.state.text !== el.value || this.state.height !== el.scrollHeight) {
+        const textChanged = this.state.text !== el.value;
+        if (textChanged || this.state.height !== el.scrollHeight) {
             this.setState({
                 height: el.scrollHeight,
+                dirty: textChanged,
                 text: el.value,
             });
         }

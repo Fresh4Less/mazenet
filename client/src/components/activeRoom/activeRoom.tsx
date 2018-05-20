@@ -1,5 +1,3 @@
-
-// Handles popping up tools and such.
 import * as React from 'react';
 
 import './activeRoom.css';
@@ -8,9 +6,7 @@ import Structure from '../structure/structure';
 import { SocketAPI } from '../../services/SocketAPI';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
-import { Styles } from '../styles/styles';
 import { stylesheetToString } from '../../../../common/util/stylesheet';
-import MouseCanvas from '../mouseCanvas/mouseCanvas';
 
 interface MouseMoveInfo {
     element: HTMLDivElement;
@@ -117,9 +113,7 @@ export default class ActiveRoom extends React.Component<any, ActiveRoomState> {
             return (
                 <div id={`id-${room.id}`}>
                     <div className={'room'} onMouseMove={this.mouseMoveHandler}>
-                        <MouseCanvas/>
                         {structureElements}
-                        <Styles room={room}/>
                     </div>
                 </div>
             );

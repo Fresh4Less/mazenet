@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Models } from '../../../../common/api/v1';
 import ToolbarToolInterface from './toolbarToolInterface';
-import { StylesService } from '../../services/StylesService';
 
 import svg from './style.svg';
+import { Styles } from '../styles/styles';
 
 interface StyleToolProps {
     room: Models.Room;
@@ -13,7 +13,7 @@ export default class StyleTool extends React.PureComponent<StyleToolProps, any> 
     private enabled: boolean;
 
     public Use() {
-        StylesService.Instance.ActivateStylePane();
+        Styles.Instance.Activate();
     }
 
     render() {

@@ -11,22 +11,12 @@
 
 /* Edit Mode */
 .tunnel-edit {}
-.tunnel-edit-top-text {
-    color: rgba(0,0,0,0.9);
-    font-size: small;
-    font-family: "Gill Sans", sans-serif;
-    position: absolute;
-    transform: translateY(-100%);
-    white-space: nowrap;
-}
 .input-underline {
     display: block;
     border: none;
     color: #00000000;
     height: 1px;
-
-    background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.3) 95%, transparent 100%);
-
+    background: rgba(0,0,0,0.3);
 }
 .input-text-width-tester {
     position: absolute;
@@ -37,11 +27,18 @@
 }
 input {
     border:none;
-    background: linear-gradient(to right, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.6) 95%, transparent 100%);
+    background: rgba(255,255,255,0.6);
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
 }
 textarea:focus, input:focus {
     outline: none;
+}
+
+.tunnel-edit button {
+    cursor: pointer;
+    border: rgba(0,0,0,0.6) solid 1px;
+    background: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
 }

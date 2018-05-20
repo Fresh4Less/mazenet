@@ -29,7 +29,7 @@ export class UserTool extends React.PureComponent<UserToolProps, UserToolState> 
     }
 
     public Use() {
-        console.log('Use info pane coming soon!');
+        console.log('User info pane coming soon!');
     }
 
     render() {

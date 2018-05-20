@@ -58,7 +58,7 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
 
     public Close(force: boolean): boolean {
         if (this.state.active && this.state.structure && !force) {
-            let result = confirm('Closing Structure Workshop.\n\nChanges will be lost.  Are you sure?');
+            let result = confirm('Unsaved changes will be lost. Are you sure?');
             if (!result) {
                 return false;
             }

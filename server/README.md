@@ -106,10 +106,14 @@ The secrets file can be specified with the `secrets` option. If not specified, t
 
 ### postgres (object)
 Specifies credentials for postgres users. Each property describes a user, with the value being a password string.
+
+*Within secrets.json:*
 ```
 {
-	"elliot": "elliotPassword",
-	"sam": "samPassword"
+"postgres": {
+	    "elliot": "elliotPassword",
+	    "sam": "samPassword"
+}
 }
 ```
 

@@ -2,45 +2,52 @@ import * as React from 'react';
 import { Models } from '../../../../common/api/v1';
 
 import './styles.css';
-import { StylesService } from '../../services/StylesService';
-import { parseCss, stylesheetToString } from '../../../../common/util/stylesheet';
 import { WindowPane } from '../windowPane/windowPane';
 import { SocketAPI } from '../../services/SocketAPI';
+import { AdvancedStyles } from './advancedStyles';
+import { SimpleStyles } from './simpleStyles';
+import { ErrorService } from '../../services/ErrorService';
 
-interface StylesProps {
-    room: Models.Room;
+export interface StylesMode {
+    Stylesheet(): [Models.Stylesheet | null, Error | null];
+    Reset(): void;
 }
+
+interface StylesProps {}
 
 interface StylesState {
     active: boolean;
-    dirty: boolean;
-    cssString: string;
+    room: Models.Room | null;
     errorText: string;
-    helpActive: boolean;
+    advancedMode: boolean;
 }
 
 export class Styles extends React.Component<StylesProps, StylesState> {
+    private static _instance: Styles;
+
+    private simpleStyles: StylesMode = Styles.placeholderStyleMode();
+    private advancedStyles: StylesMode = Styles.placeholderStyleMode();
 
     constructor(props: StylesProps) {
         super(props);
 
-        StylesService.Instance.SetStructureWorkshopComponent(this);
+        if (Styles._instance) {
+            ErrorService.Warning('Multiple Styles panes initialized.');
+        }
+        Styles._instance = this;
 
         this.state = {
+            room: null,
             active: false,
-            dirty: false,
-            cssString: stylesheetToString(props.room.stylesheet, false),
             errorText: '',
-            helpActive: true,
+            advancedMode: true
         };
-    }
 
-    componentWillReceiveProps(nextProps: StylesProps) {
-        if (!this.state.dirty) {
+        SocketAPI.Instance.roomEnteredObservable.subscribe((val => {
             this.setState({
-                cssString: stylesheetToString(nextProps.room.stylesheet, false),
+                room: val.room,
             });
-        }
+        }));
     }
 
     public Activate(): void {
@@ -49,7 +56,10 @@ export class Styles extends React.Component<StylesProps, StylesState> {
         });
     }
 
-    public render(): JSX.Element {
+    public render(): JSX.Element | null {
+        if (this.state.room === null) {
+            return null;
+        }
         return (
             <WindowPane
                 startPos={{x: 0.1, y: 0.2}}
@@ -82,28 +92,26 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                             Save
                         </button>
                         <button
+                            title={'Toggle styles mode.'}
                             onClick={() => {
                                 this.setState({
-                                    helpActive: !this.state.helpActive
+                                    advancedMode: !this.state.advancedMode
                                 });
                             }}
                         >
-                            Toggle Help
+                            {this.state.advancedMode ? 'Simple Mode' : 'Advanced Mode'}
                         </button>
                     </div>
-                    <div className={'body'}>
-                        <textarea
-                            placeholder="Type some styles."
-                            value={this.state.cssString}
-                            onChange={(e) => {
-                                this.setState({
-                                    dirty: true,
-                                    cssString: e.target.value
-                                });
-                            }}
-                        />
-                        {this.renderHelp()}
-                    </div>
+                    <SimpleStyles
+                        room={this.state.room}
+                        active={!this.state.advancedMode}
+                        ref={e => {if (e) {this.simpleStyles = e; }}}
+                    />
+                    <AdvancedStyles
+                        room={this.state.room}
+                        active={this.state.advancedMode}
+                        ref={e => {if (e) {this.advancedStyles = e; }}}
+                    />
                     <div className={'footer'}>
                         <div className={'error'}>
                             {this.state.errorText}
@@ -114,108 +122,44 @@ export class Styles extends React.Component<StylesProps, StylesState> {
         );
     }
 
-    private renderHelp(): JSX.Element | null {
-        if (!this.state.helpActive) {
-            return null;
-        }
-
-        const sharedSelectors = [
-            {selector: '.room', description: 'Selects this room.'},
-            {selector: '.structure', description: 'Selects all structures.'},
-            {selector: '.tunnel', description: 'Selects all tunnel structures.'},
-            {selector: '.text', description: 'Selects all text structures.'},
-        ];
-        const sharedSelectorElements = sharedSelectors.map((e) => {
-            return (
-                <li
-                    key={e.selector}
-                    className={'selector'}
-                    onClick={() => {
-                        this.addSelectorToSheet(e.selector);
-                    }}
-                    title={`Click to append a ${e.selector} selector.`}
-                >
-                    <b>{e.selector}</b> - <i>{e.description}</i>
-                </li>
-            );
-        });
-
-        const structureSelectorElements = Object.keys(this.props.room.structures).map((id) => {
-            const structure = this.props.room.structures[id];
-            const selector = `#id-${id}`;
-            return (
-                <li
-                    key={id}
-                    className={'selector'}
-                    onClick={() => {
-                        this.addSelectorToSheet(selector);
-                    }}
-                    title={`Click to append a ${selector} selector.`}
-                >
-                    <b>{selector}</b> - <i>{structure.data.sType} at
-                        (x: {Math.floor(structure.pos.x * 100)}%,
-                        y: {Math.floor(structure.pos.y * 100)}%)</i>
-                </li>
-            );
-        });
-
-        return (
-            <div className={'help'}>
-                <h1>Styles Help</h1>
-                <h2>Info</h2>
-                <ul>
-                    <li>- You are writing&nbsp;
-                        <a
-                            title="Mozilla's introduction to CSS."
-                            target="_blank"
-                            href="https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Syntax"
-                        >CSS
-                        </a>.
-                        It will be filtered of illegal rules and namespaced within the room.</li>
-                    <li>- Hover over structures with the Structure Workshop open see their IDs.</li>
-                    <li>- Custom classes and a better UI are coming soon.</li>
-                </ul>
-                <h2>Selectors</h2>
-                (You can click the selectors.)
-                <h3>Shared</h3>
-                <ul>{sharedSelectorElements}</ul>
-                <h3>Structures</h3>
-                <ul>{structureSelectorElements}</ul>
-            </div>
-        );
-    }
-
-    private addSelectorToSheet(selector: string) {
-        const selectorString = `\n${selector} {\n  \n}`;
-        this.setState({
-            cssString: this.state.cssString + selectorString
-        });
-    }
-
     private resetCSS() {
-        this.setState({
-            dirty: false,
-            cssString: stylesheetToString(this.props.room.stylesheet, false),
-        });
+        this.simpleStyles.Reset();
+        this.advancedStyles.Reset();
     }
 
     private saveCSS() {
-        let stylesheet: Models.Stylesheet | null = null;
-        try {
-            stylesheet = parseCss(this.state.cssString);
-        } catch (e) {
-            this.setState({
-                errorText: e.message
-            });
+        if (this.state.room === null) {
             return;
         }
-        this.setState({
-            dirty: false,
-            errorText: ''
-        });
-        SocketAPI.Instance.UpdateRoom(this.props.room.id, {
-            stylesheet: stylesheet
-        });
+        let out: [Models.Stylesheet | null, Error | null] = this.state.advancedMode ?
+            this.advancedStyles.Stylesheet() : this.simpleStyles.Stylesheet();
+        let stylesheet: Models.Stylesheet | null = out[0];
+        let error: Error | null = out[1];
 
+        if (error !== null) {
+            this.setState({
+                errorText: error.message
+            });
+            return;
+        } else if (stylesheet !== null) {
+            this.setState({
+                errorText: ''
+            });
+            SocketAPI.Instance.UpdateRoom(this.state.room.id, {stylesheet: stylesheet});
+        }
+
+    }
+
+    public static get Instance(): Styles {
+        return Styles._instance;
+    }
+
+    private static placeholderStyleMode(): StylesMode {
+        return {
+            Stylesheet: () => [null, null],
+            Reset: () => {
+                // NO-OP
+            }
+        };
     }
 }

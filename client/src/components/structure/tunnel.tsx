@@ -12,11 +12,13 @@ interface TunnelProps extends StructureProps {
 
 interface  TunnelState {
     text: string;
+    dirty: boolean;
     targetId: Models.Room.Id;
 }
 
 export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
 
+    private previousPosition: Models.Position | null = null;
     private editInput: HTMLInputElement | null;
     private editOnChangeHandler: (event: ChangeEvent<HTMLInputElement>) => void;
     private characterWidth: number;
@@ -26,11 +28,11 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
 
         this.state = this.generateStateFromProps(props);
         this.editOnChangeHandler = this.editOnChange.bind(this);
-        this.characterWidth = this.getCharacterWidth();
+        this.characterWidth = Tunnel.measureCharacterWidth();
     }
 
     componentWillReceiveProps(props: TunnelProps) {
-        this.characterWidth = this.getCharacterWidth();
+        this.characterWidth = Tunnel.measureCharacterWidth();
         this.setState(this.generateStateFromProps(props));
     }
 
@@ -63,13 +65,16 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
     }
 
     private renderEditing(x: number, y: number) {
+        const placeholder = 'Tunnel Name';
+        const minWidth = 16;
         const containerStyle = {
             cursor: 'text',
             left: `${x}%`,
             top: `${y}%`,
         };
-        const widthStyle = {
-            width: this.characterWidth * this.state.text.length,
+        const inputStyle = {
+            width: Math.max(this.characterWidth * this.state.text.length,
+                Math.max(this.characterWidth * placeholder.length, this.characterWidth * minWidth))
         };
         return (
             <div
@@ -80,11 +85,11 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
                     e.stopPropagation(); // Keep from repositioning in StructureWorkshop.
                 }}
             >
-                <div className={'tunnel-edit-top-text'}>Tunnel Name</div>
                 <input
                     className={'tunnel-font'}
-                    style={widthStyle}
+                    style={inputStyle}
                     value={this.state.text}
+                    placeholder={placeholder}
                     onKeyPress={(e) => {
                         if (e.key === 'Enter' && this.state.text.length > 0) {
                             this.submit();
@@ -98,36 +103,79 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
                     }}
                 />
                 <div
-                    style={widthStyle}
+                    style={inputStyle}
                 >
                     <span className={'input-underline'}/>
                 </div>
+                <button
+                    onClick={() => {
+                        this.cancel();
+                    }}
+                >
+                    Cancel
+                </button>
+                <button
+                    disabled={!this.state.dirty}
+                    onClick={() => {
+                        this.submit();
+                    }}
+                >
+                    Submit
+                </button>
             </div>
         );
+    }
+
+    private cancel() {
+        if (!this.props.doneEditingCb) {
+            return;
+        }
+        if (!this.state.dirty || confirm('Unsaved changes will be lost. Are you sure?')) {
+            this.props.doneEditingCb(null);
+        }
     }
 
     private submit() {
         if (!this.props.doneEditingCb) {
             return;
         }
+        if (!this.state.dirty) {
+            this.props.doneEditingCb(null);
+            return;
+        }
 
         let editedTunnelStructure = Object.assign({}, this.props.structure);
         editedTunnelStructure.data = Object.assign({}, this.props.tunnelData);
-        editedTunnelStructure.data.sourceText = this.state.text;
+        if (this.inSourceRoom(this.props)) {
+            editedTunnelStructure.data.sourceText = this.state.text;
+        } else {
+            editedTunnelStructure.data.targetText = this.state.text;
+        }
+
         this.props.doneEditingCb(editedTunnelStructure);
     }
 
     private generateStateFromProps(props: TunnelProps): TunnelState {
         let text = '';
         let targetId = '';
-        if (props.room.id === props.tunnelData.sourceId) {
+        let dirty = this.state && this.state.dirty;
+
+        // If it was repositioned mark it as dirty.
+        if (this.previousPosition &&
+            (this.props.structure.pos.x !== this.previousPosition.x ||
+            this.props.structure.pos.y !== this.previousPosition.y)) {
+            dirty = true;
+        }
+        this.previousPosition = this.props.structure.pos;
+
+        if (this.inSourceRoom(props)) {
             text = props.tunnelData.sourceText;
             targetId =  props.tunnelData.targetId;
         } else {
             text = props.tunnelData.targetText;
             targetId = props.tunnelData.sourceId;
         }
-        if (props.isEditing && this.state && this.state.text.length > 0) {
+        if (props.isEditing && this.state && dirty) {
             // If we are editing the tunnel don't reset the text constantly.
             // consider refactoring so that the state isn't necessary and it is all props.
             text = this.state.text;
@@ -135,22 +183,14 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
 
         return {
             text: text,
+            dirty: dirty,
             targetId: targetId,
         };
     }
 
-    private getCharacterWidth(): number {
-        let sizerDiv = document.createElement('div');
-        sizerDiv.className = 'input-text-width-tester tunnel-font';
-        sizerDiv.innerText = 'c';
-        document.body.appendChild(sizerDiv);
-        let width = sizerDiv.clientWidth;
-        document.body.removeChild(sizerDiv);
-        return width + 1;
-    }
-
     private editOnChange(event: ChangeEvent<HTMLInputElement>): void {
         this.setState({
+            dirty: true,
             text: event.target.value
         });
     }
@@ -159,5 +199,19 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
         if (this.editInput) {
             this.editInput.focus();
         }
+    }
+
+    private inSourceRoom(props: TunnelProps): boolean {
+        return props.room.id === props.tunnelData.sourceId;
+    }
+
+    private static measureCharacterWidth(): number {
+        let sizerDiv = document.createElement('div');
+        sizerDiv.className = 'input-text-width-tester tunnel-font';
+        sizerDiv.innerText = 'c';
+        document.body.appendChild(sizerDiv);
+        let width = sizerDiv.clientWidth;
+        document.body.removeChild(sizerDiv);
+        return width + 1;
     }
 }
