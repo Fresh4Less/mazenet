@@ -24,9 +24,9 @@ FROM node:carbon
 WORKDIR /usr/src/mazenet
 COPY --from=builder /usr/src/mazenet/client/build ./client/build/
 COPY --from=builder /usr/src/mazenet/server/build ./server/build/
-COPY --from=builder /usr/src/mazenet/server/node_modules ./server/node_modules/
 COPY ./server/package*.json ./server/
 WORKDIR ./server
+RUN npm install --only=production
 
 EXPOSE 8080
-CMD ["npm", "start"]
+ENTRYPOINT ["npm", "start"]
