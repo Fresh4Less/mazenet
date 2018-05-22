@@ -4,3 +4,8 @@
     position: absolute;
     word-wrap: break-word;
 }
+
+.structure .action-buttons {
+    position: absolute;
+    top: -20px;
+}

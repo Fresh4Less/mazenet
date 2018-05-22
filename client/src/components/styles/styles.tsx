@@ -13,11 +13,12 @@ export interface StylesMode {
     Reset(): void;
 }
 
-interface StylesProps {}
+interface StylesProps {
+    room: Models.Room;
+}
 
 interface StylesState {
     active: boolean;
-    room: Models.Room | null;
     errorText: string;
     advancedMode: boolean;
 }
@@ -37,17 +38,10 @@ export class Styles extends React.Component<StylesProps, StylesState> {
         Styles._instance = this;
 
         this.state = {
-            room: null,
             active: false,
             errorText: '',
             advancedMode: true
         };
-
-        SocketAPI.Instance.roomEnteredObservable.subscribe((val => {
-            this.setState({
-                room: val.room,
-            });
-        }));
     }
 
     public Activate(): void {
@@ -56,10 +50,7 @@ export class Styles extends React.Component<StylesProps, StylesState> {
         });
     }
 
-    public render(): JSX.Element | null {
-        if (this.state.room === null) {
-            return null;
-        }
+    public render(): JSX.Element {
         return (
             <WindowPane
                 startPos={{x: 0.1, y: 0.2}}
@@ -103,12 +94,12 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                         </button>
                     </div>
                     <SimpleStyles
-                        room={this.state.room}
+                        room={this.props.room}
                         active={!this.state.advancedMode}
                         ref={e => {if (e) {this.simpleStyles = e; }}}
                     />
                     <AdvancedStyles
-                        room={this.state.room}
+                        room={this.props.room}
                         active={this.state.advancedMode}
                         ref={e => {if (e) {this.advancedStyles = e; }}}
                     />
@@ -128,9 +119,6 @@ export class Styles extends React.Component<StylesProps, StylesState> {
     }
 
     private saveCSS() {
-        if (this.state.room === null) {
-            return;
-        }
         let out: [Models.Stylesheet | null, Error | null] = this.state.advancedMode ?
             this.advancedStyles.Stylesheet() : this.simpleStyles.Stylesheet();
         let stylesheet: Models.Stylesheet | null = out[0];
@@ -145,7 +133,7 @@ export class Styles extends React.Component<StylesProps, StylesState> {
             this.setState({
                 errorText: ''
             });
-            SocketAPI.Instance.UpdateRoom(this.state.room.id, {stylesheet: stylesheet});
+            SocketAPI.Instance.UpdateRoom(this.props.room.id, {stylesheet: stylesheet});
         }
 
     }

@@ -12,71 +12,55 @@ import StyleTool from './styleTool';
 import { InfoTool } from './infoTool';
 import { UserTool } from './userTool';
 
+interface ToolbarProps {
+    room: Models.Room;
+}
+
 interface ToolbarState {
-    room: Models.Room | null;
     rootRoomId: string;
     user: Models.ActiveUser | null;
 }
 
-export default class Toolbar extends React.PureComponent<any, ToolbarState> {
-
-    private tunnelTool: TunnelTool | null;
-    private textTool: TextTool | null;
-    private configTool: ConfigTool | null;
-    private styleTool: StyleTool | null;
+export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
 
     constructor(props: any) {
         super(props);
         this.state = {
-            room: null,
             rootRoomId: '',
             user: null
         };
+    }
+
+    componentDidMount() {
         SocketAPI.Instance.connectedObservable.subscribe(value => {
             this.setState({
                 rootRoomId: value.rootRoomId,
                 user: value.activeUser
             });
         });
-        SocketAPI.Instance.roomEnteredObservable.subscribe((value => {
-            this.setState({
-                room: value.room
-            });
-        }));
-
-        if (Math.min(0, 1) === 3) {
-            document.body.addEventListener('keydown', this.handleKeyDown.bind(this));
-        }
     }
 
     render() {
-        let tools: JSX.Element | null = null;
-        if (this.state.room && this.state.user) {
-            tools = (
-                <span className={'right'}>
-                    <TunnelTool
-                        room={this.state.room}
-                        ref={(tool) => {this.tunnelTool = tool; }}
-                    />
-                    <TextTool
-                        room={this.state.room}
-                        ref={(tool) => {this.textTool = tool; }}
-                    />
-                    <ConfigTool
-                        room={this.state.room}
-                        ref={(tool) => {this.configTool = tool; }}
-                    />
-                    <StyleTool
-                        room={this.state.room}
-                        ref={(tool) => {this.styleTool = tool; }}
-                    />
-                    <InfoTool/>
-                    <UserTool user={this.state.user}/>
-                </span>
-            );
-        }
+        let tools = (
+            <span className={'right'}>
+                <TunnelTool
+                    room={this.props.room}
+                />
+                <TextTool
+                    room={this.props.room}
+                />
+                <ConfigTool
+                    room={this.props.room}
+                />
+                <StyleTool
+                    room={this.props.room}
+                />
+                <InfoTool/>
+                {!!this.state.user ? <UserTool user={this.state.user}/> : null}
+            </span>
+        );
 
-        const subtitle = this.state.room ? this.state.room.title : '...';
+        const subtitle = this.props.room.title;
         return (
             <div id={'Toolbar'}>
                 <span
@@ -98,30 +82,7 @@ export default class Toolbar extends React.PureComponent<any, ToolbarState> {
         );
     }
 
-    private handleKeyDown(event: KeyboardEvent) {
-        // TODO: Fix event propagation.
-        if (event.key) {
-            return; // Always return, don't execute below.
-        }
-        switch (event.key) {
-            case 't':
-                if (this.tunnelTool) {this.tunnelTool.Use(); }
-                break;
-            case 'w':
-                if (this.textTool) {this.textTool.Use(); }
-                break;
-            case 'c':
-                if (this.configTool) {this.configTool.Use(); }
-                break;
-            case 's':
-                if (this.styleTool) {this.styleTool.Use(); }
-                break;
-            default:
-                break;
-        }
-    }
-
     private notInRoot(): boolean {
-        return this.state.room ? this.state.room.id !== this.state.rootRoomId : false;
+        return this.props.room.id !== this.state.rootRoomId;
     }
 }

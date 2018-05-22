@@ -1,5 +1,5 @@
 .windowPane {
-    z-index: 20; /* text = 1; tunnel = 2; StructureWorkshop = 10; StylePane = 20; */
+    z-index: 20; /* text = 1; tunnel = 2; users = 9; StructureWorkshop = 10; StylePane = 20; */
     overflow: auto;
     position:absolute;
     display: inline-block;

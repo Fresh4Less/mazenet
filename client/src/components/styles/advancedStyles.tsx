@@ -31,6 +31,10 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
         let error: Error | null = null;
         try {
             stylesheet = parseCss(this.state.cssString);
+            // Clean up on successful parse.
+            this.setState({
+                dirty: false
+            });
         } catch (e) {
             error = e;
         }

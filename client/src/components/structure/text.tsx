@@ -86,38 +86,41 @@ export default class Text extends React.Component<TextProps, TextState> {
                     e.stopPropagation(); // Keep from repositioning in StructureWorkshop.
                 }}
             >
-                <div>
+                <div className={'action-buttons'}>
+                    <button
+                        onClick={() => {
+                            this.cancel();
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        disabled={!this.state.dirty}
+                        onClick={() => {
+                            this.submit();
+                        }}
+                    >
+                        Submit
+                    </button>
+                </div>
                 <textarea
                     style={textAreaStyle}
                     value={this.state.text}
                     onChange={(e) => {
                         this.updateTextArea(e.target);
                     }}
+                    onMouseUp={(e) => {
+                        this.updateTextArea(e.currentTarget);
+                    }}
                     ref={(el) => {
                         if (!el) {
                             return;
                         }
                         this.editTextArea = el;
-                        this.updateTextArea(el);
+                        this.updateTextArea(el, true);
                         el.focus();
                     }}
                 />
-                </div>
-                <button
-                    onClick={() => {
-                        this.cancel();
-                    }}
-                >
-                    Cancel
-                </button>
-                <button
-                    disabled={!this.state.dirty}
-                    onClick={() => {
-                        this.submit();
-                    }}
-                >
-                    Submit
-                </button>
             </div>
         );
     }
@@ -148,14 +151,13 @@ export default class Text extends React.Component<TextProps, TextState> {
         this.props.doneEditingCb(editedTextStructure);
     }
 
-    private updateTextArea(el: HTMLTextAreaElement): void {
+    private updateTextArea(el: HTMLTextAreaElement, dontDirty?: boolean): void {
         let oldHeight = el.style.height;
         el.style.height = '5px';
-        const textChanged = this.state.text !== el.value;
-        if (textChanged || this.state.height !== el.scrollHeight) {
+        if (this.state.text !== el.value || this.state.height !== el.scrollHeight) {
             this.setState({
                 height: el.scrollHeight,
-                dirty: textChanged,
+                dirty: !dontDirty && el.value.length > 0,
                 text: el.value,
             });
         }

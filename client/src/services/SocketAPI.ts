@@ -30,7 +30,7 @@ export class SocketAPI {
 
     private socket: Socket;
     private uniqueIdCounter: number;
-    private rootPage: Models.Room.Id;
+    private rootPageId: Models.Room.Id;
     private cursorRecordingTransactionManager: TransactionManager;
     private activePageId: Models.Room.Id;
 
@@ -43,7 +43,7 @@ export class SocketAPI {
         this.activePageId = '';
         this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${loc.port}/mazenet`);
         this.uniqueIdCounter = 0;
-        this.rootPage = '';
+        this.rootPageId = '';
         this.cursorRecordingTransactionManager = new TransactionManager(this.socket, '/rooms/cursor-recordings');
 
         /* Setup the Observable feeds */
@@ -57,8 +57,16 @@ export class SocketAPI {
         this.activeUserExitedObservable = this.initActiveUserExitedObservable();
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
         window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
-        const device: Models.PlatformData.Desktop = {pType: 'desktop', cursorPos: {x: 0, y: 0}};
-        this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', device, '1'));
+
+        /* CONNECT */
+        this.connectedObservable.subscribe(res200 => {
+            this.rootPageId = res200.rootRoomId;
+            let urlRoom = URLManager.ParseRoomId();
+            let roomToLoad = urlRoom ? urlRoom : this.rootPageId;
+            this.socket.emit(Routes.Rooms.Enter.Route,
+                new WebRequest('POST', {id: roomToLoad}, '1'));
+        });
+        this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', SocketAPI.Platform(), '1'));
     }
 
     public static get Instance(): SocketAPI {
@@ -66,9 +74,9 @@ export class SocketAPI {
     }
 
     public EnterRootPage(): void {
-        if (this.rootPage.length > 0) {
+        if (this.rootPageId.length > 0) {
             this.socket.emit(Routes.Rooms.Enter.Route,
-                new WebRequest('POST', {id: this.rootPage}, 'todo'));
+                new WebRequest('POST', {id: this.rootPageId}, 'todo'));
         }
     }
 
@@ -125,12 +133,6 @@ export class SocketAPI {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
                         observer.next(res200);
-                        this.rootPage = res200.rootRoomId;
-                        let urlRoom = URLManager.ParseRoomId();
-                        let roomToLoad = urlRoom ? urlRoom : this.rootPage;
-
-                        this.socket.emit(Routes.Rooms.Enter.Route,
-                            new WebRequest('POST', {id: roomToLoad}, '1'));
                         observer.complete();
                     } else {
                         ErrorService.Fatal('Could not connect to the server.', res);
@@ -138,7 +140,7 @@ export class SocketAPI {
                         observer.complete();
                     }
                 });
-            }).publishReplay().refCount();
+            }).publishReplay(1).refCount();
     }
 
     private initRoomEnteredObservable() {
@@ -150,9 +152,9 @@ export class SocketAPI {
                     URLManager.UpdateRoomId(this.activePageId);
                     observer.next(res200);
                 } else {
-                    ErrorService.Warning('could not enter room.',  res);
+                    ErrorService.Warning('Could not enter room.',  res);
                     if (this.activePageId === '') {
-                        this.activePageId = this.rootPage;
+                        this.activePageId = this.rootPageId;
                         ErrorService.Warning('Entering root room instead.');
                         this.EnterRootPage();
                     }
@@ -256,5 +258,9 @@ export class SocketAPI {
         if (urlRoom && urlRoom !== this.activePageId) {
             this.EnterRoom(urlRoom);
         }
+    }
+    // TODO: Make this depend on the actual platform.
+    private static Platform(): Models.PlatformData {
+        return {pType: 'desktop', cursorPos: {x: 0, y: 0}};
     }
 }

@@ -1,5 +1,5 @@
 import { Models } from '../../../common/api/v1';
-import StructureWorkshop from '../components/structureWorkshop/structureWorkshop';
+import { StructureWorkshop } from '../components/structureWorkshop/structureWorkshop';
 import { SocketAPI } from './SocketAPI';
 import { ErrorService } from './ErrorService';
 

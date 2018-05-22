@@ -1,12 +1,12 @@
 .structure.tunnel {
-    z-index: 2; /* text = 1; tunnel = 2; StructureWorkshop = 10; StylePane = 20; */
+    z-index: 2; /* text = 1; tunnel = 2; users = 9; StructureWorkshop = 10; StylePane = 20; */
     text-decoration: underline;
     cursor: pointer;
 }
 .tunnel-font {
     color: black;
     font-family: Lucida Console, Courier, monospace;
-    font-size: 14px;
+    font-size: 20px;
 }
 
 /* Edit Mode */

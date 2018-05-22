@@ -11,7 +11,7 @@ interface ActiveUsersState {
     users: { [id: string]: Models.ActiveUser};
 }
 
-export default class ActiveUsers extends React.Component<any, ActiveUsersState> {
+export class ActiveUsers extends React.Component<any, ActiveUsersState> {
 
     private ourActiveUserId: string;
     private activeUserRefs: { [id: string]: ActiveUser};

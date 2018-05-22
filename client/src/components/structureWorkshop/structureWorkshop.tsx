@@ -5,14 +5,19 @@ import { Models } from '../../../../common/api/v1';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 import Structure from '../structure/structure';
 
+import svg from '../windowPane/close.svg';
+
+interface StructureWorkshopProps {
+    room: Models.Room;
+}
+
 interface StructureWorkshopState {
-    room: Models.Room | null;
     active: boolean;
     positioning: boolean;
     structure: Models.Structure | null;
 }
 
-export default class StructureWorkshop extends React.Component<any, StructureWorkshopState> {
+export class StructureWorkshop extends React.Component<StructureWorkshopProps, StructureWorkshopState> {
 
     private clickHandler: (e: React.MouseEvent<HTMLDivElement>) => void;
     private overlayDiv: HTMLDivElement | null = null;
@@ -23,7 +28,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
 
         this.state = {
             active: false,
-            room: null,
             positioning: true,
             structure: null,
         };
@@ -37,7 +41,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             return; // Use didn't want to cancel whatever they were doing.
         }
         this.setState({
-            room: room,
             active: true,
             positioning: false,
             structure: null,
@@ -49,7 +52,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             return; // Use didn't want to cancel whatever they were doing.
         }
         this.setState({
-            room: room,
             active: true,
             positioning: true,
             structure: structure,
@@ -65,7 +67,6 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
         }
 
         this.setState({
-            room: null,
             active: false,
             positioning: true,
             structure: null,
@@ -82,11 +83,10 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
         let yOffset = this.overlayDiv.getBoundingClientRect().top;
         let clickX = e.clientX;
         let clickY = e.clientY - yOffset;
-        let pos: Models.Position = {
+        this.state.structure.pos = {
             x: clickX / this.overlayDiv.clientWidth,
             y: clickY / this.overlayDiv.clientHeight
         };
-        this.state.structure.pos = pos;
         this.setState({
             structure: this.state.structure,
         });
@@ -104,12 +104,11 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
 
     private doneEditing(data: Models.Structure | null): void {
         if (data === null ||
-            this.state.room === null ||
             this.state.structure === null) {
             this.Close(true);
             return;
         }
-        StructureWorkshopService.Instance.SaveStructure(data, this.state.room);
+        StructureWorkshopService.Instance.SaveStructure(data, this.props.room);
         this.Close(true);
     }
 
@@ -130,15 +129,20 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
             >
                 {structure}
                 {roomStructureSelectors}
+                <div
+                    className={'close-button'}
+                    title={'Close Structure Workshop.'}
+                    onClick={() => {
+                        this.Close(false);
+                    }}
+                    dangerouslySetInnerHTML={{__html: svg}}
+                />
             </div>
         );
     }
 
     private renderRoomStructureSelectors(): JSX.Element[] {
-        if (!this.state.room) {
-            return [];
-        }
-        let room = this.state.room;
+        let room = this.props.room;
         let notNull = function (value: JSX.Element | null): value is JSX.Element { // Hack to make TS happy :)
             return value !== null;
         };
@@ -173,14 +177,14 @@ export default class StructureWorkshop extends React.Component<any, StructureWor
     }
 
     private renderStateStructure(): JSX.Element | null {
-        if (this.state.room && this.state.structure) {
+        if (this.state.structure) {
             let x = this.state.structure.pos.x;
             let y = this.state.structure.pos.y;
             let realStructurePosition = x >= 0 && x <= 1 && y >= 0 && y <= 1;
             if (realStructurePosition) {
                 return (
                     <Structure
-                        room={this.state.room}
+                        room={this.props.room}
                         structure={this.state.structure}
                         doneEditingCb={(data) => {
                             this.doneEditing(data);

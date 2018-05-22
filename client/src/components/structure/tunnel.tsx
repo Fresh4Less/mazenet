@@ -85,6 +85,23 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
                     e.stopPropagation(); // Keep from repositioning in StructureWorkshop.
                 }}
             >
+                <div className={'action-buttons'}>
+                    <button
+                        onClick={() => {
+                            this.cancel();
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        disabled={!this.state.dirty}
+                        onClick={() => {
+                            this.submit();
+                        }}
+                    >
+                        Submit
+                    </button>
+                </div>
                 <input
                     className={'tunnel-font'}
                     style={inputStyle}
@@ -107,21 +124,6 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
                 >
                     <span className={'input-underline'}/>
                 </div>
-                <button
-                    onClick={() => {
-                        this.cancel();
-                    }}
-                >
-                    Cancel
-                </button>
-                <button
-                    disabled={!this.state.dirty}
-                    onClick={() => {
-                        this.submit();
-                    }}
-                >
-                    Submit
-                </button>
             </div>
         );
     }
