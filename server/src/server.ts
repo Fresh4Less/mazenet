@@ -172,6 +172,7 @@ export class Server {
                     host: this.options.postgres.host,
                     password: this.options.postgres.password,
                     port: this.options.postgres.port,
+                    ssl: { rejectUnauthorized: false },
                     user: this.options.postgres.user,
                 });
                 // TODO: log data
