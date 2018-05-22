@@ -19,7 +19,7 @@ export class ActiveRoom extends React.Component<ActiveRoomProps, ActiveRoomState
     constructor(props: any) {
         super(props);
         this.state = {
-            styleString: stylesheetToString(props.room.stylesheet, true, `#id-${props.room.id}`),
+            styleString: stylesheetToString(props.room.stylesheet, true, `#id-${props.room.id} `),
         };
 
         /* Room Styles */
@@ -31,7 +31,7 @@ export class ActiveRoom extends React.Component<ActiveRoomProps, ActiveRoomState
 
     componentWillReceiveProps(nextProps: ActiveRoomProps) {
         this.setState({
-            styleString: stylesheetToString(nextProps.room.stylesheet, true, `#id-${nextProps.room.id}`)
+            styleString: stylesheetToString(nextProps.room.stylesheet, true, `#id-${nextProps.room.id} `)
         });
     }
 
@@ -53,8 +53,10 @@ export class ActiveRoom extends React.Component<ActiveRoomProps, ActiveRoomState
         });
 
         return (
-            <div id={`id-${room.id}`} className={'room'}>
-                {structureElements}
+            <div id={`id-${room.id}`}>
+                <div className={'room'}>
+                    {structureElements}
+                </div>
             </div>
         );
 
