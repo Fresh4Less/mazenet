@@ -12,6 +12,7 @@ import { AlreadyExistsError, NotFoundError } from '../../common';
 import { Room } from '../../room/models';
 import { ActiveUser } from '../../user/models';
 import { executeTransaction, handlePostgresError } from '../../util/postgres';
+import { Record } from '../../util/telemetry';
 
 import { DataStore } from './index';
 
@@ -23,6 +24,7 @@ export class PostgresDataStore implements DataStore {
         this.clientPool = clientPool;
     }
 
+    @Record()
     public getCursorRecordings(roomId: Room.Id, limit: number) {
         const cursorRecordingsQuery =
             `SELECT *
@@ -73,6 +75,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<Map<CursorRecording.Id, CursorRecording>>('getCursorRecordings', [cursorRecordingsQuery, framesQuery].join('\n')));
     }
 
+    @Record()
     public insertCursorRecording(roomId: Room.Id, cursorRecording: CursorRecording) {
         const recordingQuery =
             `INSERT INTO cursorrecordings (cursorrecordingid, activeuserid, roomid) VALUES ($1, $2, $3)`;

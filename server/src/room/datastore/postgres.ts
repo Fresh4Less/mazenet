@@ -9,6 +9,7 @@ import { parseCss, SafeStylesheet, stylesheetToString } from '../../../../common
 
 import { AlreadyExistsError, NotFoundError, Position } from '../../common';
 import { buildQuery_SetColumns, executeTransaction, handlePostgresError, QueryData } from '../../util/postgres';
+import { Record } from '../../util/telemetry';
 
 import { ActiveUser, User } from '../../user/models';
 import { ActiveUserRoomData, Room, RoomDocument, RoomOptions, Structure, StructureData } from '../models';
@@ -77,6 +78,7 @@ export class PostgresDataStore implements DataStore {
         this.clientPool = clientPool;
     }
 
+    @Record()
     public getRootRoomId() {
         const query =
             `SELECT * from rootroom;`;
@@ -90,6 +92,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<Room.Id>('getRootRoomId', query));
     }
 
+    @Record()
     public setRootRoomId(roomId: Room.Id) {
         const query =
             `INSERT INTO rootroom (rowid, rootroomid) VALUES (TRUE, $1)
@@ -103,6 +106,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<null>('setRootUserId', query));
     }
 
+    @Record()
     public insertRoom(room: Room) {
         let ownerParamIndex = 2;
         const ownerQueryParams = [];
@@ -129,6 +133,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<Room>('insertRoom', [insertRoomQuery, insertOwnersQuery].join('\n')));
     }
 
+    @Record()
     public updateRoom(id: Room.Id, patch: Api.v1.Models.Room.Patch) {
         const queries: QueryData[] = [];
         const roomSetColumnsData = buildQuery_SetColumns([
@@ -172,6 +177,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<Room>('updateRoom', queries.map((q)=>q.query).join('\n')));
     }
 
+    @Record()
     public getStructure(id: Structure.Id) {
         const query =
             `SELECT *
@@ -190,6 +196,7 @@ export class PostgresDataStore implements DataStore {
     }
 
     // shouldn't use api here
+    @Record()
     public updateStructure(id: Structure.Id, patch: Api.v1.Models.Structure.Patch) {
         // record queries for error logging
         const queries: string[] = [];
@@ -265,6 +272,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<Structure>('updateStructure', queries.join('\n')));
     }
 
+    @Record()
     public insertStructure(structure: Structure) {
         const queries: QueryData[] = [{
             params: [structure.id, structure.data.sType, structure.creator, posToPoint(structure.pos)],
@@ -300,6 +308,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<Structure>('insertStructure', queries.join('\n')));
     }
 
+    @Record()
     public getRoomDocument(roomId: Room.Id) {
         return this.getRoomDocuments([roomId]).map((roomDocuments) => {
             if(roomDocuments.length === 0) {

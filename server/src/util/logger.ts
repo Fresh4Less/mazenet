@@ -111,8 +111,9 @@ export class Logger {
 
     public static readonly defaultHandlers = new Map<string, LoggerHandler>([
         ['diag', Object.assign({}, Logger.defaultHandler, {enabled: false})],
-        ['trace', Object.assign({}, Logger.defaultHandler, {enabled: false})],
+        ['telem', Object.assign({}, Logger.defaultHandler, {enabled: false})],
         ['request', Object.assign({}, Logger.defaultHandler, {enabled: false})],
+        ['trace', Object.assign({}, Logger.defaultHandler, {enabled: false})],
         ['info', Logger.defaultHandler],
         ['warn', Logger.defaultHandler],
         ['error', Logger.defaultHandler],
@@ -191,6 +192,10 @@ export class Logger {
 
     public request(message: string, userData?: object): void {
         this.logData('request', message, userData);
+    }
+
+    public telem(message: string, userData?: object): void {
+        this.logData('telem', message, userData);
     }
 
     public info(message: string, userData?: object): void {

@@ -77,7 +77,8 @@ Log levels:
 * warn    | warning
 * info    | startup status and notable events
   request | http and ws requests
-  trace   | operational logging useful for debugging
+  trace   | operational logging
+  telem   | telemetry - performance and timing data
   diag    | system diagnostic info
 
 *Enabled by default

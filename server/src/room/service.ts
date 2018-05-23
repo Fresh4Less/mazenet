@@ -1,6 +1,7 @@
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 import { Observable } from 'rxjs/Observable';
@@ -170,8 +171,14 @@ export class Service {
     }
 
     public enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
-        return this.exitRoom(activeUser.id)
-        .mergeMap(() => {
+        return Observable.of(null).do(() => {
+            // exit the current room, but don't block the observable
+            this.exitRoom(activeUser.id).subscribe({
+                error: (err) => {
+                    GlobalLogger.error('Failed to exit room', {roomId, activeUser, error: err});
+                }
+            });
+        }).mergeMap(() => {
             const activeUserRoomData = {
                 activeUser,
                 enterTime: new Date().toISOString(),

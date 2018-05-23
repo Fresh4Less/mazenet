@@ -6,6 +6,7 @@ import 'rxjs/add/operator/catch';
 
 import { AlreadyExistsError, NotFoundError } from '../../common';
 import { handlePostgresError } from '../../util/postgres';
+import { Record } from '../../util/telemetry';
 import { ActiveUser, User } from '../models';
 import { DataStore } from './index';
 
@@ -17,6 +18,7 @@ export class PostgresDataStore implements DataStore {
         this.clientPool = clientPool;
     }
 
+    @Record()
     public getUser(userId: User.Id) {
         const query =
             `SELECT * FROM users WHERE userid=$1;`;
@@ -34,6 +36,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<User>('getUser', query));
     }
 
+    @Record()
     public insertUser(user: User) {
         const query =
             `INSERT INTO users(userid, username) VALUES ($1, $2) RETURNING *;`;
@@ -54,6 +57,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<User>('insertUser', query));
     }
 
+    @Record()
     public getActiveUser(activeUserId: ActiveUser.Id) {
         // TODO: hook up to platformdata
         const query =
@@ -92,6 +96,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<ActiveUser>('getUser', query));
     }
 
+    @Record()
     public insertActiveUser(activeUser: ActiveUser) {
         // TODO: hook up to platformdata
         const query =
@@ -111,6 +116,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<ActiveUser>('insertUser', query));
     }
 
+    @Record()
     public getRootUserId() {
         const query =
             `SELECT * from rootuser;`;
@@ -124,6 +130,7 @@ export class PostgresDataStore implements DataStore {
         }).catch(handlePostgresError<User.Id>('getRootUserId', query));
     }
 
+    @Record()
     public setRootUserId(userId: User.Id) {
         // NOTE: overwriting the root user id if it is already set probably shouldn't be allowed
         const query =

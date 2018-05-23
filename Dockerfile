@@ -1,4 +1,4 @@
-FROM node:carbon as builder
+FROM node:9 as builder
 
 WORKDIR /usr/src/mazenet
 COPY ./client/package*.json ./client/
@@ -19,7 +19,7 @@ RUN npm install
 ADD ./server .
 RUN gulp
 
-FROM node:carbon
+FROM node:9
 
 WORKDIR /usr/src/mazenet
 COPY --from=builder /usr/src/mazenet/client/build ./client/build/

@@ -26,7 +26,7 @@ export class ErrorHandler {
         };
 
         if(errorOut.code >= 500) {
-            GlobalLogger.error(`Unhandled ${err.constructor.name} in request handler'`, err);
+            GlobalLogger.error(`Unhandled ${err.constructor.name} in request handler'`, {error: err});
         }
         res.status(errorOut.code).json(errorOut);
     }
