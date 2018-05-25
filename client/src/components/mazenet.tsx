@@ -83,6 +83,7 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
         return (
             <div id={'Mazenet'} className={this.state.room ? 'loaded' : ''}>
                 {this.state.room && <Toolbar room={this.state.room}/>}
+                {!this.state.room && 'Loading...'}
                 <div
                     id={'BelowToolbar'}
                     onMouseMove={this.mouseMoveHandler}

@@ -1,5 +1,5 @@
 .structure.tunnel {
-    z-index: 2; /* text = 1; tunnel = 2; users = 9; StructureWorkshop = 10; StylePane = 20; */
+    z-index: 3; /* text = 1; mouseRecordings = 2; tunnel = 3; users = 9; StructureWorkshop = 10; StylePane = 20; */
     text-decoration: underline;
     cursor: pointer;
 }

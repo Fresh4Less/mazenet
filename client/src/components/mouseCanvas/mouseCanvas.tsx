@@ -25,6 +25,9 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
         super(props);
 
         SocketAPI.Instance.roomEnteredObservable.subscribe((enterVal => {
+            this.setState({
+               mouseRecordings: {}
+            });
             SocketAPI.Instance.GetRecordingForRoom(enterVal.room.id).subscribe(cursorVal => {
                 this.nextFrameMarkers = {};
                 this.setState({
