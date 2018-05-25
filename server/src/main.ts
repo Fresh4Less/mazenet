@@ -4,6 +4,7 @@ import * as Path from 'path';
 
 import { Server } from './server';
 import { GlobalLogger, LoggerHandler } from './util/logger';
+import { defaultRecordOptions } from './util/telemetry';
 
 export class InvalidConfigurationError extends Error {
     constructor(message: string) {
@@ -30,6 +31,7 @@ const logOptions = copyProperties(configSources, [
     'logInfo',
     'logRequest',
     'logTrace',
+    'logTelem',
     'logDiag',
 ]);
 
@@ -48,6 +50,8 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
         handler.enabled = enabled;
     }
 });
+
+// TODO: add telemetry config
 
 const options = copyProperties(configSources, [
     'port',
