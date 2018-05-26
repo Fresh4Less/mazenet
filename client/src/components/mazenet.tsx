@@ -81,7 +81,7 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
 
     render() {
         return (
-            <div id={'Mazenet'} className={this.state.room ? 'loaded' : ''}>
+            <div id={'Mazenet'} className={this.state.room ? 'loaded' : 'loading'}>
                 {this.state.room && <Toolbar room={this.state.room}/>}
                 {!this.state.room && 'Loading...'}
                 <div

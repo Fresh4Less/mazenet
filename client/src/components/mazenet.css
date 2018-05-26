@@ -3,9 +3,12 @@
     width: 100%;
     height: 100%;
     font-family: Lucida Console, Courier, monospace;
-    color: white;
-    font-size: 24px;
     background: #222;
+}
+
+#Mazenet.loading {
+    color: white;
+    font-size: 40px;
 }
 
 #Mazenet.loaded {
