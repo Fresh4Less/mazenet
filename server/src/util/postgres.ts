@@ -39,7 +39,7 @@ export function executeTransaction(clientPool: Pool, queries: Array<QueryData | 
         const transactionQueries: Array<QueryData | QueryDataFunc> = [
             {query: 'BEGIN;', params: []},
             ...queries,
-            {query: 'END;', params: []},
+            {query: 'COMMIT;', params: []},
         ];
         return Observable.of(undefined).expand((result, index) => {
             let queryData: QueryData | QueryDataFunc | undefined = transactionQueries[index];

@@ -4,7 +4,7 @@ import * as Path from 'path';
 
 import { Server } from './server';
 import { GlobalLogger, LoggerHandler } from './util/logger';
-import { defaultRecordOptions } from './util/telemetry';
+import { GlobalTelemetryOptions } from './util/telemetry';
 
 export class InvalidConfigurationError extends Error {
     constructor(message: string) {
@@ -51,14 +51,27 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
     }
 });
 
+if(GlobalLogger.handlers.get('telem')!.enabled) {
+    GlobalTelemetryOptions.enabled = true;
+    const telemetryOptions = copyProperties(configSources, [
+        'telemetry.args',
+        'telemetry.returnValue',
+    ]).telemetry;
+
+    if(telemetryOptions) {
+        setProperty(GlobalTelemetryOptions.defaultRecordOptions, 'args', telemetryOptions.args);
+        setProperty(GlobalTelemetryOptions.defaultRecordOptions, 'returnValue', telemetryOptions.returnValue);
+    }
+}
+
 // TODO: add telemetry config
 
 const options = copyProperties(configSources, [
+    'clientPath',
+    'env',
     'port',
     'securePort',
     'sslCertPath',
-    'env',
-    'clientPath',
 ]);
 
 if(options.clientPath === undefined) {
@@ -67,10 +80,17 @@ if(options.clientPath === undefined) {
 
 // set property doesn't assign undefined, which prevents Object.assign() from overwriting properties with undefined
 setProperty(options, 'postgres', copyProperties(configSources, [
+    'postgres.connectionString',
+    'postgres.connectionTimeoutMillis',
     'postgres.database',
     'postgres.host',
+    'postgres.idleTimeoutMillis',
+    'postgres.max',
     'postgres.port',
-    'postgres.timeout',
+    'postgres.ssl.ca',
+    'postgres.ssl.cert',
+    'postgres.ssl.key',
+    'postgres.ssl.rejectUnauthorized',
     'postgres.user',
 ]).postgres);
 

@@ -32,6 +32,7 @@ import { GlobalLogger } from './logger';
 
 export interface RecordOptions {
     args: boolean;
+    // TODO: accept a transformation function
     returnValue: boolean;
 
     name?: string;
@@ -40,12 +41,15 @@ export interface RecordOptions {
     recordFunc: (name: string, reading: Reading) => void;
 }
 
-/** mutate these options to change global defaults */
-export const defaultRecordOptions: RecordOptions = {
-    args: false,
-    returnValue: false,
+/** mutate this object to change global settings */
+export const GlobalTelemetryOptions: { enabled: boolean; defaultRecordOptions: RecordOptions; } = {
+    defaultRecordOptions: {
+        args: false,
+        returnValue: false,
 
-    recordFunc: (name, reading) => { GlobalLogger.telem(name, reading); },
+        recordFunc: (name, reading) => { GlobalLogger.telem(name, reading); },
+    },
+    enabled: false,
 };
 
 /** Describes one function call */
@@ -66,12 +70,16 @@ export interface Reading {
 }
 
 export function Record(options?: Partial<RecordOptions>) {
-    const opts = Object.assign(Object.create(defaultRecordOptions), options);
+    const opts = Object.assign(Object.create(GlobalTelemetryOptions.defaultRecordOptions), options);
     return (proto: any, propertyKey: string, descriptor: any) => {
         const name = opts.name || [proto.constructor.name, propertyKey].join('.');
 
         const originalFunc = descriptor.value;
         descriptor.value = function(...args: any[]) {
+            if(!GlobalTelemetryOptions.enabled) {
+                return originalFunc.apply(this, arguments);
+            }
+
             const startTime = performance.now();
             let returnValue = originalFunc.apply(this, arguments);
             const syncEndTime = performance.now();

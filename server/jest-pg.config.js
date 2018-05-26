@@ -17,10 +17,11 @@ module.exports = {
     testEnvironment: 'node',
     testEnvironmentOptions: {
         postgres: {
+            connectionTimeoutMillis: 5000,
             database: 'mazenet',
             host: '127.0.0.1',
+            max: 1,
             password: 'mz-db-pass',
-            timeout: 2000,
             user: 'mazenet',
         }
     }

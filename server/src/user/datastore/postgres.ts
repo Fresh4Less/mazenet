@@ -105,7 +105,7 @@ export class PostgresDataStore implements DataStore {
             query,
             [activeUser.id, activeUser.userId, activeUser.platformData.pType]
         )).map((result: QueryResult) => {
-            // TODO: should this return the value from the databse?
+            // TODO: return the value from the databse
             return activeUser;
         }).catch((err: Error) => {
             //TODO: match error, move this logic to a utility function

@@ -7,7 +7,7 @@ import { Observable, Observer } from 'rxjs';
 import { EventTargetLike } from 'rxjs/observable/FromEventObservable';
 import * as SocketIO from 'socket.io';
 
-import { Pool } from 'pg';
+import { Pool, PoolConfig } from 'pg';
 
 import * as BodyParser from 'body-parser';
 import * as Compression from 'compression';
@@ -32,20 +32,10 @@ export namespace Server {
         sslCertPath?: string;
         /** ifset to 'prod', use stricter settings (SSL required) */
         env: string;
-        /** postgres client options */
-        postgres?: PostgresOptions;
-    }
-
-    export interface PostgresOptions {
-        database: string;
-        host: string;
-        password: string;
-        port?: number;
-        timeout?: number;
-        user: string;
+        /** connection options passed to node-postgres new Pool */
+        postgres?: PoolConfig;
     }
 }
-
 interface Certificate {
     cert: Buffer;
     key: Buffer;
@@ -63,6 +53,13 @@ export class Server {
         sslCertPath: null,
     };
 
+    /** if postgres option is defined, unspecified fields use these values */
+    public static readonly defaultPostgresOptions: PoolConfig = {
+        connectionTimeoutMillis: 1000*60*90,
+        idleTimeoutMillis: 0, // disable timeout
+        max: 20,
+    };
+
     public options: Server.Options;
     public httpServer: Http.Server | Https.Server;
     public secureRedirectServer?: Http.Server;
@@ -73,6 +70,9 @@ export class Server {
 
     constructor(options: Partial<Server.Options>) {
         this.options = Object.assign({}, Server.defaultOptions, options);
+        if(this.options.postgres) {
+            this.options.postgres = Object.assign({}, Server.defaultPostgresOptions, options.postgres);
+        }
         this.usingSsl = false;
     }
 
@@ -84,12 +84,16 @@ export class Server {
         let listeningObservable: Observable<void>;
         try {
             //TODO: add server info to the logger (instance id, pid, etc)
+            
             // don't log passwords
-            let cleanOptions = this.options;
-            if(this.options.postgres && this.options.postgres.password) {
-                cleanOptions = Object.assign({}, this.options);
+            const cleanOptions = Object.assign({}, this.options);
+            if(this.options.postgres) {
                 cleanOptions.postgres = Object.assign({}, this.options.postgres);
-                delete cleanOptions.postgres!.password;
+                ['password', 'ssl'].forEach((prop) => {
+                    if((<any>cleanOptions.postgres)[prop] !== undefined) {
+                        (<any>cleanOptions.postgres)[prop] = '[redacted]';
+                    }
+                });
             }
             GlobalLogger.info('Server: configuration', cleanOptions);
             this.app = Express();
@@ -166,15 +170,7 @@ export class Server {
             this.socketServer = SocketIO(this.httpServer, {wsEngine: 'ws'} as SocketIO.ServerOptions);
             //this.socketServer.use(SocketIOCookieParser());
             if(this.options.postgres) {
-                this.postgresPool = new Pool({
-                    connectionTimeoutMillis: this.options.postgres.timeout,
-                    database: this.options.postgres.database,
-                    host: this.options.postgres.host,
-                    password: this.options.postgres.password,
-                    port: this.options.postgres.port,
-                    ssl: { rejectUnauthorized: false },
-                    user: this.options.postgres.user,
-                });
+                this.postgresPool = new Pool(this.options.postgres);
                 // TODO: log data
                 GlobalLogger.info('Initialized postgres pool');
             } else {
