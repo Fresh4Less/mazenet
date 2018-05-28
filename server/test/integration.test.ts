@@ -134,7 +134,7 @@ let baseUrl: string;
 
 // disable all non-error console output
 GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
-    if(level !== 'error' && level !== 'warn') {
+    if(level !== 'fatal' && level !== 'error') {
         handler.enabled = false;
     }
 });
