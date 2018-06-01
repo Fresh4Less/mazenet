@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('test: build image') {
             steps {
-                git branch: 'reactjs', credentialsId: 'b79cf254-3342-4819-b613-78ae72cb8f08', url: 'https://github.com/fresh4less/mazenet'
+                git branch: 'master', credentialsId: 'b79cf254-3342-4819-b613-78ae72cb8f08', url: 'https://github.com/fresh4less/mazenet'
                 script {
                     mazenetTest = docker.build("mazenet-test:${env.BUILD_ID}", '--target builder .')
                 }
@@ -35,7 +35,7 @@ pipeline {
         }
         stage('release: build') {
             steps {
-                git branch: 'reactjs', credentialsId: 'b79cf254-3342-4819-b613-78ae72cb8f08', url: 'https://github.com/fresh4less/mazenet'
+                git branch: 'master', credentialsId: 'b79cf254-3342-4819-b613-78ae72cb8f08', url: 'https://github.com/fresh4less/mazenet'
                 script {
                     mazenetRelease = docker.build("mazenet:${env.BUILD_ID}")
                 }
