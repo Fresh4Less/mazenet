@@ -1,0 +1,6 @@
+.active-user {
+    z-index: 9; /* text = 1; mouseRecordings = 2; tunnel = 3; users = 9; StructureWorkshop = 10; StylePane = 20; */
+    display: inline-block;
+    position: absolute;
+    cursor: pointer;
+}

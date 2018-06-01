@@ -1,0 +1,12 @@
+{
+	"logAll": true,
+	"postgres": {
+		"database": "mazenet",
+		"host": "mazenet-db.postgres.database.azure.com",
+		"user": "mazenet@mazenet-db",
+		"ssl": {
+			"rejectUnauthorized": true
+		}
+	}
+}
+

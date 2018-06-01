@@ -1,0 +1,22 @@
+#Mazenet {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    font-family: Lucida Console, Courier, monospace;
+    background: #222;
+}
+
+#Mazenet.loading {
+    color: white;
+    font-size: 40px;
+}
+
+#Mazenet.loaded {
+    background: repeating-linear-gradient(
+            45deg,
+            #AA3939,
+            #AA3939 10px,
+            #EB3F3F 10px,
+            #EB3F3F 20px
+    );
+}

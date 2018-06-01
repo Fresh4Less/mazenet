@@ -1,0 +1,110 @@
+/*
+To run this script, pass the file to psql:
+	psql -f initdb.psql [db] [dbuser]
+replacing [db] and [dbuser] with your parameters
+*/
+BEGIN;
+
+CREATE SCHEMA mazenet;
+SET search_path TO mazenet,public;
+
+/* the root user is the owner of the root room + structures */
+CREATE TABLE rootuser (
+	rowid bool PRIMARY KEY DEFAULT TRUE,
+	rootuserid uuid
+	CONSTRAINT row_uni CHECK (rowid)
+);
+
+CREATE TABLE users (
+	userid uuid PRIMARY KEY,
+	username varchar(80) NOT NULL,
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE activeusers (
+	activeuserid uuid PRIMARY KEY,
+	userid uuid REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	ptype text NOT NULL
+);
+
+/*
+CREATE TABLE platformdata_desktop (
+	platformdataid uuid REFERENCES platformdata ON UPDATE CASCADE ON DELETE CASCADE NOT NULL
+);
+
+CREATE TABLE platformdata_mobile (
+	platformdataid uuid REFERENCES platformdata ON UPDATE CASCADE ON DELETE CASCADE NOT NULL
+);
+*/
+
+/* only allow one root room */
+CREATE TABLE rootroom (
+	rowid bool PRIMARY KEY DEFAULT TRUE,
+	rootroomid uuid
+	CONSTRAINT row_uni CHECK (rowid)
+);
+
+CREATE TABLE rooms (
+	roomid uuid PRIMARY KEY,
+	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
+	title text NOT NULL,
+	stylesheet text NOT NULL,
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE rooms_owners (
+	roomid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE CASCADE,
+	userid uuid REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE,
+	CONSTRAINT rooms_owners_key PRIMARY KEY (roomid, userid)
+);
+
+CREATE TABLE structures (
+	structureid uuid PRIMARY KEY,
+	stype text NOT NULL,
+	creator uuid REFERENCES users ON UPDATE CASCADE ON DELETE SET NULL,
+	pos point NOT NULL,
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE structure_tunnels (
+	structureid uuid REFERENCES structures ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	sourceid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE SET NULL NOT NULL,
+	sourcetext text NOT NULL,
+	targetid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE SET NULL NOT NULL,
+	targettext text NOT NULL
+);
+
+CREATE TABLE structure_texts (
+	structureid uuid REFERENCES structures ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	roomid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	textcontent text NOT NULL,
+	width real NOT NULL
+);
+
+CREATE TABLE cursorrecordings (
+	cursorrecordingid uuid PRIMARY KEY,
+	activeuserid uuid REFERENCES activeusers ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	roomid uuid REFERENCES rooms ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE cursorrecordingframes (
+	cursorrecordingid uuid REFERENCES cursorrecordings ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
+	pos point NOT NULL,
+	t integer NOT NULL
+);
+
+/******** ROLES ********/
+DO
+$do$
+BEGIN
+	IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname='mazenet') THEN
+		CREATE USER mazenet WITH PASSWORD 'mz-db-pass';
+	END IF;
+END
+$do$;
+
+ALTER ROLE mazenet IN DATABASE mazenet SET search_path TO mazenet,public;
+GRANT USAGE ON SCHEMA mazenet TO mazenet; 
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE ON ALL TABLES IN SCHEMA mazenet TO mazenet;
+END;

@@ -1,0 +1,11 @@
+.structure {
+    margin: 0;
+    display: inline-block;
+    position: absolute;
+    word-wrap: break-word;
+}
+
+.structure .action-buttons {
+    position: absolute;
+    top: -20px;
+}

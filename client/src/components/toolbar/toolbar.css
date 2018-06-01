@@ -1,0 +1,44 @@
+#Toolbar {
+    line-height: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.73);
+    color: #f3f3f3;
+    background-color: #404040;
+}
+
+#Toolbar #Title {
+    font-size: 40px;
+    padding-left: 10px;
+    cursor: pointer;
+}
+#Toolbar #Subtitle {
+    font-family: sans-serif;
+    padding-left: 4px;
+    font-size: 22px;
+    color: #bbbbbb;
+}
+
+#Toolbar .right {
+    float: right;
+    padding-right: 10px;
+}
+
+#Toolbar .tool {
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 40px;
+    cursor: pointer;
+}
+
+#Toolbar .tool:hover {
+    text-shadow: 0 0 6px #cee8ff;
+}
+#Toolbar .tool svg {
+    width: 30px;
+    height: 25px;
+}
+#Toolbar .disabled {
+    filter: grayscale(100%);
+    cursor: not-allowed;
+}
