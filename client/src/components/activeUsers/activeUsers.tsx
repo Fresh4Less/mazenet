@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { Models } from '../../../../common/api/v1';
-import { SocketAPI } from '../../services/SocketAPI';
+import { SocketAPI } from '../../services/socketAPI/SocketAPI';
 import ActiveUser from './activeUser';
 
 interface ActiveUsersState {

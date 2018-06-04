@@ -2,7 +2,7 @@
 import * as React from 'react';
 
 import './mouseCanvas.css';
-import { SocketAPI } from '../../services/SocketAPI';
+import { SocketAPI } from '../../services/socketAPI/SocketAPI';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
@@ -28,7 +28,7 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
             this.setState({
                mouseRecordings: {}
             });
-            SocketAPI.Instance.GetRecordingForRoom(enterVal.room.id).subscribe(cursorVal => {
+            SocketAPI.Instance.GetCursorRecording(enterVal.room.id).subscribe(cursorVal => {
                 this.nextFrameMarkers = {};
                 this.setState({
                     room: enterVal.room,
