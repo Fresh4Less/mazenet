@@ -19,8 +19,7 @@ gulp.task('tslint', function () {
         .pipe(tslint.report());
 });
 
-gulp.task('default', ['build', 'tslint'], function() {
-});
+gulp.task('default', gulp.series(gulp.parallel('build', 'tslint'), function(done) {done();}));
 
 gulp.task('docs', function () {
     return gulp.src(['src/**/*.ts'])
