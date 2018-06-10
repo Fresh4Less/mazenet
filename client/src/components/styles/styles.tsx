@@ -3,7 +3,7 @@ import { Models } from '../../../../common/api/v1';
 
 import './styles.css';
 import { WindowPane } from '../windowPane/windowPane';
-import { SocketAPI } from '../../services/socketAPI/SocketAPI';
+import { SocketAPI } from '../../services/SocketAPI';
 import { AdvancedStyles } from './advancedStyles';
 import { SimpleStyles } from './simpleStyles';
 import { ErrorService } from '../../services/ErrorService';

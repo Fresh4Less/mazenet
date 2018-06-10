@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Models } from '../../../../common/api/v1';
 
 import './tunnel.css';
-import { SocketAPI } from '../../services/socketAPI/SocketAPI';
+import { SocketAPI } from '../../services/SocketAPI';
 import { ChangeEvent } from 'react';
 import { StructureProps } from './structure';
 

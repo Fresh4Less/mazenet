@@ -1,6 +1,6 @@
 import { Models } from '../../../common/api/v1';
 import { StructureWorkshop } from '../components/structureWorkshop/structureWorkshop';
-import { SocketAPI } from './socketAPI/SocketAPI';
+import { SocketAPI } from './SocketAPI';
 import { ErrorService } from './ErrorService';
 
 export class StructureWorkshopService {

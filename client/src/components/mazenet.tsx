@@ -11,7 +11,7 @@ import MouseCanvas from './mouseCanvas/mouseCanvas';
 import { Styles } from './styles/styles';
 import { Observer } from 'rxjs/Observer';
 import { Observable } from 'rxjs/Observable';
-import { SocketAPI } from '../services/socketAPI/SocketAPI';
+import { SocketAPI } from '../services/SocketAPI';
 import { Models } from '../../../common/api/v1';
 
 interface MouseMoveInfo {

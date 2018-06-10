@@ -1,5 +1,5 @@
-import { WebResponse } from '../../models/freshIO/WebResponse';
-import { ErrorService } from '../ErrorService';
+import { WebResponse } from '../models/freshIO/WebResponse';
+import { ErrorService } from './ErrorService';
 import { Observer } from 'rxjs/Observer';
 
 /**

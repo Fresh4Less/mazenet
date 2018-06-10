@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import './toolbar.css';
-import { SocketAPI } from '../../services/socketAPI/SocketAPI';
+import { SocketAPI } from '../../services/SocketAPI';
 import TunnelTool from './tunnelTool';
 import { Models } from '../../../../common/api/v1';
 import TextTool from './textTool';

@@ -1,15 +1,15 @@
 /* Mazenet - Fresh4Less - Samuel Davidson | Elliot Hatch */
 
 import * as SocketIo from 'socket.io-client';
-import { Events, Models, Routes } from '../../../../common/api/v1';
+import { Events, Models, Routes } from '../../../common/api/v1';
 import Socket = SocketIOClient.Socket;
-import { WebRequest } from '../../models/freshIO/WebRequest';
-import { WebResponse } from '../../models/freshIO/WebResponse';
-import { ErrorService } from '../ErrorService';
+import { WebRequest } from '../models/freshIO/WebRequest';
+import { WebResponse } from '../models/freshIO/WebResponse';
+import { ErrorService } from './ErrorService';
 
 import { Observable, Observer } from 'rxjs';
 import { TransactionManager } from './TransactionManager';
-import URLManager from '../URLManager';
+import URLManager from './URLManager';
 
 export class SocketAPI {
 

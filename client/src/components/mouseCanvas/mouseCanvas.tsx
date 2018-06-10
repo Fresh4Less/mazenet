@@ -2,7 +2,7 @@
 import * as React from 'react';
 
 import './mouseCanvas.css';
-import { SocketAPI } from '../../services/socketAPI/SocketAPI';
+import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
