@@ -8,7 +8,7 @@ import { WebResponse } from '../models/freshIO/WebResponse';
 import { ErrorService } from './ErrorService';
 
 import { Observable, Observer } from 'rxjs';
-import TransactionManager from './TransactionManager';
+import { TransactionManager } from './TransactionManager';
 import URLManager from './URLManager';
 
 export class SocketAPI {
@@ -22,6 +22,7 @@ export class SocketAPI {
     readonly userCreateObservable: Observable<Models.User>;
     readonly roomEnteredObservable: Observable<Routes.Rooms.Enter.Post.Response200>;
     readonly roomUpdatedObservable: Observable<Models.Room>;
+    readonly cursorRecordingsObservable: Observable<Routes.Rooms.CursorRecordings.Get.Response200>;
     readonly structureCreatedObservable: Observable<Models.Structure>;
     readonly structureUpdatedObservable: Observable<Models.Structure>;
     readonly activeUserEnteredObservable: Observable<Models.ActiveUser>;
@@ -29,9 +30,8 @@ export class SocketAPI {
     readonly activeUserDesktopCursorMovedObservable: Observable<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>;
 
     private socket: Socket;
-    private uniqueIdCounter: number;
+    private transactionManager: TransactionManager;
     private rootPageId: Models.Room.Id;
-    private cursorRecordingTransactionManager: TransactionManager;
     private activePageId: Models.Room.Id;
 
     /*
@@ -39,18 +39,19 @@ export class SocketAPI {
     * Performs all the Socket IO communications with the server.
     */
     private constructor() {
+        window.Mazenet.SocketAPI = this;
         const loc = window.location;
-        this.activePageId = '';
         this.socket = SocketIo(`${loc.protocol}//${loc.hostname}:${loc.port}/mazenet`);
-        this.uniqueIdCounter = 0;
+        this.transactionManager = new TransactionManager();
+        this.activePageId = '';
         this.rootPageId = '';
-        this.cursorRecordingTransactionManager = new TransactionManager(this.socket, '/rooms/cursor-recordings');
 
         /* Setup the Observable feeds */
         this.connectedObservable = this.initConnectedObservable();
         // TODO userCreatedObservable
         this.roomEnteredObservable = this.initRoomEnteredObservable();
         this.roomUpdatedObservable = this.initRoomUpdatedObservable();
+        this.cursorRecordingsObservable = this.initCursorRecordingsObservable();
         this.structureCreatedObservable = this.initStructureCreatedObservable();
         this.structureUpdatedObservable = this.initStructureUpdatedObservable();
         this.activeUserEnteredObservable = this.initActiveUserEnteredObservable();
@@ -58,119 +59,148 @@ export class SocketAPI {
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
         window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
 
-        /* CONNECT */
-        this.connectedObservable.subscribe(res200 => {
+        /* Connect and enter the initial room */
+        this.Connect().subscribe(res200 => {
             this.rootPageId = res200.rootRoomId;
-            let urlRoom = URLManager.ParseRoomId();
-            let roomToLoad = urlRoom ? urlRoom : this.rootPageId;
-            this.socket.emit(Routes.Rooms.Enter.Route,
-                new WebRequest('POST', {id: roomToLoad}, '1'));
+            const urlRoom = URLManager.ParseRoomId();
+            this.EnterRoom(urlRoom ? urlRoom : this.rootPageId);
         });
-        this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', SocketAPI.Platform(), '1'));
     }
 
     public static get Instance(): SocketAPI {
         return this._instance || (this._instance = new this());
     }
 
-    public EnterRootPage(): void {
-        if (this.rootPageId.length > 0) {
-            this.socket.emit(Routes.Rooms.Enter.Route,
-                new WebRequest('POST', {id: this.rootPageId}, 'todo'));
+    private Connect(): Observable<Routes.Users.Connect.Post.Response200> {
+        const o = new Observable<Routes.Users.Connect.Post.Response200>(
+            observer => {
+                const requestID = this.transactionManager.NewTransactionWithObserver(observer);
+                this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', SocketAPI.Platform(), requestID));
+            }).publish();
+        o.connect();
+        return o;
+    }
+
+    public EnterRootPage(): Observable<Routes.Rooms.Enter.Post.Response200> {
+        if (this.rootPageId === '') {
+            return new Observable(obs => obs.error('root page ID is empty'));
         }
+        return this.EnterRoom(this.rootPageId);
     }
 
-    public EnterRoom(roomId: string): void {
-        this.socket.emit(Routes.Rooms.Enter.Route, new WebRequest('POST', {id: roomId}, 'todo'));
+    public EnterRoom(roomId: string): Observable<Routes.Rooms.Enter.Post.Response200> {
+        const o = new Observable<Routes.Rooms.Enter.Post.Response200>(observer => {
+            const requestID = this.transactionManager.NewTransactionWithObserver(observer);
+            this.socket.emit(Routes.Rooms.Enter.Route,
+                new WebRequest('POST', {id: roomId}, requestID));
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    public UpdateRoom(roomId: string, data: Models.Room.Patch): void {
-        this.socket.emit(Routes.Rooms.Update.Route, new WebRequest('POST', {id: roomId, patch: data}, 'todo'));
+    public UpdateRoom(roomId: string, data: Models.Room.Patch): Observable<Models.Room> {
+        const o = new Observable<Models.Room>(observer => {
+            const requestID = this.transactionManager.NewTransactionWithObserver(observer);
+            this.socket.emit(Routes.Rooms.Update.Route, new WebRequest('POST', {id: roomId, patch: data}, requestID));
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    public CreateStructure(roomId: string, blueprint: Models.Structure.Blueprint): void {
-        this.socket.emit(Routes.Rooms.Structures.Create.Route, new WebRequest('POST', {
-            roomId: roomId,
-            structure: blueprint
-        }, 'todo'));
+    public GetCursorRecording(roomId: string): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
+        const o = new Observable<Routes.Rooms.CursorRecordings.Get.Response200>(
+            (observer: Observer<Routes.Rooms.CursorRecordings.Get.Response200>) => {
+                const uniqueId = this.transactionManager.NewTransactionWithObserver(observer);
+                this.socket.emit(Routes.Rooms.CursorRecordings.Route,
+                    new WebRequest('GET', {roomId: roomId}, uniqueId));
+            }).publish();
+        o.connect();
+        return o;
     }
 
-    public UpdateStructure(structureId: string, patch: Models.Structure.Patch): void {
-        this.socket.emit(Routes.Rooms.Structures.Update.Route , new WebRequest('POST', {
-            id: structureId,
-            patch: patch,
-        }, 'todo'));
+    public CreateStructure(roomId: string, blueprint: Models.Structure.Blueprint): Observable<Models.Structure> {
+        const o = new Observable<Models.Structure>(observer => {
+            const requestID = this.transactionManager.NewTransactionWithObserver(observer);
+            this.socket.emit(Routes.Rooms.Structures.Create.Route, new WebRequest('POST', {
+                roomId: roomId,
+                structure: blueprint
+            }, requestID));
+        }).publish();
+        o.connect();
+        return o;
+    }
+
+    public UpdateStructure(structureId: string, patch: Models.Structure.Patch): Observable<Models.Structure> {
+        const o = new Observable<Models.Structure>(observer => {
+            const requestID = this.transactionManager.NewTransactionWithObserver(observer);
+            this.socket.emit(Routes.Rooms.Structures.Update.Route, new WebRequest('POST', {
+                id: structureId,
+                patch: patch,
+            }, requestID));
+        }).publish();
+        o.connect();
+        return o;
     }
 
     public CursorMove(cursor: Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved): void {
+        // This is called a LOT, keep it lightweight.
         this.socket.emit(Events.Client.Rooms.ActiveUsers.Desktop.CursorMoved.Route, cursor);
     }
 
-    public GetRecordingForRoom(roomId: string): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
-        return new Observable<Routes.Rooms.CursorRecordings.Get.Response200>(
-            (observer: Observer<Routes.Rooms.CursorRecordings.Get.Response200>) => {
-                const uniqueId = `id-${++this.uniqueIdCounter}`;
-                this.cursorRecordingTransactionManager.AddTransactionListener(uniqueId, (res: WebResponse) => {
-                    if (res.status === 200) {
-                        observer.next(res.body as Routes.Rooms.CursorRecordings.Get.Response200);
-                    } else {
-                        ErrorService.Warning(`Could not get recording for room: ${roomId}`, res);
-                    }
-                    observer.complete();
-                });
-                this.socket.emit(Routes.Rooms.CursorRecordings.Route, new WebRequest('GET', {
-                    roomId: roomId
-                }, uniqueId));
-            });
-    }
+    /* ********** Observable Initializers ********** */
 
-    /* ********** Private ********** */
-
-    private initConnectedObservable() {
-        return new Observable<Routes.Users.Connect.Post.Response200>(
+    private initConnectedObservable(): Observable<Routes.Users.Connect.Post.Response200> {
+        const o = new Observable<Routes.Users.Connect.Post.Response200>(
             (observer: Observer<Routes.Users.Connect.Post.Response200>) => {
                 this.socket.on(Routes.Users.Connect.Route, (res: WebResponse) => {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
                         observer.next(res200);
-                        observer.complete();
+                        this.transactionManager.CompleteTransaction(res, res200);
                     } else {
-                        ErrorService.Fatal('Could not connect to the server.', res);
-                        observer.error(res.body);
-                        observer.complete();
+                        ErrorService.Fatal('could not connect to the server.', res);
+                        this.transactionManager.ErrorTransaction(res);
                     }
                 });
-            }).publishReplay(1).refCount();
+            }).publish();
+        o.connect();
+        return o;
     }
 
-    private initRoomEnteredObservable() {
-        return new Observable((observer: Observer<Routes.Rooms.Enter.Post.Response200>) => {
+    private initRoomEnteredObservable(): Observable<Routes.Rooms.Enter.Post.Response200> {
+        const o = new Observable((observer: Observer<Routes.Rooms.Enter.Post.Response200>) => {
             this.socket.on(Routes.Rooms.Enter.Route, (res: WebResponse) => {
                 if (res.status === 200) {
                     const res200 = (res.body as Routes.Rooms.Enter.Post.Response200);
-                    this.activePageId = res200.room.id;
-                    URLManager.UpdateRoomId(this.activePageId);
+                    URLManager.UpdateRoomId(this.activePageId = res200.room.id);
                     observer.next(res200);
+                    this.transactionManager.CompleteTransaction(res, res200);
                 } else {
-                    ErrorService.Warning('Could not enter room.',  res);
+                    this.transactionManager.ErrorTransaction(res);
                     if (this.activePageId === '') {
                         this.activePageId = this.rootPageId;
-                        ErrorService.Warning('Entering root room instead.');
+                        ErrorService.Warning('could not enter room, entering root room instead');
                         this.EnterRootPage();
+                    } else {
+                        ErrorService.Warning('could not enter room', res);
                     }
                 }
             });
-        }).share();
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    private initRoomUpdatedObservable() {
-        return new Observable((observer: Observer<Models.Room>) => {
+    private initRoomUpdatedObservable(): Observable<Models.Room> {
+        const o = new Observable((observer: Observer<Models.Room>) => {
             this.socket.on(Routes.Rooms.Update.Route, (res: WebResponse) => {
                 if (res.status === 200) {
-                    observer.next(res.body as Models.Room);
+                    const room = (res.body as Models.Room);
+                    observer.next(room);
+                    this.transactionManager.CompleteTransaction(res, room);
                 } else {
-                    ErrorService.Warning('Could not update room.', res);
-                    observer.error(res.body);
+                    ErrorService.Warning('could not update room', res);
+                    this.transactionManager.ErrorTransaction(res);
                 }
             });
             this.socket.on(Events.Server.Rooms.Updated.Route, (res: Models.Room) => {
@@ -178,80 +208,114 @@ export class SocketAPI {
                     observer.next(res);
                 }
             });
-        }).share();
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    private initStructureCreatedObservable() {
-        return new Observable((observer: Observer<Models.Structure>) => {
+    private initCursorRecordingsObservable(): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
+        const o = new Observable((observer: Observer<Routes.Rooms.CursorRecordings.Get.Response200>) => {
+            this.socket.on(Routes.Rooms.CursorRecordings.Route, (res: WebResponse) => {
+                if (res.status === 200) {
+                    const res200 = (res.body as Routes.Rooms.CursorRecordings.Get.Response200);
+                    observer.next(res200);
+                    this.transactionManager.CompleteTransaction(res, res200);
+                } else {
+                    ErrorService.Warning('could not get cursors', res);
+                    this.transactionManager.ErrorTransaction(res);
+                }
+            });
+        }).publish();
+        o.connect();
+        return o;
+    }
+
+    private initStructureCreatedObservable(): Observable<Models.Structure> {
+        const o = new Observable((observer: Observer<Models.Structure>) => {
             this.socket.on(Routes.Rooms.Structures.Create.Route, (res: WebResponse) => {
                 if (res.status === 201) {
-                   observer.next(res.body as Models.Structure);
-                }  else {
-                   ErrorService.Warning('Could not create structure.', res);
-                   observer.error(res.body);
+                    const structure = (res.body as Models.Structure);
+                    observer.next(structure);
+                    this.transactionManager.CompleteTransaction(res, structure);
+                } else {
+                    ErrorService.Warning('could not create structure', res);
+                    this.transactionManager.ErrorTransaction(res);
                 }
             });
             this.socket.on(Events.Server.Rooms.Structures.Created.Route,
                 (created: Events.Server.Rooms.Structures.Created) => {
-                if (this.activePageId === created.roomId) {
-                    observer.next(created.structure);
-                }
-            });
-        }).share();
+                    if (this.activePageId === created.roomId) {
+                        observer.next(created.structure);
+                    }
+                });
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    private initStructureUpdatedObservable() {
-        return new Observable((observer: Observer<Models.Structure>) => {
+    private initStructureUpdatedObservable(): Observable<Models.Structure> {
+        const o = new Observable((observer: Observer<Models.Structure>) => {
             this.socket.on(Routes.Rooms.Structures.Update.Route, (res: WebResponse) => {
                 if (res.status === 200) {
-                    observer.next(res.body as Models.Structure);
+                    const structure = (res.body as Models.Structure);
+                    observer.next(structure);
+                    this.transactionManager.CompleteTransaction(res, structure);
                 } else {
-                    ErrorService.Warning('Could not create structure.', res);
-                    observer.error(res.body);
+                    ErrorService.Warning('could not create structure', res);
+                    this.transactionManager.ErrorTransaction(res);
                 }
             });
             this.socket.on(Events.Server.Rooms.Structures.Updated.Route,
                 (updated: Events.Server.Rooms.Structures.Updated) => {
-                if (this.activePageId === updated.roomId) {
-                    observer.next(updated.structure);
-                }
-            });
-        }).share();
+                    if (this.activePageId === updated.roomId) {
+                        observer.next(updated.structure);
+                    }
+                });
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    private initActiveUserEnteredObservable() {
-        return new Observable((observer: Observer<Models.ActiveUser>) => {
+    private initActiveUserEnteredObservable(): Observable<Models.ActiveUser> {
+        let o = new Observable((observer: Observer<Models.ActiveUser>) => {
             this.socket.on(Events.Server.Rooms.ActiveUsers.Entered.Route,
                 (user: Events.Server.Rooms.ActiveUsers.Entered) => {
-                if (this.activePageId === user.roomId) {
-                    observer.next(user.activeUser);
-                }
-            });
-        }).share();
+                    if (this.activePageId === user.roomId) {
+                        observer.next(user.activeUser);
+                    }
+                });
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    private initActiveUserExitedObservable() {
-        return new Observable((observer: Observer<Models.ActiveUser.Id>) => {
+    private initActiveUserExitedObservable(): Observable<Models.ActiveUser.Id> {
+        const o = new Observable((observer: Observer<Models.ActiveUser.Id>) => {
             this.socket.on(Events.Server.Rooms.ActiveUsers.Exited.Route,
                 (user: Events.Server.Rooms.ActiveUsers.Exited) => {
-                if (this.activePageId === user.roomId) {
-                    observer.next(user.activeUserId);
-                }
-            });
-        }).share();
+                    if (this.activePageId === user.roomId) {
+                        observer.next(user.activeUserId);
+                    }
+                });
+        }).publish();
+        o.connect();
+        return o;
     }
 
-    private initActiveUserDesktopCursorMovedObservable() {
-        return new Observable((observer: Observer<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>) => {
+    private initActiveUserDesktopCursorMovedObservable(): Observable<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved> {
+        const o = new Observable((observer: Observer<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>) => {
             this.socket.on(Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved.Route,
                 (cursor: Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved) => {
-                if (this.activePageId === cursor.roomId) {
-                    observer.next(cursor);
-                }
-
-            });
-        }).share();
+                    if (this.activePageId === cursor.roomId) {
+                        observer.next(cursor);
+                    }
+                });
+        }).publish();
+        o.connect();
+        return o;
     }
+
+    /* ********** Utility ********** */
 
     private checkURLAndLoadPage() {
         let urlRoom = URLManager.ParseRoomId();
@@ -259,6 +323,7 @@ export class SocketAPI {
             this.EnterRoom(urlRoom);
         }
     }
+
     // TODO: Make this depend on the actual platform.
     private static Platform(): Models.PlatformData {
         return {pType: 'desktop', cursorPos: {x: 0, y: 0}};
