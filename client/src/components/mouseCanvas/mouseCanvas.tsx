@@ -9,6 +9,8 @@ import { Sprite } from '../../models/canvas/Sprite';
 
 const cursorIcon = require('./../../media/cursor.png');
 
+const cursorLimit = 500;
+
 interface MouseCanvasState {
     room: Models.Room | null;
     mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
@@ -28,7 +30,7 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
             this.setState({
                mouseRecordings: {}
             });
-            SocketAPI.Instance.GetCursorRecording(enterVal.room.id).subscribe(cursorVal => {
+            SocketAPI.Instance.GetCursorRecordings(enterVal.room.id, cursorLimit).subscribe(cursorVal => {
                 this.nextFrameMarkers = {};
                 this.setState({
                     room: enterVal.room,

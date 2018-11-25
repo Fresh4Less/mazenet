@@ -44,13 +44,14 @@ export class Middleware {
             if(socketData) {
                 // this is a socketio connection
                 //TODO: do we need to validate that activeUser is valid for this user?
+                //TODO: standardize error handling
                 req.activeUser = this.service.getActiveUserFromSession(socketData!.sessionId);
                 if(!socketData!.user) {
                     this.service.createUser({username: 'anonymous'}).subscribe((user) => {
                         socketData!.user = user;
                         req.user = user;
                         return next();
-                    });
+                    }, (error) => next(error));
                 } else {
                     req.user = socketData!.user;
                     return next();
@@ -60,7 +61,7 @@ export class Middleware {
                 this.service.createUser({username: 'anonymous'}).subscribe((user) => {
                     req.user = user;
                     return next();
-                });
+                }, (error) => next(error));
             }
         });
 

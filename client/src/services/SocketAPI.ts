@@ -107,12 +107,12 @@ export class SocketAPI {
         return o;
     }
 
-    public GetCursorRecording(roomId: string): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
+    public GetCursorRecordings(roomId: string, limit: number): Observable<Routes.Rooms.CursorRecordings.Get.Response200> {
         const o = new Observable<Routes.Rooms.CursorRecordings.Get.Response200>(
             (observer: Observer<Routes.Rooms.CursorRecordings.Get.Response200>) => {
                 const uniqueId = this.transactionManager.NewTransactionWithObserver(observer);
                 this.socket.emit(Routes.Rooms.CursorRecordings.Route,
-                    new WebRequest('GET', {roomId: roomId}, uniqueId));
+                    new WebRequest('GET', {roomId, limit}, uniqueId));
             }).publish();
         o.connect();
         return o;

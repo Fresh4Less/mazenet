@@ -424,7 +424,7 @@ export namespace Routes {
                 export class Request {
                     @Validator.validate()
                     roomId: Models.Room.Id;
-                    /** Only get the n most recent recordings */
+                    /** Only get the n most recent recordings. If 0, get all recordings */
                     @Validator.validate(true)
                     limit?: number;
                     /** Specifies the response format */
