@@ -1,9 +1,9 @@
 {
-    "port": 8080,
-    "logAll": true,
-    "postgres": {
-        "database": "mazenet",
-        "host": "138.68.9.200",
-        "user": "mazenet"
-    }
+	"port": 8080,
+	"logAll": true,
+	"postgres": {
+		"database": "mazenet",
+		"host": "mazenet.net",
+		"user": "mazenet"
+	}
 }

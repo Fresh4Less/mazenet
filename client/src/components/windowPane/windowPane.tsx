@@ -121,11 +121,11 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
             return;
         }
         let element = ReactDOM.findDOMNode(this);
-        if (!element.parentElement) {
+        if (!element || !element.parentElement) {
             return;
         }
         let containerRect = element.parentElement.getBoundingClientRect();
-        let rect = element.getBoundingClientRect();
+        let rect = (element as Element).getBoundingClientRect();
         this.setState({
             dragging: true,
             mouseRelation: {
@@ -146,7 +146,7 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
             return;
         }
         let element = ReactDOM.findDOMNode(this);
-        if (!element.parentElement) {
+        if (!element || !element.parentElement) {
             return;
         }
         let containerRect = element.parentElement.getBoundingClientRect();
