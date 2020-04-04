@@ -18,7 +18,7 @@
     "fresh-socketio-router": "^0.1.4",
     "jest-junit": "^4.0.0",
     "json-stringify-safe": "^5.0.1",
-    "minimist": "^1.2.0",
+    "minimist": "^1.2.3",
     "pg": "^7.4.1",
     "postcss-selector-parser": "^3.1.1",
     "postcss-values-parser": "^1.5.0",
