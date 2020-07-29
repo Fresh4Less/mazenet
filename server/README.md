@@ -25,6 +25,17 @@ Run the server with pretty, colorful formatted log:
 ./start.sh --port 80
 ```
 
+To develop on the postgres version, first set up and run a local postgres instance. Initialize the mazenet database with the psql command:
+```
+CREATE DATABASE "mazenet";
+```
+
+Then run `psql -f scripts/initdb.psql mazenet` to initialize the tables and mazenet role.
+Finally, start the server with:
+```bash
+npm run start-pg
+```
+
 ## Configuration
 The server can be configured through the command line and a JSON configuration file.
 Arguments passed to the command-line override values in the config file.

@@ -5,6 +5,7 @@
   "main": "build/server/src/main.js",
   "scripts": {
     "start": "node build/server/src/main.js",
+    "start-pg": "node build/server/src/main.js --config config/dev-pg.json --secrets secrets/dev-pg.json",
     "start-pretty": "node build/server/src/main.js | node scripts/pretty-log.js",
     "test": "jest --coverage --verbose"
   },
@@ -19,7 +20,7 @@
     "jest-junit": "^4.0.0",
     "json-stringify-safe": "^5.0.1",
     "minimist": "^1.2.0",
-    "pg": "^7.4.1",
+    "pg": "^8.3.0",
     "postcss-selector-parser": "^3.1.1",
     "postcss-values-parser": "^1.5.0",
     "reflect-metadata": "^0.1.12",
