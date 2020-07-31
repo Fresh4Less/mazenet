@@ -23,6 +23,8 @@ import { ActiveUserRoomData, getStructureRoomIds, Room, RoomDocument, RoomEvent,
 export interface StructureBlueprintTree {
     structure: Api.v1.Models.Structure.Blueprint;
     children?: StructureBlueprintTree[];
+    // if the structure is a tunnel, the created tunnel will be edited with the room patch on creation
+    roomPatch?: Api.v1.Models.Room.Patch;
 }
 
 export class Service {
@@ -77,7 +79,7 @@ export class Service {
                 return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
             }).mergeMap(([room]: [Room, null]) => {
                 return Observable.forkJoin(Observable.of(room), this.createStructureTrees(rootUser, room.id, Service.entranceSubTrees));
-            }).mergeMap(([room, structures]: [Room, Structure[]]) => {
+            }).mergeMap(([room, events]: [Room, Structure | Room]) => {
                 GlobalLogger.trace('init root room', {room, rootUserId: rootUser.id});
                 return Observable.of(room);
             });
@@ -235,8 +237,8 @@ export class Service {
         return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId);
     }
 
-    protected createStructureTrees(user: User, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure[]> {
-        return Observable.forkJoin(structureTrees.map((tree) => {
+    protected createStructureTrees(user: User, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure | Room> {
+        return Observable.merge(...structureTrees.map((tree) => {
             return this.createStructure(user, roomId, tree.structure).mergeMap((structure: Structure) => {
                 let childRoomId: Room.Id | undefined;
                 switch(structure.data.sType) {
@@ -246,10 +248,16 @@ export class Service {
                     default:
                         break;
                 }
-                if(tree.children && childRoomId) {
-                    return this.createStructureTrees(user, childRoomId, tree.children).map((subStructures) => structure);
+                const observables: Array<Observable<Structure | Room>> = [Observable.of(structure)];
+                if(childRoomId) {
+                    if(tree.roomPatch) {
+                        observables.push(this.updateRoom(user, childRoomId, tree.roomPatch));
+                    }
+                    if(tree.children) {
+                        observables.push(this.createStructureTrees(user, childRoomId, tree.children).map((subStructures) => structure));
+                    }
                 }
-                return Observable.of(structure);
+                return Observable.merge(...observables);
             });
         }));
     }
@@ -294,7 +302,52 @@ export class Service {
                 targetText: 'back to root',
             },
             pos: {x: 0.2, y: 0.8}
-        }
+        },
+        children: [{
+            structure: {
+                data: {
+                    sType: 'text',
+                    text: 'avast ye matey',
+                    width: 0.3,
+                },
+                pos: {x: 0.5, y: 0.5}
+            }
+        }, {
+            structure: {
+                data: {
+                    sType: 'tunnel',
+                    sourceText: 'creepy cavern',
+                    targetText: 'to safety',
+                },
+                pos: {x: 0.2, y: 0.2}
+            },
+            roomPatch: {
+                title: '--e-py ca--r-',
+                stylesheet: {
+                    rules: [{
+                        selectors: ['.room'],
+                        properties: {
+                            background: '#111111',
+                        },
+                    }, {
+                        selectors: ['.structure'],
+                        properties: {
+                            color: '#ffffff',
+                        }
+                    }]
+                }
+            },
+            children: [{
+                structure: {
+                    data: {
+                        sType: 'text',
+                        text: `it's too dark to go any deeper`,
+                        width: 0.6,
+                    },
+                    pos: {x: 0.3, y: 0.7}
+                }
+            }]
+        }]
     }, {
             structure: {
                 data: {
