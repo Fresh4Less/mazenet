@@ -88,11 +88,15 @@ CREATE TABLE cursorrecordings (
 	created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX cursorrecordings_index_roomid_created_at_desc ON cursorrecordings (roomid, created_at DESC);
+
 CREATE TABLE cursorrecordingframes (
 	cursorrecordingid uuid REFERENCES cursorrecordings ON UPDATE CASCADE ON DELETE CASCADE NOT NULL,
 	pos point NOT NULL,
 	t integer NOT NULL
 );
+
+CREATE INDEX cursorrecordingframes_index_cursorrecordingid_t_asc ON cursorrecordingframes (cursorrecordingid, t ASC);
 
 /******** ROLES ********/
 DO
