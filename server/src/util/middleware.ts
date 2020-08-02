@@ -1,5 +1,5 @@
 import * as Express from 'express';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import * as SocketIO from 'socket.io';
 
 import FreshSocketIO = require('fresh-socketio-router');

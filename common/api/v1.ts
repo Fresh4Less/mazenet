@@ -10,10 +10,10 @@ import * as Validator from '../util/validator';
 export class ErrorResponse {
     /** HTTP status code */
     @Validator.validate()
-    code: number;
+    code!: number;
     /** A short message describing the error */
     @Validator.validate()
-    message: string;
+    message!: string;
 
     data?: Error.Data;
 }
@@ -26,18 +26,18 @@ export namespace Models {
     /** Absolute position on the page in range [0,1] */
     export class Position {
         @Validator.validate()
-        x: number;
+        x!: number;
         @Validator.validate()
-        y: number;
+        y!: number;
     }
 
     /** Mazenet user */
     export class User {
         @Validator.validate()
-        id: User.Id;
+        id!: User.Id;
 
         @Validator.validate()
-        username: string;
+        username!: string;
     }
 
     export namespace User {
@@ -51,9 +51,9 @@ export namespace Models {
     export namespace PlatformData {
         export class Desktop {
             @Validator.validate()
-            pType: 'desktop';
+            pType!: 'desktop';
             @Validator.validate()
-            cursorPos: Position;
+            cursorPos!: Position;
         }
         export namespace Desktop {
             export class Patch {
@@ -64,23 +64,23 @@ export namespace Models {
 
         export class Mobile {
             @Validator.validate()
-            pType: 'mobile';
+            pType!: 'mobile';
         }
     }
 
     /** Client session of a user */
     export class ActiveUser {
         @Validator.validate()
-        id: ActiveUser.Id;
+        id!: ActiveUser.Id;
         @Validator.validate()
-        userId: User.Id;
+        userId!: User.Id;
         @Validator.validate()
-        username: string;
+        username!: string;
         @Validator.validate({union: {discriminant: 'pType', types: {
             'desktop': PlatformData.Desktop,
             'mobile': PlatformData.Mobile,
         }}})
-        platformData: PlatformData;
+        platformData!: PlatformData;
     }
 
     export namespace ActiveUser {
@@ -91,36 +91,36 @@ export namespace Models {
     /** A single rule in a stylesheet. e.g. 'a { color: blue; }' */
     export class StylesheetRule {
         @Validator.validate(false, String)
-        selectors: string[];
+        selectors!: string[];
         @Validator.validate()
         /** maps css property names to values */
-        properties: { [name: string]: string };
+        properties!: { [name: string]: string };
     }
 
     /** css AST */
     export class Stylesheet {
         @Validator.validate(false, StylesheetRule)
-        rules: StylesheetRule[];
+        rules!: StylesheetRule[];
     }
 
     /** Room that users can create and occupy */
     export class Room {
         @Validator.validate()
-        id: Room.Id;
+        id!: Room.Id;
         /** Id of the user who created the room */
         @Validator.validate()
-        creator: User.Id;
+        creator!: User.Id;
         @Validator.validate()
-        title: string;
+        title!: string;
         /** set of owners of this room */
         @Validator.validate(false, String)
-        owners: User.Id[];
+        owners!: User.Id[];
         /** map of structures in the room */
         @Validator.validate()
-        structures: { [structureId: string]: Structure };
+        structures!: { [structureId: string]: Structure };
         /** sanitized CSS for the room */
         @Validator.validate()
-        stylesheet: Stylesheet;
+        stylesheet!: Stylesheet;
     }
 
     export namespace Room {
@@ -145,19 +145,19 @@ export namespace Models {
     export namespace StructureData {
         export class Tunnel {
             @Validator.validate()
-            sType: 'tunnel';
+            sType!: 'tunnel';
             /** Id of the room that created the tunnel */
             @Validator.validate()
-            sourceId: Room.Id;
+            sourceId!: Room.Id;
             /** Id of the room this tunnel leads to */
             @Validator.validate()
-            targetId: Room.Id;
+            targetId!: Room.Id;
             /** display text when viewed from the source room */
             @Validator.validate()
-            sourceText: string;
+            sourceText!: string;
             /** display text when viewed from the target room */
             @Validator.validate()
-            targetText: string;
+            targetText!: string;
         }
 
         export namespace Tunnel {
@@ -171,16 +171,16 @@ export namespace Models {
 
         export class Text {
             @Validator.validate()
-            sType: 'text';
+            sType!: 'text';
             /** id of the room where text is displayed */
             @Validator.validate()
-            roomId: Room.Id;
+            roomId!: Room.Id;
             /** text contents of the textbox */
             @Validator.validate()
-            text: string;
+            text!: string;
             /** percent width of the view */
             @Validator.validate()
-            width: number;
+            width!: number;
         }
 
         export namespace Text {
@@ -198,39 +198,39 @@ export namespace Models {
     export namespace StructureDataBlueprint {
         export class Tunnel {
             @Validator.validate()
-            sType: 'tunnel';
+            sType!: 'tunnel';
             /** Id of the room that created the tunnel */
             @Validator.validate()
-            sourceText: string;
+            sourceText!: string;
             /** display text when viewed from the target room */
             @Validator.validate()
-            targetText: string;
+            targetText!: string;
         }
 
         export class Text {
             @Validator.validate()
-            sType: 'text';
+            sType!: 'text';
             @Validator.validate()
-            text: string;
+            text!: string;
             @Validator.validate()
-            width: number;
+            width!: number;
         }
     }
 
     /* Structures like links and images that can be placed in a room */
     export class Structure {
         @Validator.validate()
-        id: Structure.Id;
+        id!: Structure.Id;
         /** Id of the user who created the structure */
         @Validator.validate()
-        creator: User.Id;
+        creator!: User.Id;
         @Validator.validate()
-        pos: Position;
+        pos!: Position;
         @Validator.validate({union: {discriminant: 'sType', types: {
             'tunnel': StructureData.Tunnel,
             'text': StructureData.Text,
         }}})
-        data: StructureData;
+        data!: StructureData;
     }
 
     export namespace Structure {
@@ -239,9 +239,9 @@ export namespace Models {
 
         export class Blueprint {
             @Validator.validate()
-            pos: Models.Position;
+            pos!: Models.Position;
             @Validator.validate()
-            data: Models.StructureDataBlueprint;
+            data!: Models.StructureDataBlueprint;
         }
         export class Patch {
             @Validator.validate(true)
@@ -250,27 +250,27 @@ export namespace Models {
                 'tunnel': StructureData.Tunnel.Patch,
                 'text': StructureData.Text.Patch,
             }}})
-            data: StructureData.Patch;
+            data!: StructureData.Patch;
         }
     }
 
     /* One frame of a cursor recording */
     export class CursorRecordingFrame {
         @Validator.validate()
-        pos: Position;
+        pos!: Position;
         /** time step this frame occured on */
         @Validator.validate()
-        t: number;
+        t!: number;
     }
 
     export class CursorRecording {
         @Validator.validate()
-        id: CursorRecording.Id;
+        id!: CursorRecording.Id;
         /** id of the ActiveUser the cursor belongs to */
         @Validator.validate()
-        activeUserId: ActiveUser.Id;
+        activeUserId!: ActiveUser.Id;
         @Validator.validate(false, CursorRecordingFrame)
-        frames: CursorRecordingFrame[];
+        frames!: CursorRecordingFrame[];
     }
 
     export namespace CursorRecording {
@@ -292,7 +292,7 @@ export namespace Routes {
             export namespace Post {
                 export class Request {
                     @Validator.validate()
-                    username: string;
+                    username!: string;
                 }
 
                 /** Information about the client's user account and the root room id. */
@@ -315,9 +315,9 @@ export namespace Routes {
                 /** Information about the client's user account and the root room id. */
                 export class Response200 {
                     @Validator.validate()
-                    activeUser: Models.ActiveUser;
+                    activeUser!: Models.ActiveUser;
                     @Validator.validate()
-                    rootRoomId: Models.Room.Id;
+                    rootRoomId!: Models.Room.Id;
                 }
             }
         }
@@ -336,9 +336,9 @@ export namespace Routes {
                 /** A Room containing `id` and any fields to be updated */
                 export class Request {
                     @Validator.validate()
-                    id: Models.Room.Id;
+                    id!: Models.Room.Id;
                     @Validator.validate()
-                    patch: Models.Room.Patch;
+                    patch!: Models.Room.Patch;
                 }
 
                 /** Room succesfully updated. Emits a `/rooms/updated` event to all other users in the room. */
@@ -354,15 +354,15 @@ export namespace Routes {
             export namespace Post {
                 export class Request {
                     @Validator.validate()
-                    id: Models.Room.Id;
+                    id!: Models.Room.Id;
                 }
 
                 /** Successfully entered the room */
                 export class Response200 {
                     @Validator.validate()
-                    room: Models.Room;
+                    room!: Models.Room;
                     @Validator.validate()
-                    users: { [activeUserId: string]: Models.ActiveUser };
+                    users!: { [activeUserId: string]: Models.ActiveUser };
                 }
 
                 export type Response400 = any;
@@ -382,9 +382,9 @@ export namespace Routes {
                 export namespace Post {
                     export class Request {
                         @Validator.validate()
-                        roomId: Models.Room.Id;
+                        roomId!: Models.Room.Id;
                         @Validator.validate()
-                        structure: Models.Structure.Blueprint;
+                        structure!: Models.Structure.Blueprint;
                     }
 
                     /**
@@ -404,9 +404,9 @@ export namespace Routes {
                     /** A Structure containing `id` and any fields to be updated */
                     export class Request {
                         @Validator.validate()
-                        id: Models.Structure.Id;
+                        id!: Models.Structure.Id;
                         @Validator.validate()
-                        patch: Models.Structure.Patch;
+                        patch!: Models.Structure.Patch;
                     }
 
                     export class Response200 extends Models.Structure {}
@@ -423,7 +423,7 @@ export namespace Routes {
             export namespace Get {
                 export class Request {
                     @Validator.validate()
-                    roomId: Models.Room.Id;
+                    roomId!: Models.Room.Id;
                     /** Only get the n most recent recordings. If 0, get all recordings */
                     @Validator.validate(true)
                     limit?: number;
@@ -434,7 +434,7 @@ export namespace Routes {
 
                 export class Response200 {
                     @Validator.validate()
-                    cursorRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
+                    cursorRecordings!: { [cursorRecordingId: string]: Models.CursorRecording };
                 }
 
                 export class Response400 extends ErrorResponse {}
@@ -462,9 +462,9 @@ export namespace Events {
                     static Route = '/rooms/structures/created';
 
                     @Validator.validate()
-                    roomId: Models.Room.Id;
+                    roomId!: Models.Room.Id;
                     @Validator.validate()
-                    structure: Models.Structure;
+                    structure!: Models.Structure;
                 }
 
                 /**
@@ -474,9 +474,9 @@ export namespace Events {
                     static Route = '/rooms/structures/updated';
 
                     @Validator.validate()
-                    roomId: Models.Room.Id;
+                    roomId!: Models.Room.Id;
                     @Validator.validate()
-                    structure: Models.Structure;
+                    structure!: Models.Structure;
                 }
             }
 
@@ -486,9 +486,9 @@ export namespace Events {
                     static Route = '/rooms/active-users/entered';
 
                     @Validator.validate()
-                    roomId: Models.Room.Id;
+                    roomId!: Models.Room.Id;
                     @Validator.validate()
-                    activeUser: Models.ActiveUser;
+                    activeUser!: Models.ActiveUser;
                 }
 
                 /** An ActiveUser exited the client's current room */
@@ -496,9 +496,9 @@ export namespace Events {
                     static Route = '/rooms/active-users/exited';
 
                     @Validator.validate()
-                    roomId: Models.Room.Id;
+                    roomId!: Models.Room.Id;
                     @Validator.validate()
-                    activeUserId: Models.ActiveUser.Id;
+                    activeUserId!: Models.ActiveUser.Id;
                 }
 
                 export namespace Desktop {
@@ -507,11 +507,11 @@ export namespace Events {
                         static Route = '/rooms/active-users/desktop/cursor-moved';
 
                         @Validator.validate()
-                        roomId: Models.Room.Id;
+                        roomId!: Models.Room.Id;
                         @Validator.validate()
-                        activeUserId: Models.ActiveUser.Id;
+                        activeUserId!: Models.ActiveUser.Id;
                         @Validator.validate()
-                        pos: Models.Position;
+                        pos!: Models.Position;
                     }
                 }
             }
@@ -526,7 +526,7 @@ export namespace Events {
                 static Route = '/rooms/active-users/desktop/cursor-moved';
 
                 @Validator.validate()
-                pos: Models.Position;
+                pos!: Models.Position;
             }
         }
     }

@@ -1,7 +1,5 @@
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/mergeMap';
-import { Observable } from 'rxjs/Observable';
+import { forkJoin, of, Observable } from 'rxjs';
+import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import * as Uuid from 'uuid/v4';
 
@@ -32,10 +30,12 @@ export class Service {
             username: userBlueprint.username
         });
 
-        return this.dataStore.insertUser(newUser).map((user) => {
-            GlobalLogger.trace('create user', {user});
-            return user;
-        });
+        return this.dataStore.insertUser(newUser).pipe(
+            map((user) => {
+                GlobalLogger.trace('create user', {user});
+                return user;
+            })
+        );
     }
 
     public getActiveUser(activeUserId: ActiveUser.Id): Observable<ActiveUser> {
@@ -50,11 +50,12 @@ export class Service {
             username: user.username,
         });
 
-        return this.dataStore.insertActiveUser(newActiveUser)
-            .map((activeUser: ActiveUser) => {
+        return this.dataStore.insertActiveUser(newActiveUser).pipe(
+            map((activeUser: ActiveUser) => {
                 GlobalLogger.trace('create active user', {activeUser});
                 return this.sessionDataStore.insertActiveUserFromSession(sessionId, activeUser);
-            });
+            })
+        );
     }
 
     public getActiveUserFromSession(sessionId: string): ActiveUser | undefined {
@@ -66,24 +67,30 @@ export class Service {
     }
 
     public getRootUser(): Observable<User> {
-        return this.dataStore.getRootUserId()
-        .catch((err: Error) => {
-            if(err instanceof NotFoundError) {
-                const rootUserBlueprint = {
-                    username: 'mazenet'
-                };
-                return this.createUser(rootUserBlueprint).mergeMap((user) => {
-                    return this.dataStore.setRootUserId(user.id).map(() => {
-                        GlobalLogger.trace('init root user', {user});
-                        return user.id;
-                    });
-                });
-            }
+        return this.dataStore.getRootUserId().pipe(
+            catchError((err: Error) => {
+                if(err instanceof NotFoundError) {
+                    const rootUserBlueprint = {
+                        username: 'mazenet'
+                    };
+                    return this.createUser(rootUserBlueprint).pipe(
+                        mergeMap((user) => {
+                            return this.dataStore.setRootUserId(user.id).pipe(
+                                map(() => {
+                                    GlobalLogger.trace('init root user', {user});
+                                    return user.id;
+                                })
+                            );
+                        })
+                    );
+                }
 
-            return Observable.throw(err) as Observable<User.Id>;
-        }).mergeMap((userId) => {
-            return this.getUser(userId);
-        });
+                return Observable.throw(err) as Observable<User.Id>;
+            }),
+            mergeMap((userId) => {
+                return this.getUser(userId);
+            })
+        );
     }
 
     public onUserDisconnect(sessionId: string): void {

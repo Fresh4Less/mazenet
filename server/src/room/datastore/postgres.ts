@@ -1,9 +1,6 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
-import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/catch';
+import { from, of, forkJoin, Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 import { parseCss, SafeStylesheet, stylesheetToString } from '../../../../common/util/stylesheet';
 
@@ -83,13 +80,15 @@ export class PostgresDataStore implements DataStore {
         const query =
             `SELECT * from rootroom;`;
 
-        return Observable.fromPromise(this.clientPool.query(query)
-        ).map((result: QueryResult) => {
-            if(result.rows.length === 0) {
-                throw new NotFoundError(`Root room id not set`);
-            }
-            return result.rows[0].rootroomid;
-        }).catch(handlePostgresError<Room.Id>('getRootRoomId', query));
+        return from(this.clientPool.query(query)).pipe(
+            map((result: QueryResult) => {
+                if(result.rows.length === 0) {
+                    throw new NotFoundError(`Root room id not set`);
+                }
+                return result.rows[0].rootroomid;
+            }),
+            catchError(handlePostgresError<Room.Id>('getRootRoomId', query))
+        );
     }
 
     @Record()
@@ -98,12 +97,15 @@ export class PostgresDataStore implements DataStore {
             `INSERT INTO rootroom (rowid, rootroomid) VALUES (TRUE, $1)
             ON CONFLICT (rowid) DO UPDATE SET rootroomid = EXCLUDED.rootroomid;`;
 
-        return Observable.fromPromise(this.clientPool.query(
+        return from(this.clientPool.query(
             query,
             [roomId]
-        )).map((result: QueryResult) => {
-            return null;
-        }).catch(handlePostgresError<null>('setRootUserId', query));
+        )).pipe(
+            map((result: QueryResult) => {
+                return null;
+            }),
+            catchError(handlePostgresError<null>('setRootUserId', query))
+        );
     }
 
     @Record()
@@ -122,15 +124,19 @@ export class PostgresDataStore implements DataStore {
         return executeTransaction(this.clientPool, [
             { query: insertRoomQuery, params: [room.id, room.creator, room.title, stylesheetToString(room.stylesheet)] },
             { query: insertOwnersQuery, params: [room.id, ...room.owners] },
-        ]).map((results: Array<QueryResult | undefined>) => {
-            // TODO: return DB results
-            return room;
-        }).catch((err: Error) => {
-            if(err.message === 'already exists') {
-                return Observable.throw(new AlreadyExistsError(`Room already exists: '${room.id}'`)) as Observable<Room>;
-            }
-            return Observable.throw(err) as Observable<Room>;
-        }).catch(handlePostgresError<Room>('insertRoom', [insertRoomQuery, insertOwnersQuery].join('\n')));
+        ]).pipe(
+            map((results: Array<QueryResult | undefined>) => {
+                // TODO: return DB results
+                return room;
+            }),
+            catchError((err: Error) => {
+                if(err.message === 'already exists') {
+                    return throwError(new AlreadyExistsError(`Room already exists: '${room.id}'`)) as Observable<Room>;
+                }
+                return throwError(err) as Observable<Room>;
+            }),
+            catchError(handlePostgresError<Room>('insertRoom', [insertRoomQuery, insertOwnersQuery].join('\n')))
+        );
     }
 
     @Record()
@@ -169,12 +175,14 @@ export class PostgresDataStore implements DataStore {
             queries.push({query: ownersInsertQuery, params: [id, ...patch.owners]});
         }
 
-        return executeTransaction(this.clientPool, queries)
-        .map((results: Array<QueryResult | undefined>) => {
-            results[0]!.rows[0].owners = patch.owners;
-            return roomFromRow(results[0]!.rows[0]);
+        return executeTransaction(this.clientPool, queries).pipe(
+            map((results: Array<QueryResult | undefined>) => {
+                results[0]!.rows[0].owners = patch.owners;
+                return roomFromRow(results[0]!.rows[0]);
 
-        }).catch(handlePostgresError<Room>('updateRoom', queries.map((q)=>q.query).join('\n')));
+            }),
+            catchError(handlePostgresError<Room>('updateRoom', queries.map((q)=>q.query).join('\n')))
+        );
     }
 
     @Record()
@@ -186,13 +194,15 @@ export class PostgresDataStore implements DataStore {
             JOIN structure_texts USING (structureid)
             WHERE structures.structureid=$1`;
 
-        return Observable.fromPromise(this.clientPool.query(query, [id])
-        ).map((result: QueryResult) => {
-            if(result.rows.length === 0) {
-                throw new NotFoundError(`Structure not found: '${id}'`);
-            }
-            return structureFromRow(result.rows[0]);
-        }).catch(handlePostgresError<Structure>('getStructure', query));
+        return from(this.clientPool.query(query, [id])).pipe(
+            map((result: QueryResult) => {
+                if(result.rows.length === 0) {
+                    throw new NotFoundError(`Structure not found: '${id}'`);
+                }
+                return structureFromRow(result.rows[0]);
+            }),
+            catchError(handlePostgresError<Structure>('getStructure', query))
+        );
     }
 
     // shouldn't use api here
@@ -265,11 +275,14 @@ export class PostgresDataStore implements DataStore {
                 queries.push(queryData.query); 
                 return queryData;
             },
-        ]).map((results: Array<QueryResult | undefined>) => {
-            const combinedRows = Object.assign({}, results[0]!.rows[0], results[1]!.rows[0]);
-            return structureFromRow(combinedRows);
+        ]).pipe(
+            map((results: Array<QueryResult | undefined>) => {
+                const combinedRows = Object.assign({}, results[0]!.rows[0], results[1]!.rows[0]);
+                return structureFromRow(combinedRows);
 
-        }).catch(handlePostgresError<Structure>('updateStructure', queries.join('\n')));
+            }),
+            catchError(handlePostgresError<Structure>('updateStructure', queries.join('\n')))
+        );
     }
 
     @Record()
@@ -295,27 +308,32 @@ export class PostgresDataStore implements DataStore {
             default:
                 // TODO: throw error
         }
-        return executeTransaction(this.clientPool, queries)
-        .map((results: Array<QueryResult | undefined>) => {
-            // TODO: return db results
-            return structure;
-        }).catch((err: Error) => {
-            // TODO: match to actual error message
-            if(err.message === 'already exists') {
-                return Observable.throw(new AlreadyExistsError(`Structure with id '${structure.id}' already exists`)) as Observable<Structure>;
-            }
-            return Observable.throw(err) as Observable<Structure>;
-        }).catch(handlePostgresError<Structure>('insertStructure', queries.join('\n')));
+        return executeTransaction(this.clientPool, queries).pipe(
+            map((results: Array<QueryResult | undefined>) => {
+                // TODO: return db results
+                return structure;
+            }),
+            catchError((err: Error) => {
+                // TODO: match to actual error message
+                if(err.message === 'already exists') {
+                    return throwError(new AlreadyExistsError(`Structure with id '${structure.id}' already exists`)) as Observable<Structure>;
+                }
+                return throwError(err) as Observable<Structure>;
+            }),
+            catchError(handlePostgresError<Structure>('insertStructure', queries.join('\n')))
+        );
     }
 
     @Record()
     public getRoomDocument(roomId: Room.Id) {
-        return this.getRoomDocuments([roomId]).map((roomDocuments) => {
-            if(roomDocuments.length === 0) {
-                throw new NotFoundError(`Room '${roomId}' not found`);
-            }
-            return roomDocuments[0];
-        });
+        return this.getRoomDocuments([roomId]).pipe(
+            map((roomDocuments) => {
+                if(roomDocuments.length === 0) {
+                    throw new NotFoundError(`Room '${roomId}' not found`);
+                }
+                return roomDocuments[0];
+            })
+        );
     }
 
     protected getRoomDocuments(roomIds: Room.Id[]): Observable<RoomDocument[]> {
@@ -333,47 +351,50 @@ export class PostgresDataStore implements DataStore {
         FULL JOIN structure_texts USING (structureid)
         WHERE structure_tunnels.sourceid = ANY($1) OR structure_tunnels.targetid = ANY($1) OR
               structure_texts.roomid = ANY($1);`;
-        return Observable.forkJoin(
-            Observable.fromPromise(this.clientPool.query(
+        return forkJoin(
+            from(this.clientPool.query(
                 roomsQuery,
                 [roomIds]
             )),
-            Observable.fromPromise(this.clientPool.query(
+            from(this.clientPool.query(
                 structuresQuery,
                 [roomIds]
             ))
-        ).map(([roomsResult, structuresResult]) => {
-            // initialize structures and group them by room
-            const roomStructures: Map<Room.Id, Structure[]> = structuresResult.rows.reduce((out: Map<Room.Id, Structure[]>, structureRow: any) => {
-                let parentRooms: Room.Id[] = [];
-                const structure = structureFromRow(structureRow);
-                switch(structure.data.sType) {
-                    case 'tunnel':
-                        parentRooms = [structure.data.sourceId, structure.data.targetId];
-                        break;
-                    case 'text':
-                        parentRooms = [structure.data.roomId];
-                        break;
-                    default:
-                        //TODO: throw error
-                }
+        ).pipe(
+            map(([roomsResult, structuresResult]) => {
+                // initialize structures and group them by room
+                const roomStructures: Map<Room.Id, Structure[]> = structuresResult.rows.reduce((out: Map<Room.Id, Structure[]>, structureRow: any) => {
+                    let parentRooms: Room.Id[] = [];
+                    const structure = structureFromRow(structureRow);
+                    switch(structure.data.sType) {
+                        case 'tunnel':
+                            parentRooms = [structure.data.sourceId, structure.data.targetId];
+                            break;
+                        case 'text':
+                            parentRooms = [structure.data.roomId];
+                            break;
+                        default:
+                            //TODO: throw error
+                    }
 
-                parentRooms.forEach((roomId: Room.Id) => {
-                    const structures = out.get(roomId) || [];
-                    structures.push(structure);
-                    out.set(roomId, structures);
+                    parentRooms.forEach((roomId: Room.Id) => {
+                        const structures = out.get(roomId) || [];
+                        structures.push(structure);
+                        out.set(roomId, structures);
+                    });
+                    return out;
+                }, new Map<Room.Id, Structure[]>());
+
+                // create rooms
+                return roomsResult.rows.map((roomRow: any) => {
+                    const room = roomFromRow(roomRow);
+                    const structures = new Map<Structure.Id, Structure>(
+                        (roomStructures.get(room.id) || []).map((s: Structure) => [s.id, s] as [Structure.Id, Structure])
+                    );
+                    return new RoomDocument(room, structures);
                 });
-                return out;
-            }, new Map<Room.Id, Structure[]>());
-
-            // create rooms
-            return roomsResult.rows.map((roomRow: any) => {
-                const room = roomFromRow(roomRow);
-                const structures = new Map<Structure.Id, Structure>(
-                    (roomStructures.get(room.id) || []).map((s: Structure) => [s.id, s] as [Structure.Id, Structure])
-                );
-                return new RoomDocument(room, structures);
-            });
-        }).catch(handlePostgresError<RoomDocument[]>('getRoomDocuments', [roomsQuery, structuresQuery].join('\n')));
+            }),
+            catchError(handlePostgresError<RoomDocument[]>('getRoomDocuments', [roomsQuery, structuresQuery].join('\n')))
+        );
     }
 }

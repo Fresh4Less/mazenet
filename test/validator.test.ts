@@ -4,42 +4,42 @@ import * as Validator from '../common/util/validator';
 
 class Primitives {
     @Validator.validate()
-    enabled: boolean;
+    enabled!: boolean;
     @Validator.validate()
-    count: number;
+    count!: number;
     @Validator.validate()
-    name: string;
+    name!: string;
 
 }
 
 class PrimitivesArray {
     @Validator.validate(false, Boolean)
-    flags: boolean[];
+    flags!: boolean[];
     @Validator.validate({arrayType: Number, arrayOptional:true})
-    counts: number[];
+    counts!: number[];
     @Validator.validate(false, String)
-    names: string[];
+    names!: string[];
 }
 
 class Degree {
     @Validator.validate()
-    subject: string;
+    subject!: string;
     @Validator.validate()
-    year: number;
+    year!: number;
 }
 
 class Librarian {
     @Validator.validate()
-    name: string;
+    name!: string;
     @Validator.validate(false, Degree)
-    degrees: Degree[];
+    degrees!: Degree[];
 }
 
 class Library {
     @Validator.validate()
-    name: string;
+    name!: string;
     @Validator.validate(false, String)
-    librarian: Librarian;
+    librarian!: Librarian;
 }
 
 class Optional {
@@ -171,36 +171,36 @@ describe('validate primitives', () => {
 
 class Apple {
     @Validator.validate()
-    kind: 'apple';
+    kind!: 'apple';
     @Validator.validate()
-    name: string;
+    name!: string;
 }
 
 class Banana {
     @Validator.validate()
-    kind: 'banana';
+    kind!: 'banana';
     @Validator.validate()
-    count: number;
+    count!: number;
 }
 
 class Coconut {
     @Validator.validate()
-    kind: 'coconut';
+    kind!: 'coconut';
     @Validator.validate()
-    cracked: boolean;
+    cracked!: boolean;
 }
 
 type Fruit = Apple | Banana | Coconut;
 
 class FruitBasket {
     @Validator.validate()
-    color: string;
+    color!: string;
     @Validator.validate({union: {discriminant: 'kind', types: {
         'apple': Apple,
         'banana': Banana,
         'coconut': Coconut,
     }}})
-    fruit: Fruit;
+    fruit!: Fruit;
 }
 
 describe('discriminated union', () => {
@@ -237,7 +237,7 @@ describe('discriminated union', () => {
 
 class Grandparent {
     @Validator.validate()
-    name: string;
+    name!: string;
 }
 
 class Parent extends Grandparent {
@@ -247,7 +247,7 @@ class Parent extends Grandparent {
 
 class Child extends Parent {
     @Validator.validate()
-    toys: number;
+    toys!: number;
 }
 type PersonConstructor = Validator.Constructor<Grandparent | Parent | Child>;
 

@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { AlreadyExistsError } from '../../common';
 import { ActiveUser, User } from '../models';

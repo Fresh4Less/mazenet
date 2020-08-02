@@ -3,8 +3,9 @@ import * as fs from 'fs';
 import * as Http from 'http';
 import * as Https from 'https';
 import * as Path from 'path';
-import { Observable, Observer } from 'rxjs';
-import { EventTargetLike } from 'rxjs/observable/FromEventObservable';
+import { AddressInfo } from 'net';
+import { fromEvent, forkJoin, Observable, race } from 'rxjs';
+import { first, map } from 'rxjs/operators';
 import * as SocketIO from 'socket.io';
 
 import { Pool, PoolConfig } from 'pg';
@@ -61,10 +62,10 @@ export class Server {
     };
 
     public options: Server.Options;
-    public httpServer: Http.Server | Https.Server;
+    public httpServer!: Http.Server | Https.Server;
     public secureRedirectServer?: Http.Server;
-    public app: Express.Express;
-    public socketServer: SocketIO.Server;
+    public app!: Express.Express;
+    public socketServer!: SocketIO.Server;
     public usingSsl: boolean;
     public postgresPool?: Pool;
 
@@ -115,24 +116,26 @@ export class Server {
                 this.secureRedirectServer = this.makeSecureRedirectServer(this.options.securePort);
                 // succeed ifboth listening events are fired, but error ifan error event is fired first
                 this.usingSsl = true;
-                listeningObservable = Observable.race(
-                    Observable.forkJoin(
+                listeningObservable = race(
+                    forkJoin(
                         // Don't love these type assertions but it works
-                        Observable.fromEvent(this.httpServer as any as EventTargetLike, 'listening').first(),
-                        Observable.fromEvent(this.secureRedirectServer as any as EventTargetLike, 'listening').first()),
-                    Observable.fromEvent(this.httpServer as any as EventTargetLike, 'error').map((err: any) => {
-                        throw err;
-                    }).first(),
-                    Observable.fromEvent(this.secureRedirectServer as any as EventTargetLike, 'error').map((err: any) => {
-                        throw err;
-                    })
-                ).map(() => {
-                    GlobalLogger.info('Server: bound to port', {
-                        port: this.httpServer.address().port,
-                        redirectPort: this.secureRedirectServer!.address().port,
-                        ssl: this.usingSsl
-                    });
-                });
+                        fromEvent(this.httpServer, 'listening').pipe(first()),
+                        fromEvent(this.secureRedirectServer, 'listening').pipe(first())),
+                    fromEvent(this.httpServer, 'error').pipe(
+                        map((err: any) => { throw err; }),
+                        first()
+                    ),
+                    fromEvent(this.secureRedirectServer, 'error').pipe(
+                        map((err: any) => { throw err; })
+                    )
+                ).pipe(
+                    map(() => {
+                        GlobalLogger.info('Server: bound to port', {
+                            port: (this.httpServer.address() as AddressInfo).port,
+                            redirectPort: (this.secureRedirectServer!.address() as AddressInfo).port,
+                            ssl: this.usingSsl
+                        });
+                    }));
 
                 this.httpServer.listen(this.options.securePort);
                 this.secureRedirectServer.listen(this.options.port);
@@ -143,17 +146,20 @@ export class Server {
                 GlobalLogger.warn('WARNING: SSL not enabled. Website is NOT SECURE');
                 this.usingSsl = false;
                 this.httpServer = new Http.Server(this.app);
-                listeningObservable = Observable.race(
-                    Observable.fromEvent(this.httpServer as any as EventTargetLike, 'listening').first(),
-                    Observable.fromEvent(this.httpServer as any as EventTargetLike, 'error').map((err: any) => {
-                        throw err;
-                    }).first(),
-                ).map(() => {
-                    GlobalLogger.info('Server: bound to port', {
-                        port: this.httpServer.address().port,
-                        ssl: this.usingSsl
-                    });
-                });
+                listeningObservable = race(
+                    fromEvent(this.httpServer, 'listening').pipe(first()),
+                    fromEvent(this.httpServer, 'error').pipe(
+                        map((err: any) => { throw err; }),
+                        first()
+                    ),
+                ).pipe(
+                    map(() => {
+                        GlobalLogger.info('Server: bound to port', {
+                            port: (this.httpServer.address() as AddressInfo).port,
+                            ssl: this.usingSsl
+                        });
+                    })
+                );
 
                 this.httpServer.listen(this.options.port);
             }

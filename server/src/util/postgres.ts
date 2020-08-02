@@ -1,8 +1,6 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
-import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/observable/concat';
-import 'rxjs/add/operator/expand';
+import { from, of, Observable, throwError } from 'rxjs';
+import { catchError, expand, map, mergeMap, skip, take, toArray } from 'rxjs/operators';
 
 import { NotFoundError } from '../common';
 
@@ -21,9 +19,9 @@ export function handlePostgresError<T>(queryName: string, query: string): (err: 
     // TODO: only match match postgres errors
     return (err: Error) => {
         if(err instanceof NotFoundError) {
-            return Observable.throw(err) as Observable<T>;
+            return throwError(err) as Observable<T>;
         }
-        return Observable.throw(new PostgresQueryError(queryName, query, err)) as Observable<T>;
+        return throwError(new PostgresQueryError(queryName, query, err)) as Observable<T>;
     };
 }
 
@@ -35,39 +33,50 @@ export interface QueryData {
 export type QueryDataFunc = (result: QueryResult) => QueryData | undefined;
 
 export function executeTransaction(clientPool: Pool, queries: Array<QueryData | QueryDataFunc>): Observable<Array<QueryResult | undefined>> {
-    return Observable.fromPromise(clientPool.connect()).mergeMap((client: PoolClient) => {
-        const transactionQueries: Array<QueryData | QueryDataFunc> = [
-            {query: 'BEGIN;', params: []},
-            ...queries,
-            {query: 'COMMIT;', params: []},
-        ];
-        return Observable.of(undefined).expand((result, index) => {
-            let queryData: QueryData | QueryDataFunc | undefined = transactionQueries[index];
-            // query data fields can be function or value
-            if(typeof queryData === 'function') {
-                if(!result) {
-                    // function queryData always needs the previous result to work off. If there is none, just skip
-                    return Observable.of(undefined);
-                }
-                queryData = queryData(result!);
-            }
+    return from(clientPool.connect()).pipe(
+        mergeMap((client: PoolClient) => {
+            const transactionQueries: Array<QueryData | QueryDataFunc> = [
+                {query: 'BEGIN;', params: []},
+                ...queries,
+                {query: 'COMMIT;', params: []},
+            ];
+            return of(undefined).pipe(
+                expand((result, index) => {
+                    let queryData: QueryData | QueryDataFunc | undefined = transactionQueries[index];
+                    // query data fields can be function or value
+                    if(typeof queryData === 'function') {
+                        if(!result) {
+                            // function queryData always needs the previous result to work off. If there is none, just skip
+                            return of(undefined);
+                        }
+                        queryData = queryData(result!);
+                    }
 
-            if(!queryData) {
-                return Observable.of(undefined);
-            }
+                    if(!queryData) {
+                        return of(undefined);
+                    }
 
-            return Observable.fromPromise(client.query(queryData.query, queryData.params));
-        }).skip(1).take(transactionQueries.length).toArray().map((results) => {
-            client.release();
-            // don't return BEGIN and COMMIT query results
-            return results.slice(1,-1);
-        }).catch((err: Error) => {
-            return Observable.fromPromise(client.query(`ROLLBACK;`)).map(() => {
-                client.release();
-                throw err;
-            });
-        });
-    });
+                    return from(client.query(queryData.query, queryData.params));
+                }),
+                skip(1),
+                take(transactionQueries.length),
+                toArray(),
+                map((results) => {
+                    client.release();
+                    // don't return BEGIN and COMMIT query results
+                    return results.slice(1,-1);
+                }),
+                catchError((err: Error) => {
+                    return from(client.query(`ROLLBACK;`)).pipe(
+                        map(() => {
+                            client.release();
+                            throw err;
+                        })
+                    );
+                })
+            );
+        })
+    );
 }
 
 /** Build the SET section of an UPDATE query

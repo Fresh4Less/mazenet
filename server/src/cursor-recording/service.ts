@@ -1,10 +1,5 @@
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
-import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
+import { of, forkJoin, Observable, Subject } from 'rxjs';
+import { map, mergeMap, catchError, share } from 'rxjs/operators';
 
 import * as Uuid from 'uuid/v4';
 
@@ -27,16 +22,15 @@ export class Service {
 
     public events: Observable<CursorEvent>;
 
-    private eventObserver: Observer<CursorEvent>;
+    protected eventSubject: Subject<CursorEvent>;
 
     constructor(dataStore: DataStore, liveCursorRecordingDataStore: LiveCursorRecordingDataStore, userService: UserService) {
         this.dataStore = dataStore;
         this.liveCursorRecordingDataStore = liveCursorRecordingDataStore;
         this.userService = userService;
 
-        this.events = Observable.create((observer: Observer<CursorEvent>) => {
-            this.eventObserver = observer;
-        }).share();
+        this.eventSubject = new Subject();
+        this.events = this.eventSubject.pipe(share());
     }
 
     public getCursorRecordings(roomId: Room.Id, limit: number): Observable<Map<CursorRecording.Id, CursorRecording>> {
@@ -49,20 +43,22 @@ export class Service {
 
     /* Commit the user's cursor frames to the room */
     public endCursorRecording(activeUserId: ActiveUser.Id): Observable<CursorRecording> {
-        return this.liveCursorRecordingDataStore.endCursorRecording(activeUserId)
-        .mergeMap(([roomId, frames]: [Room.Id, CursorRecordingFrame[]]) => {
-            const cursorRecording = new CursorRecording({
-                activeUserId,
-                frames,
-                id: Uuid(),
-            });
-            return Observable.forkJoin(
-                this.dataStore.insertCursorRecording(roomId, cursorRecording),
-                Observable.of(roomId));
-        }).map(([cursorRecording, roomId]) => {
-            GlobalLogger.trace('create cursor recording', {id: cursorRecording.id, activeUserId: cursorRecording.activeUserId, roomId});
-            return cursorRecording;
-        });
+        return this.liveCursorRecordingDataStore.endCursorRecording(activeUserId).pipe(
+            mergeMap(([roomId, frames]: [Room.Id, CursorRecordingFrame[]]) => {
+                const cursorRecording = new CursorRecording({
+                    activeUserId,
+                    frames,
+                    id: Uuid(),
+                });
+                return forkJoin(
+                    this.dataStore.insertCursorRecording(roomId, cursorRecording),
+                    of(roomId));
+            }),
+            map(([cursorRecording, roomId]) => {
+                GlobalLogger.trace('create cursor recording', {id: cursorRecording.id, activeUserId: cursorRecording.activeUserId, roomId});
+                return cursorRecording;
+            })
+        );
     }
 
     /** Record a frame of cursor movement.
@@ -75,14 +71,16 @@ export class Service {
             pos,
             t: Math.floor((new Date().valueOf() - new Date(activeUserRoomData.enterTime).valueOf()) / 30)
         };
-        return this.liveCursorRecordingDataStore.addCursorRecordingFrame(activeUserRoomData.activeUser.id, frame).map(() => {
-            this.eventObserver.next({
-                activeUser: activeUserRoomData.activeUser,
-                event: 'move',
-                pos,
-                roomId: activeUserRoomData.roomId,
-            });
-            return null;
-        });
+        return this.liveCursorRecordingDataStore.addCursorRecordingFrame(activeUserRoomData.activeUser.id, frame).pipe(
+            map(() => {
+                this.eventSubject.next({
+                    activeUser: activeUserRoomData.activeUser,
+                    event: 'move',
+                    pos,
+                    roomId: activeUserRoomData.roomId,
+                });
+                return null;
+            })
+        );
     }
 }

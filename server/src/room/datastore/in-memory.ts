@@ -1,5 +1,5 @@
-import 'rxjs/add/observable/of';
-import { Observable } from 'rxjs/Observable';
+import { of, throwError, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { AlreadyExistsError, NotFoundError } from '../../common';
 
@@ -34,38 +34,38 @@ export class InMemoryDataStore implements DataStore {
 
     public getRootRoomId() {
         if(!this.rootRoomId) {
-            return Observable.throw(new NotFoundError(`Root room id not set`));
+            return throwError(new NotFoundError(`Root room id not set`));
         }
-        return Observable.of(this.rootRoomId!);
+        return of(this.rootRoomId!);
     }
 
     public setRootRoomId(roomId: Room.Id) {
         this.rootRoomId = roomId;
-        return Observable.of(null);
+        return of(null);
     }
 
     public getRoom(roomId: Room.Id) {
         const room = this.rooms.get(roomId);
         if(!room) {
-            return Observable.throw(new NotFoundError(`Room '${roomId}' not found`)) as Observable<Room>;
+            return throwError(new NotFoundError(`Room '${roomId}' not found`)) as Observable<Room>;
         }
 
-        return Observable.of(room);
+        return of(room);
     }
 
     public insertRoom(room: Room) {
         if(this.rooms.has(room.id)) {
-            return Observable.throw(new AlreadyExistsError(`Room with id '${room.id}' already exists`)) as Observable<Room>;
+            return throwError(new AlreadyExistsError(`Room with id '${room.id}' already exists`)) as Observable<Room>;
         }
 
         this.rooms.set(room.id, room);
-        return Observable.of(room);
+        return of(room);
     }
 
     public updateRoom(id: Room.Id, patch: Api.v1.Models.Room.Patch) {
         const room = this.rooms.get(id);
         if(!room) {
-            return Observable.throw(new NotFoundError(`Room '${id}' not found`)) as Observable<Room>;
+            return throwError(new NotFoundError(`Room '${id}' not found`)) as Observable<Room>;
         }
 
         // NOTE: fields that were explciitly set to undefined will overwrite
@@ -74,40 +74,41 @@ export class InMemoryDataStore implements DataStore {
             room.owners = new Set<User.Id>(patch.owners);
         }
 
-        return Observable.of(room);
+        return of(room);
     }
 
     public getStructure(id: Structure.Id) {
         const structure = this.structures.get(id);
         if(!structure) {
-            return Observable.throw(new NotFoundError(`Structure '${id}' not found`)) as Observable<Structure>;
+            return throwError(new NotFoundError(`Structure '${id}' not found`)) as Observable<Structure>;
         }
 
-        return Observable.of(structure);
+        return of(structure);
     }
 
     public updateStructure(id: Structure.Id, patch: Api.v1.Models.Structure.Patch) {
         const structure = this.structures.get(id);
         if(!structure) {
-            return Observable.throw(new NotFoundError(`Structure '${id}' not found`)) as Observable<Structure>;
+            return throwError(new NotFoundError(`Structure '${id}' not found`)) as Observable<Structure>;
         }
 
         // NOTE: fields that were explciitly set to undefined will overwrite
         // delete data so it doesn't overwrite the StructureData class
         const patchStructureData = patch.data;
-        delete patch.data;
-        Object.assign(structure, patch);
+        const patchBase: Omit<Api.v1.Models.Structure.Patch, 'data'> = patch;
+        delete (patchBase as any).data;
+        Object.assign(structure, patchBase);
         // TODO: do this with a generic recursive function
         if(patchStructureData) {
             Object.assign(structure.data, patchStructureData);
         }
 
-        return Observable.of(structure);
+        return of(structure);
     }
 
     public insertStructure(structure: Structure) {
         if(this.structures.has(structure.id)) {
-            return Observable.throw(new AlreadyExistsError(`Structure with id '${structure.id}' already exists`)) as Observable<Structure>;
+            return throwError(new AlreadyExistsError(`Structure with id '${structure.id}' already exists`)) as Observable<Structure>;
         }
 
         this.structures.set(structure.id, structure);
@@ -125,20 +126,21 @@ export class InMemoryDataStore implements DataStore {
                 break;
         }
 
-        return Observable.of(structure);
+        return of(structure);
     }
 
     public getRoomDocument(roomId: Room.Id) {
-        return this.getRoom(roomId)
-        .map((room) => {
-            const structureIds = this.structuresInRoom.get(roomId) || new Set<Structure.Id>();
-            const structures = new Map<Structure.Id, Structure>();
-            for (const id of structureIds) {
-                // the structure better exist
-                structures.set(id, this.structures.get(id)!);
-            }
-            return new RoomDocument(room, structures);
-        });
+        return this.getRoom(roomId).pipe(
+            map((room) => {
+                const structureIds = this.structuresInRoom.get(roomId) || new Set<Structure.Id>();
+                const structures = new Map<Structure.Id, Structure>();
+                for (const id of structureIds) {
+                    // the structure better exist
+                    structures.set(id, this.structures.get(id)!);
+                }
+                return new RoomDocument(room, structures);
+            })
+        );
     }
 
     public getActiveUsersInRoom(roomId: Room.Id) {
@@ -146,12 +148,12 @@ export class InMemoryDataStore implements DataStore {
         if(!roomActiveUsers) {
             roomActiveUsers = new Map<ActiveUser.Id, ActiveUserRoomData>();
         }
-        return Observable.of(roomActiveUsers);
+        return of(roomActiveUsers);
     }
 
     public getActiveUserRoomData(activeUserId: ActiveUser.Id) {
         const activeUserRoomData = this.activeUserRoomData.get(activeUserId);
-        return Observable.of(activeUserRoomData);
+        return of(activeUserRoomData);
     }
 
     public insertActiveUserToRoom(roomId: Room.Id, activeUserRoomData: ActiveUserRoomData) {
@@ -161,24 +163,24 @@ export class InMemoryDataStore implements DataStore {
 
         const roomActiveUsers = this.roomActiveUsers.get(roomId);
         if(roomActiveUsers!.has(activeUserRoomData.activeUser.id)) {
-            return Observable.throw(new AlreadyExistsError(`ActiveUser '${activeUserRoomData.activeUser.id}' is already in room '${roomId}'`)) as Observable<null>;
+            return throwError(new AlreadyExistsError(`ActiveUser '${activeUserRoomData.activeUser.id}' is already in room '${roomId}'`)) as Observable<null>;
         }
         roomActiveUsers!.set(activeUserRoomData.activeUser.id, activeUserRoomData);
         this.activeUserRoomData.set(activeUserRoomData.activeUser.id, activeUserRoomData);
-        return Observable.of(null);
+        return of(null);
     }
 
     public deleteActiveUserFromRoom(roomId: Room.Id, activeUserId: ActiveUser.Id) {
         const roomActiveUsers = this.roomActiveUsers.get(roomId);
         if(!roomActiveUsers || !roomActiveUsers.has(activeUserId)) {
-            return Observable.throw(new NotFoundError(`ActiveUser '${activeUserId}' is not in room '${roomId}'`)) as Observable<null>;
+            return throwError(new NotFoundError(`ActiveUser '${activeUserId}' is not in room '${roomId}'`)) as Observable<null>;
         }
         roomActiveUsers.delete(activeUserId);
         if(roomActiveUsers.size === 0) {
             this.roomActiveUsers.delete(roomId);
         }
         this.activeUserRoomData.delete(activeUserId);
-        return Observable.of(null);
+        return of(null);
     }
 
     protected addStructureToRoom(structureId: Structure.Id, roomId: Room.Id): Set<Structure.Id> {

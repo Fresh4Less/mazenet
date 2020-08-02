@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { ActiveUser } from '../../user/models';
 import { ActiveUserRoomData, Room, RoomDocument, Structure } from '../models';

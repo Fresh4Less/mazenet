@@ -1,5 +1,4 @@
-import 'rxjs/add/observable/of';
-import { Observable } from 'rxjs/Observable';
+import { of, Observable } from 'rxjs';
 
 import * as Uuid from 'uuid/v4';
 
@@ -30,7 +29,7 @@ export class InMemoryDataStore implements DataStore {
             return m;
         }, new Map<CursorRecording.Id, CursorRecording>());
 
-        return Observable.of(recordingMap);
+        return of(recordingMap);
     }
 
     public insertCursorRecording(roomId: Room.Id, cursorRecording: CursorRecording) {
@@ -41,6 +40,6 @@ export class InMemoryDataStore implements DataStore {
         const cursorRecordings = this.cursorRecordings.get(roomId);
 
         cursorRecordings!.push(cursorRecording);
-        return Observable.of(cursorRecording);
+        return of(cursorRecording);
     }
 }

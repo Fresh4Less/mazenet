@@ -1,6 +1,5 @@
 import * as Express from 'express';
-import 'rxjs/add/observable/forkJoin';
-import { Observable } from 'rxjs/Observable';
+import { forkJoin, Observable } from 'rxjs';
 
 import FreshSocketIO = require('fresh-socketio-router');
 import * as Api from '../../../common/api';
@@ -81,7 +80,7 @@ export class Middleware {
                 throw new BadRequestError(err.message);
             }
 
-            Observable.forkJoin(
+            forkJoin(
                 this.service.createActiveUser(socketData!.sessionId, req.user, body),
                 this.roomService.getRootRoomId())
             .subscribe(([activeUser, rootRoomId]) => {

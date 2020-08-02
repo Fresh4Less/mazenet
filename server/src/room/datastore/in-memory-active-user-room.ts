@@ -1,5 +1,4 @@
-import 'rxjs/add/observable/of';
-import { Observable } from 'rxjs/Observable';
+import { of, Observable, throwError } from 'rxjs';
 
 import { AlreadyExistsError, NotFoundError } from '../../common';
 
@@ -23,12 +22,12 @@ export class InMemoryActiveUserRoomDataStore implements ActiveUserRoomDataStore 
         if(!roomActiveUsers) {
             roomActiveUsers = new Map<ActiveUser.Id, ActiveUserRoomData>();
         }
-        return Observable.of(roomActiveUsers);
+        return of(roomActiveUsers);
     }
 
     public getActiveUserRoomData(activeUserId: ActiveUser.Id) {
         const activeUserRoomData = this.activeUserRoomData.get(activeUserId);
-        return Observable.of(activeUserRoomData);
+        return of(activeUserRoomData);
     }
 
     public insertActiveUserToRoom(roomId: Room.Id, activeUserRoomData: ActiveUserRoomData) {
@@ -38,23 +37,23 @@ export class InMemoryActiveUserRoomDataStore implements ActiveUserRoomDataStore 
 
         const roomActiveUsers = this.roomActiveUsers.get(roomId);
         if(roomActiveUsers!.has(activeUserRoomData.activeUser.id)) {
-            return Observable.throw(new AlreadyExistsError(`ActiveUser '${activeUserRoomData.activeUser.id}' is already in room '${roomId}'`)) as Observable<null>;
+            return throwError(new AlreadyExistsError(`ActiveUser '${activeUserRoomData.activeUser.id}' is already in room '${roomId}'`)) as Observable<null>;
         }
         roomActiveUsers!.set(activeUserRoomData.activeUser.id, activeUserRoomData);
         this.activeUserRoomData.set(activeUserRoomData.activeUser.id, activeUserRoomData);
-        return Observable.of(null);
+        return of(null);
     }
 
     public deleteActiveUserFromRoom(roomId: Room.Id, activeUserId: ActiveUser.Id) {
         const roomActiveUsers = this.roomActiveUsers.get(roomId);
         if(!roomActiveUsers || !roomActiveUsers.has(activeUserId)) {
-            return Observable.throw(new NotFoundError(`ActiveUser '${activeUserId}' is not in room '${roomId}'`)) as Observable<null>;
+            return throwError(new NotFoundError(`ActiveUser '${activeUserId}' is not in room '${roomId}'`)) as Observable<null>;
         }
         roomActiveUsers.delete(activeUserId);
         if(roomActiveUsers.size === 0) {
             this.roomActiveUsers.delete(roomId);
         }
         this.activeUserRoomData.delete(activeUserId);
-        return Observable.of(null);
+        return of(null);
     }
 }

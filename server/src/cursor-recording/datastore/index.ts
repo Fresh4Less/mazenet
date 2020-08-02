@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Observable';
+import { of, Observable } from 'rxjs';
 
 import { NotFoundError } from '../../common';
 import { CursorRecording, CursorRecordingFrame } from '../models';
@@ -38,7 +38,7 @@ class InMemoryLiveCursorRecordingDataStore implements LiveCursorRecordingDataSto
             roomId,
         });
 
-        return Observable.of(null);
+        return of(null);
     }
     public endCursorRecording(activeUserId: ActiveUser.Id) {
         const liveCursorRecording = this.liveCursorRecordings.get(activeUserId);
@@ -47,7 +47,7 @@ class InMemoryLiveCursorRecordingDataStore implements LiveCursorRecordingDataSto
         }
 
         this.liveCursorRecordings.delete(activeUserId);
-        return Observable.of([
+        return of([
             liveCursorRecording.roomId,
             liveCursorRecording.frames
         ]) as Observable<[Room.Id, CursorRecordingFrame[]]>;
@@ -60,7 +60,7 @@ class InMemoryLiveCursorRecordingDataStore implements LiveCursorRecordingDataSto
             liveCursorRecording.frames.push(frame);
         }
 
-        return Observable.of(null);
+        return of(null);
     }
 }
 

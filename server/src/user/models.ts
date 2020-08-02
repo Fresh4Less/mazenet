@@ -22,7 +22,10 @@ export class ActiveUser {
     public platformData: ActiveUser.PlatformData;
 
     constructor(v1: Api.v1.Models.ActiveUser) {
-        Object.assign(this, v1);
+        this.id = v1.id;
+        this.userId = v1.userId;
+        this.username = v1.username;
+        this.platformData = v1.platformData;
     }
 
     public toV1(): Api.v1.Models.ActiveUser {

@@ -24,9 +24,8 @@
 
 import * as Path from 'path';
 import { performance } from 'perf_hooks';
-import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/operator/do';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 import { GlobalLogger } from './logger';
 
@@ -103,10 +102,12 @@ export function Record(options?: Partial<RecordOptions>) {
             };
 
             if(returnValue instanceof Observable) {
-                returnValue = returnValue.do((n) => {
-                    const asyncEndTime = performance.now();
-                    writeRecord(asyncEndTime - startTime, n);
-                });
+                returnValue = returnValue.pipe(
+                    tap((n) => {
+                        const asyncEndTime = performance.now();
+                        writeRecord(asyncEndTime - startTime, n);
+                    })
+                );
             } else {
                 writeRecord(syncDuration, returnValue);
             }

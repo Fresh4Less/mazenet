@@ -1,8 +1,5 @@
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
-
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/operator/mergeMap';
+import { of, forkJoin, Observable } from 'rxjs';
+import { filter, map, mergeMap } from 'rxjs/operators';
 
 import * as Express from 'express';
 import * as SocketIO from 'socket.io';
@@ -44,23 +41,23 @@ export class Middleware {
         this.socketNamespace = socketNamespace;
 
         // NOTE: consider adding a way to unsubscribe
-        service.events.filter((event) => event.event === 'enter').subscribe(
+        service.events.pipe(filter((event) => event.event === 'enter')).subscribe(
             (event) => this.onEnterRoom(event as EnteredRoomEvent)
         );
-        service.events.filter((event) => event.event === 'exit').subscribe(
+        service.events.pipe(filter((event) => event.event === 'exit')).subscribe(
             (event) => this.onExitRoom(event as ExitedRoomEvent)
         );
-        service.events.filter((event) => event.event === 'update').subscribe(
+        service.events.pipe(filter((event) => event.event === 'update')).subscribe(
             (event) => this.onUpdateRoom(event as UpdatedEvent)
         );
-        service.events.filter((event) => event.event === 'structure-create').subscribe(
+        service.events.pipe(filter((event) => event.event === 'structure-create')).subscribe(
             (event) => this.onCreateStructure(event as StructureCreatedEvent)
         );
-        service.events.filter((event) => event.event === 'structure-update').subscribe(
+        service.events.pipe(filter((event) => event.event === 'structure-update')).subscribe(
             (event) => this.onUpdateStructure(event as StructureUpdatedEvent)
         );
 
-        cursorService.events.filter((event) => event.event === 'move').subscribe(
+        cursorService.events.pipe(filter((event) => event.event === 'move')).subscribe(
             (event) => this.onCursorMoved(event as CursorMovedEvent)
         );
         this.router = this.makeRouter();
@@ -109,14 +106,15 @@ export class Middleware {
                     return;
                 }
 
-                return this.service.getActiveUserRoomData(socket.mazenet!.activeUser!.id)
-                .mergeMap((activeUserRoomData) => {
-                    if(activeUserRoomData) {
-                        return this.cursorService.onCursorMoved(activeUserRoomData, body.pos);
-                    } else {
-                        return Observable.of(null);
-                    }
-                }).subscribe(() => {
+                return this.service.getActiveUserRoomData(socket.mazenet!.activeUser!.id).pipe(
+                    mergeMap((activeUserRoomData) => {
+                        if(activeUserRoomData) {
+                            return this.cursorService.onCursorMoved(activeUserRoomData, body.pos);
+                        } else {
+                            return of(null);
+                        }
+                    })
+                ).subscribe(() => {
                     //TODO: standardize event logging
                     // unnecessary log
                     //GlobalLogger.request('event-complete', {
@@ -174,17 +172,19 @@ export class Middleware {
                 throw new BadRequestError(err.message);
             }
 
-            return Observable.forkJoin(
+            return forkJoin(
                 // get the room and active users
                 this.service.getRoomDocument(body.id),
                 this.service.getActiveUsersInRoom(body.id)
-            ).mergeMap(([roomDocument, activeUsers]) => {
-                // enter room
-                return Observable.forkJoin(
-                    Observable.of(roomDocument),
-                    Observable.of(activeUsers),
-                    this.service.enterRoom(body.id, (req.socket as Socket).mazenet!.activeUser!));
-            }).subscribe(([roomDoc, activeUsers]) => {
+            ).pipe(
+                mergeMap(([roomDocument, activeUsers]) => {
+                    // enter room
+                    return forkJoin(
+                        of(roomDocument),
+                        of(activeUsers),
+                        this.service.enterRoom(body.id, (req.socket as Socket).mazenet!.activeUser!));
+                })
+            ).subscribe(([roomDoc, activeUsers]) => {
                 const activeUsersInRoom = mapToObject(activeUsers, (a: ActiveUserRoomData) => a.activeUser.toV1());
                 delete activeUsersInRoom[req.activeUser!.id];
                 const response: Api.v1.Routes.Rooms.Enter.Post.Response200 = {
@@ -208,10 +208,11 @@ export class Middleware {
             } catch (err) {
                 throw new BadRequestError(err.message);
             }
-            return this.service.updateRoom(req.user, body.id, body.patch)
-                .mergeMap((room) => {
-                    return this.service.getRoomDocument(body.id);
-                }).subscribe((roomDocument) => {
+            return this.service.updateRoom(req.user, body.id, body.patch).pipe(
+                    mergeMap((room) => {
+                        return this.service.getRoomDocument(body.id);
+                })
+            ).subscribe((roomDocument) => {
                 return res.status(200).json(roomDocument.toV1());
             }, (err: Error) => {
                 return next(err);
@@ -308,15 +309,16 @@ export class Middleware {
 
     public onUpdateRoom(event: UpdatedEvent) {
         // Note, we get this room document twice (when returning to /rooms/update transaction)
-        this.service.getRoomDocument(event.room.id)
-        .mergeMap((roomDocument) => {
-            return this.emitToSocketsInRoom(
-                event.room.id,
-                Api.v1.Events.Server.Rooms.Updated.Route,
-                roomDocument.toV1(),
-                event.user.id,
-                true);
-        }).subscribe();
+        this.service.getRoomDocument(event.room.id).pipe(
+            mergeMap((roomDocument) => {
+                return this.emitToSocketsInRoom(
+                    event.room.id,
+                    Api.v1.Events.Server.Rooms.Updated.Route,
+                    roomDocument.toV1(),
+                    event.user.id,
+                    true);
+            })
+        ).subscribe();
     }
 
     public onCursorMoved(event: CursorMovedEvent) {
@@ -366,20 +368,22 @@ export class Middleware {
         ignoreUser: ActiveUser.Id | User.Id,
         ignoreUserNonActive?: boolean
     ) {
-        return this.service.getActiveUsersInRoom(roomId).map((activeUsers) => {
-            for (const [activeUserId, activeUserRoomData] of activeUsers) {
-                if(ignoreUserNonActive) {
-                    if(ignoreUser === activeUserRoomData.activeUser.userId) {
+        return this.service.getActiveUsersInRoom(roomId).pipe(
+            map((activeUsers) => {
+                for (const [activeUserId, activeUserRoomData] of activeUsers) {
+                    if(ignoreUserNonActive) {
+                        if(ignoreUser === activeUserRoomData.activeUser.userId) {
+                            continue;
+                        }
+                    } else if(activeUserId === ignoreUser) {
                         continue;
                     }
-                } else if(activeUserId === ignoreUser) {
-                    continue;
+                    const userSocketId = this.userService.getSessionFromActiveUser(activeUserId);
+                    if(userSocketId) {
+                        this.socketNamespace.to(userSocketId).emit(route, data);
+                    }
                 }
-                const userSocketId = this.userService.getSessionFromActiveUser(activeUserId);
-                if(userSocketId) {
-                    this.socketNamespace.to(userSocketId).emit(route, data);
-                }
-            }
-        });
+            })
+        );
     }
 }

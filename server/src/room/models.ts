@@ -69,7 +69,10 @@ export namespace StructureData {
         public targetText: string;
 
         constructor(v1: Api.v1.Models.StructureData.Tunnel) {
-            Object.assign(this, v1);
+            this.sourceId = v1.sourceId;
+            this.targetId = v1.targetId;
+            this.sourceText = v1.sourceText;
+            this.targetText = v1.targetText;
         }
 
         public toV1(): Api.v1.Models.StructureData.Tunnel {
@@ -90,7 +93,9 @@ export namespace StructureData {
         public width: number;
 
         constructor(v1: Api.v1.Models.StructureData.Text) {
-            Object.assign(this, v1);
+            this.roomId = v1.roomId;
+            this.text = v1.text;
+            this.width = v1.width;
         }
 
         public toV1(): Api.v1.Models.StructureData.Text {
@@ -112,11 +117,19 @@ export class Structure {
     public data: StructureData;
 
     constructor(v1: Api.v1.Models.Structure) {
-        Object.assign(this, v1);
-        //this.id = v1.id;
-        //this.creator = v1.creator;
-        //this.pos = v1.pos;
-        //this.data = v1.data;
+        this.id = v1.id;
+        this.creator = v1.creator;
+        this.pos = v1.pos;
+        // typescript will support this someday...
+        // this.data = new StructureData.Constructors[v1.data.sType](v1.data);
+        switch(v1.data.sType) {
+            case 'tunnel':
+                this.data = new StructureData.Tunnel(v1.data);
+                break;
+            case 'text':
+                this.data = new StructureData.Text(v1.data);
+                break;
+        }
     }
 
     public toV1(): Api.v1.Models.Structure {
@@ -150,7 +163,9 @@ export class CursorRecording {
     public frames: CursorRecordingFrame[];
 
     constructor(v1: Api.v1.Models.CursorRecording) {
-        Object.assign(this, v1);
+        this.id = v1.id;
+        this.activeUserId = v1.activeUserId;
+        this.frames = v1.frames;
     }
 
     public toV1(): Api.v1.Models.CursorRecording {

@@ -10,7 +10,9 @@ export class CursorRecording {
     public frames: CursorRecordingFrame[];
 
     constructor(v1: Api.v1.Models.CursorRecording) {
-        Object.assign(this, v1);
+        this.id = v1.id;
+        this.activeUserId = v1.activeUserId;
+        this.frames = v1.frames;
     }
 
     public toV1(): Api.v1.Models.CursorRecording {

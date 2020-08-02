@@ -1,8 +1,6 @@
 import { Pool, QueryResult } from 'pg';
-import { Observable } from 'rxjs/Observable';
-
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
+import { forkJoin, from, of, Observable } from 'rxjs';
+import { mergeMap, map, catchError } from 'rxjs/operators';
 
 import * as Uuid from 'uuid/v4';
 
@@ -37,17 +35,19 @@ export class PostgresDataStore implements DataStore {
             FROM cursorrecordingframes
             WHERE cursorrecordingid = ANY($1)
             ORDER BY cursorrecordingid, t ASC;`;
-        return Observable.fromPromise(this.clientPool.query(
+        return from(this.clientPool.query(
             cursorRecordingsQuery,
             (limit > 0 ? [roomId, limit] : [roomId]),
-        )).mergeMap((result: QueryResult) => {
+        )).pipe(
+            mergeMap((result: QueryResult) => {
             const recordingIds = result.rows.map((row) => row.cursorrecordingid);
-            return Observable.forkJoin(
-                Observable.fromPromise(this.clientPool.query(
+            return forkJoin(
+                from(this.clientPool.query(
                     framesQuery,
                     [recordingIds])),
-                Observable.of(result));
-        }).map(([framesResult, recordingsResult]) => {
+                of(result));
+        }),
+            map(([framesResult, recordingsResult]) => {
             const cursorFrames = framesResult.rows.reduce((frames, row) => {
                 let recording = frames.get(row.cursorrecordingid);
                 if(!recording) {
@@ -72,7 +72,9 @@ export class PostgresDataStore implements DataStore {
                 recordings.set(cursorRecording.id, cursorRecording);
                 return recordings;
             }, new Map<CursorRecording.Id, CursorRecording>());
-        }).catch(handlePostgresError<Map<CursorRecording.Id, CursorRecording>>('getCursorRecordings', [cursorRecordingsQuery, framesQuery].join('\n')));
+        }),
+            catchError(handlePostgresError<Map<CursorRecording.Id, CursorRecording>>('getCursorRecordings', [cursorRecordingsQuery, framesQuery].join('\n')))
+        );
     }
 
     @Record()
@@ -96,16 +98,19 @@ export class PostgresDataStore implements DataStore {
         if(cursorRecording.frames.length > 0) {
             queries.push({ query: framesQuery, params: [cursorRecording.id, ...frameValues] });
         }
-        return executeTransaction(this.clientPool, queries
-        ).map((results: Array<QueryResult | undefined>) => {
-            // TODO: return DB results
-            return cursorRecording;
-        }).catch((err: Error) => {
-            // TODO: actual error handling
-            if(err.message === 'already exists') {
-                return Observable.throw(new AlreadyExistsError(`Cursor recording with id '${cursorRecording.id}' already exists`)) as Observable<CursorRecording>;
-            }
-            return Observable.throw(err) as Observable<CursorRecording>;
-        }).catch(handlePostgresError<CursorRecording>('insertCursorRecording', [recordingQuery, framesQuery].join('\n')));
+        return executeTransaction(this.clientPool, queries).pipe(
+            map((results: Array<QueryResult | undefined>) => {
+                // TODO: return DB results
+                return cursorRecording;
+            }),
+            catchError((err: Error) => {
+                // TODO: actual error handling
+                if(err.message === 'already exists') {
+                    return Observable.throw(new AlreadyExistsError(`Cursor recording with id '${cursorRecording.id}' already exists`)) as Observable<CursorRecording>;
+                }
+                return Observable.throw(err) as Observable<CursorRecording>;
+            }),
+            catchError(handlePostgresError<CursorRecording>('insertCursorRecording', [recordingQuery, framesQuery].join('\n')))
+        )
     }
 }

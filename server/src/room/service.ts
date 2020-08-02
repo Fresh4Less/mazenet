@@ -1,11 +1,5 @@
-import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/of';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/mergeMap';
-import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
+import { forkJoin, merge, of, Observable, Subject, throwError } from 'rxjs';
+import { catchError, map, mergeMap, share, tap } from 'rxjs/operators';
 
 import * as Uuid from 'uuid/v4';
 
@@ -56,44 +50,52 @@ export class Service {
     public cursorService: CursorService;
     public events: Observable<RoomEvent>;
 
-    private eventObserver: Observer<RoomEvent>;
+    private eventSubject: Subject<RoomEvent>;
 
     constructor(dataStore: DataStore, activeUserRoomDataStore: ActiveUserRoomDataStore, userService: UserService, cursorService: CursorService) {
         this.dataStore = dataStore;
         this.activeUserRoomDataStore = activeUserRoomDataStore;
         this.userService = userService;
         this.cursorService = cursorService;
-        this.events = Observable.create((observer: Observer<RoomEvent>) => {
-            this.eventObserver = observer;
-        }).share();
+        this.eventSubject = new Subject();
+        this.events = this.eventSubject.pipe(share());
     }
+
     public initRootRoom(): Observable<Room> {
         let rootUser: User;
-        return this.userService.getRootUser().mergeMap((user) => {
-            rootUser = user;
-            return this.createRoom(rootUser, Uuid(), {
-                stylesheet: Service.generateRandomStylesheet(),
-                title: 'The Root Room'
-            });
-        }).mergeMap((room: Room) => {
-                return Observable.forkJoin(Observable.of(room), this.dataStore.setRootRoomId(room.id));
-            }).mergeMap(([room]: [Room, null]) => {
-                return Observable.forkJoin(Observable.of(room), this.createStructureTrees(rootUser, room.id, Service.entranceSubTrees));
-            }).mergeMap(([room, events]: [Room, Structure | Room]) => {
+        return this.userService.getRootUser().pipe(
+            mergeMap((user) => {
+                rootUser = user;
+                return this.createRoom(rootUser, Uuid(), {
+                    stylesheet: Service.generateRandomStylesheet(),
+                    title: 'The Root Room'
+                });
+            }),
+            mergeMap((room: Room) => {
+                return forkJoin(of(room), this.dataStore.setRootRoomId(room.id));
+            }),
+            mergeMap(([room]: [Room, null]) => {
+                return forkJoin(of(room), this.createStructureTrees(rootUser, room.id, Service.entranceSubTrees));
+            }),
+            mergeMap(([room, events]: [Room, Structure | Room]) => {
                 GlobalLogger.trace('init root room', {room, rootUserId: rootUser.id});
-                return Observable.of(room);
-            });
+                return of(room);
+            })
+        );
     }
 
     public getRootRoomId(): Observable<Room.Id> {
-        return this.dataStore.getRootRoomId()
-            .catch((err: Error) => {
+        return this.dataStore.getRootRoomId().pipe(
+            catchError((err: Error) => {
                 if(err instanceof NotFoundError) {
-                    return this.initRootRoom().map((room) => room.id);
+                    return this.initRootRoom().pipe(
+                        map((room) => room.id)
+                    );
                 }
 
-                return Observable.throw(err) as Observable<Room.Id>;
-            });
+                return throwError(err) as Observable<Room.Id>;
+            })
+        );
     }
 
     public getRoomDocument(roomId: Room.Id): Observable<RoomDocument> {
@@ -109,10 +111,12 @@ export class Service {
             title: roomBlueprint.title
         });
 
-        return this.dataStore.insertRoom(newRoom).map((room) => {
-            GlobalLogger.trace('create room', {room, userId: user.id});
-            return room;
-        });
+        return this.dataStore.insertRoom(newRoom).pipe(
+            map((room) => {
+                GlobalLogger.trace('create room', {room, userId: user.id});
+                return room;
+            })
+        );
     }
 
     public createStructure(
@@ -127,32 +131,34 @@ export class Service {
                 initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
                 break;
             case 'text':
-                initStructureDataObservable = Observable.of(new StructureData.Text(
+                initStructureDataObservable = of(new StructureData.Text(
                     Object.assign({}, structureBlueprint.data, {roomId})));
                 break;
             default:
                 throw new Error(`Failed to create ${(structureBlueprint.data as StructureData).sType}: unrecognized structure type`);
         }
-        return initStructureDataObservable
-        .mergeMap((structureData) => {
-            const structure = new Structure({
-                creator: user.id,
-                data: structureData,
-                id: Uuid(),
-                pos: structureBlueprint.pos,
-            });
+        return initStructureDataObservable.pipe(
+            mergeMap((structureData) => {
+                const structure = new Structure({
+                    creator: user.id,
+                    data: structureData,
+                    id: Uuid(),
+                    pos: structureBlueprint.pos,
+                });
 
-            return this.dataStore.insertStructure(structure);
-        }).map((structure) => {
-            this.eventObserver.next({
-                event: 'structure-create',
-                roomIds: getStructureRoomIds(structure),
-                structure,
-                user,
-            });
-            GlobalLogger.trace('create structure', {structure, userId: user.id});
-            return structure;
-        });
+                return this.dataStore.insertStructure(structure);
+            }),
+            map((structure) => {
+                this.eventSubject.next({
+                    event: 'structure-create',
+                    roomIds: getStructureRoomIds(structure),
+                    structure,
+                    user,
+                });
+                GlobalLogger.trace('create structure', {structure, userId: user.id});
+                return structure;
+            })
+        );
     }
 
     public updateStructure(
@@ -160,57 +166,65 @@ export class Service {
         id: Api.v1.Models.Structure.Id,
         patch: Api.v1.Models.Structure.Patch
     ): Observable<Structure> {
-        return this.dataStore.updateStructure(id, patch).map((structure) => {
-            this.eventObserver.next({
-                event: 'structure-update',
-                roomIds: getStructureRoomIds(structure),
-                structure,
-                user,
-            });
-            GlobalLogger.trace('update structure', {structureId: id, patch, userId: user.id});
-            return structure;
-        });
+        return this.dataStore.updateStructure(id, patch).pipe(
+            map((structure) => {
+                this.eventSubject.next({
+                    event: 'structure-update',
+                    roomIds: getStructureRoomIds(structure),
+                    structure,
+                    user,
+                });
+                GlobalLogger.trace('update structure', {structureId: id, patch, userId: user.id});
+                return structure;
+            })
+        );
     }
 
     public enterRoom(roomId: Room.Id, activeUser: ActiveUser): Observable<null> {
-        return Observable.of(null).do(() => {
-            // exit the current room, but don't block the observable
-            this.exitRoom(activeUser.id).subscribe({
-                error: (err) => {
-                    GlobalLogger.error('Failed to exit room', {roomId, activeUser, error: err});
-                }
-            });
-        }).mergeMap(() => {
-            const activeUserRoomData = {
-                activeUser,
-                enterTime: new Date().toISOString(),
-                roomId,
-            };
-            return Observable.forkJoin(
-                this.activeUserRoomDataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
-                this.cursorService.startCursorRecording(activeUser.id, roomId));
-        }).map(() => {
-            this.eventObserver.next({event: 'enter', roomId, activeUser});
-            GlobalLogger.trace('enter room', {roomId, activeUser});
-            return null;
-        });
+        return of(null).pipe(
+            tap(() => {
+                // exit the current room, but don't block the observable
+                this.exitRoom(activeUser.id).subscribe({
+                    error: (err) => {
+                        GlobalLogger.error('Failed to exit room', {roomId, activeUser, error: err});
+                    }
+                });
+            }),
+            mergeMap(() => {
+                const activeUserRoomData = {
+                    activeUser,
+                    enterTime: new Date().toISOString(),
+                    roomId,
+                };
+                return forkJoin(
+                    this.activeUserRoomDataStore.insertActiveUserToRoom(roomId, activeUserRoomData),
+                    this.cursorService.startCursorRecording(activeUser.id, roomId));
+            }),
+            map(() => {
+                this.eventSubject.next({event: 'enter', roomId, activeUser});
+                GlobalLogger.trace('enter room', {roomId, activeUser});
+                return null;
+            })
+        );
     }
 
     public exitRoom(activeUserId: ActiveUser.Id): Observable<null> {
-        return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId)
-        .mergeMap((activeUserRoomData: ActiveUserRoomData | undefined) => {
-            if(activeUserRoomData) {
-                return Observable.forkJoin(
-                    this.activeUserRoomDataStore.deleteActiveUserFromRoom(activeUserRoomData.roomId, activeUserId),
-                    this.cursorService.endCursorRecording(activeUserId))
-                .map(() => {
-                    this.eventObserver.next({event: 'exit', roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
-                    GlobalLogger.trace('exit room', {roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
-                    return null;
-                });
-            }
-            return Observable.of(null);
-        });
+        return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId).pipe(
+            mergeMap((activeUserRoomData: ActiveUserRoomData | undefined) => {
+                if(activeUserRoomData) {
+                    return forkJoin(
+                        this.activeUserRoomDataStore.deleteActiveUserFromRoom(activeUserRoomData.roomId, activeUserId),
+                        this.cursorService.endCursorRecording(activeUserId)).pipe(
+                            map(() => {
+                                this.eventSubject.next({event: 'exit', roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
+                                GlobalLogger.trace('exit room', {roomId: activeUserRoomData.roomId, activeUser: activeUserRoomData.activeUser});
+                                return null;
+                            })
+                        );
+                }
+                return of(null);
+            })
+        );
     }
 
     public updateRoom(
@@ -218,15 +232,17 @@ export class Service {
         id: Api.v1.Models.Room.Id,
         patch: Api.v1.Models.Room.Patch
     ): Observable<Room> {
-        return this.dataStore.updateRoom(id, patch).map((room) => {
-            this.eventObserver.next({
-                event: 'update',
-                room,
-                user,
-            });
-            GlobalLogger.trace('update room', {roomId: id, patch, userId: user.id});
-            return room;
-        });
+        return this.dataStore.updateRoom(id, patch).pipe(
+            map((room) => {
+                this.eventSubject.next({
+                    event: 'update',
+                    room,
+                    user,
+                });
+                GlobalLogger.trace('update room', {roomId: id, patch, userId: user.id});
+                return room;
+            })
+        );
     }
 
     public getActiveUsersInRoom(roomId: Room.Id): Observable<Map<ActiveUser.Id, ActiveUserRoomData>> {
@@ -238,27 +254,31 @@ export class Service {
     }
 
     protected createStructureTrees(user: User, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure | Room> {
-        return Observable.merge(...structureTrees.map((tree) => {
-            return this.createStructure(user, roomId, tree.structure).mergeMap((structure: Structure) => {
-                let childRoomId: Room.Id | undefined;
-                switch(structure.data.sType) {
-                    case 'tunnel':
-                        childRoomId = structure.data.targetId;
-                        break;
-                    default:
-                        break;
-                }
-                const observables: Array<Observable<Structure | Room>> = [Observable.of(structure)];
-                if(childRoomId) {
-                    if(tree.roomPatch) {
-                        observables.push(this.updateRoom(user, childRoomId, tree.roomPatch));
+        return merge(...structureTrees.map((tree) => {
+            return this.createStructure(user, roomId, tree.structure).pipe(
+                mergeMap((structure: Structure) => {
+                    let childRoomId: Room.Id | undefined;
+                    switch(structure.data.sType) {
+                        case 'tunnel':
+                            childRoomId = structure.data.targetId;
+                            break;
+                        default:
+                            break;
                     }
-                    if(tree.children) {
-                        observables.push(this.createStructureTrees(user, childRoomId, tree.children).map((subStructures) => structure));
+                    const observables: Array<Observable<Structure | Room>> = [of(structure)];
+                    if(childRoomId) {
+                        if(tree.roomPatch) {
+                            observables.push(this.updateRoom(user, childRoomId, tree.roomPatch));
+                        }
+                        if(tree.children) {
+                            observables.push(this.createStructureTrees(user, childRoomId, tree.children).pipe(
+                                map((subStructures) => structure)
+                            ));
+                        }
                     }
-                }
-                return Observable.merge(...observables);
-            });
+                    return merge(...observables);
+                })
+            );
         }));
     }
 
@@ -279,9 +299,11 @@ export class Service {
         return this.createRoom(user, tunnelData.targetId, {
             stylesheet: Service.generateRandomStylesheet(),
             title: tunnelBlueprintData.sourceText
-        }).map((room: Room) => {
-            return tunnelData;
-        });
+        }).pipe(
+            map((room: Room) => {
+                return tunnelData;
+            })
+        );
     }
 
     /* tslint:disable:object-literal-sort-keys member-ordering */
