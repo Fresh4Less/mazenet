@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import * as SocketIO from 'socket.io';
 
 import FreshSocketIO = require('fresh-socketio-router');
-import * as Validator from '../../../common/util/validator';
+import * as Validator from 'fresh-validation';
 import { HttpErrors, Request, Response } from '../common';
 import { GlobalLogger } from './logger';
 

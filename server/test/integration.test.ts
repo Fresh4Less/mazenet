@@ -148,13 +148,18 @@ GlobalLogger.handlers.forEach((handler: LoggerHandler, level: string) => {
 
 const postgres = (global as any).postgres;
 
+const jwtKeys = {
+    public: '-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEQNaALssV6ZofCo7MfTo8DZsNQrC7\n0Pv8Z54Vp7kcCQt4LrDqnJvoiePRR94B1yNevkVZrCmHCIZ4BrhO2WqYaQ==\n-----END PUBLIC KEY-----',
+    private: '-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEICEiDMdcyEEXjBrkW+2tXiHE9QhCcpKN2CsQp4TrAJm9oAoGCCqGSM49\nAwEHoUQDQgAEQNaALssV6ZofCo7MfTo8DZsNQrC70Pv8Z54Vp7kcCQt4LrDqnJvo\niePRR94B1yNevkVZrCmHCIZ4BrhO2WqYaQ==\n-----END EC PRIVATE KEY-----'
+};
+
 beforeEach(() => {
     server = new Server({
         env: 'test',
         port: 0,
         postgres,
         securePort: 0,
-    });
+    }, jwtKeys);
     return server.start().pipe(
         map(() => {
             const protocol = server.usingSsl ? 'https' : 'http';

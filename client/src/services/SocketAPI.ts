@@ -75,7 +75,9 @@ export class SocketAPI {
         const o = new Observable<Routes.Users.Connect.Post.Response200>(
             observer => {
                 const requestID = this.transactionManager.NewTransactionWithObserver(observer);
-                this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', SocketAPI.Platform(), requestID));
+                this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', {
+                    platformData: SocketAPI.Platform()
+                }, requestID));
             }).publish();
         o.connect();
         return o;

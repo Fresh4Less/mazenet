@@ -164,4 +164,19 @@ export class PostgresDataStore implements DataStore {
         );
     }
 
+    @Record()
+    getProfile(provider: string, id: string) {
+        // TODO: stub
+        return throwError(new Error('getProfile not implemented'));
+    }
+    @Record()
+    getProfiles(userId: User.Id) {
+        // TODO: stub
+        return throwError(new Error('getProfiles not implemented'));
+    }
+    @Record()
+    insertProfile(userId: User.Id, profile: User.Profile, secret: string) {
+        // TODO: stub
+        return throwError(new Error('insertProfile not implemented'));
+    }
 }

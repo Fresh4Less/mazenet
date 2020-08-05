@@ -66,7 +66,7 @@ export class Service {
         return this.userService.getRootUser().pipe(
             mergeMap((user) => {
                 rootUser = user;
-                return this.createRoom(rootUser, Uuid(), {
+                return this.createRoom(rootUser.id, Uuid(), {
                     stylesheet: Service.generateRandomStylesheet(),
                     title: 'The Root Room'
                 });
@@ -75,7 +75,7 @@ export class Service {
                 return forkJoin(of(room), this.dataStore.setRootRoomId(room.id));
             }),
             mergeMap(([room]: [Room, null]) => {
-                return forkJoin(of(room), this.createStructureTrees(rootUser, room.id, Service.entranceSubTrees));
+                return forkJoin(of(room), this.createStructureTrees(rootUser.id, room.id, Service.entranceSubTrees));
             }),
             mergeMap(([room, events]: [Room, Structure | Room]) => {
                 GlobalLogger.trace('init root room', {room, rootUserId: rootUser.id});
@@ -102,25 +102,25 @@ export class Service {
         return this.dataStore.getRoomDocument(roomId);
     }
 
-    public createRoom(user: User, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
+    public createRoom(userId: User.Id, roomId: Room.Id, roomBlueprint: Room.Blueprint): Observable<Room> {
         const newRoom = new Room({
-            creator: user.id,
+            creator: userId,
             id: roomId,
-            owners: new Set<User.Id>([user.id]),
+            owners: new Set<User.Id>([userId]),
             stylesheet: roomBlueprint.stylesheet,
             title: roomBlueprint.title
         });
 
         return this.dataStore.insertRoom(newRoom).pipe(
             map((room) => {
-                GlobalLogger.trace('create room', {room, userId: user.id});
+                GlobalLogger.trace('create room', {room, userId: userId});
                 return room;
             })
         );
     }
 
     public createStructure(
-        user: User,
+        userId: User.Id,
         roomId: Api.v1.Models.Room.Id,
         structureBlueprint: Api.v1.Models.Structure.Blueprint
     ): Observable<Structure> {
@@ -128,7 +128,7 @@ export class Service {
         let initStructureDataObservable: Observable<StructureData>;
         switch (structureBlueprint.data.sType) {
             case 'tunnel':
-                initStructureDataObservable = this.initTunnel(user, roomId, structureBlueprint.data);
+                initStructureDataObservable = this.initTunnel(userId, roomId, structureBlueprint.data);
                 break;
             case 'text':
                 initStructureDataObservable = of(new StructureData.Text(
@@ -140,7 +140,7 @@ export class Service {
         return initStructureDataObservable.pipe(
             mergeMap((structureData) => {
                 const structure = new Structure({
-                    creator: user.id,
+                    creator: userId,
                     data: structureData,
                     id: Uuid(),
                     pos: structureBlueprint.pos,
@@ -153,16 +153,16 @@ export class Service {
                     event: 'structure-create',
                     roomIds: getStructureRoomIds(structure),
                     structure,
-                    user,
+                    userId,
                 });
-                GlobalLogger.trace('create structure', {structure, userId: user.id});
+                GlobalLogger.trace('create structure', {structure, userId: userId});
                 return structure;
             })
         );
     }
 
     public updateStructure(
-        user: User,
+        userId: User.Id,
         id: Api.v1.Models.Structure.Id,
         patch: Api.v1.Models.Structure.Patch
     ): Observable<Structure> {
@@ -172,9 +172,9 @@ export class Service {
                     event: 'structure-update',
                     roomIds: getStructureRoomIds(structure),
                     structure,
-                    user,
+                    userId,
                 });
-                GlobalLogger.trace('update structure', {structureId: id, patch, userId: user.id});
+                GlobalLogger.trace('update structure', {structureId: id, patch, userId: userId});
                 return structure;
             })
         );
@@ -228,7 +228,7 @@ export class Service {
     }
 
     public updateRoom(
-        user: User,
+        userId: User.Id,
         id: Api.v1.Models.Room.Id,
         patch: Api.v1.Models.Room.Patch
     ): Observable<Room> {
@@ -237,9 +237,9 @@ export class Service {
                 this.eventSubject.next({
                     event: 'update',
                     room,
-                    user,
+                    userId,
                 });
-                GlobalLogger.trace('update room', {roomId: id, patch, userId: user.id});
+                GlobalLogger.trace('update room', {roomId: id, patch, userId: userId});
                 return room;
             })
         );
@@ -253,9 +253,9 @@ export class Service {
         return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId);
     }
 
-    protected createStructureTrees(user: User, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure | Room> {
+    protected createStructureTrees(userId: User.Id, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure | Room> {
         return merge(...structureTrees.map((tree) => {
-            return this.createStructure(user, roomId, tree.structure).pipe(
+            return this.createStructure(userId, roomId, tree.structure).pipe(
                 mergeMap((structure: Structure) => {
                     let childRoomId: Room.Id | undefined;
                     switch(structure.data.sType) {
@@ -268,10 +268,10 @@ export class Service {
                     const observables: Array<Observable<Structure | Room>> = [of(structure)];
                     if(childRoomId) {
                         if(tree.roomPatch) {
-                            observables.push(this.updateRoom(user, childRoomId, tree.roomPatch));
+                            observables.push(this.updateRoom(userId, childRoomId, tree.roomPatch));
                         }
                         if(tree.children) {
-                            observables.push(this.createStructureTrees(user, childRoomId, tree.children).pipe(
+                            observables.push(this.createStructureTrees(userId, childRoomId, tree.children).pipe(
                                 map((subStructures) => structure)
                             ));
                         }
@@ -284,7 +284,7 @@ export class Service {
 
     /** Creates a new room and returns the data for a tunnel that leads to it */
     protected initTunnel(
-        user: User,
+        userId: User.Id,
         roomId: Room.Id,
         tunnelBlueprintData: Api.v1.Models.StructureDataBlueprint.Tunnel
     ): Observable<StructureData.Tunnel> {
@@ -296,7 +296,7 @@ export class Service {
             targetText: tunnelBlueprintData.targetText,
         });
 
-        return this.createRoom(user, tunnelData.targetId, {
+        return this.createRoom(userId, tunnelData.targetId, {
             stylesheet: Service.generateRandomStylesheet(),
             title: tunnelBlueprintData.sourceText
         }).pipe(

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as Minimist from 'minimist';
 import * as Path from 'path';
 
+import { KeyPair } from './common';
 import { Server } from './server';
 import { GlobalLogger, LoggerHandler } from './util/logger';
 import { GlobalTelemetryOptions } from './util/telemetry';
@@ -109,6 +110,15 @@ GlobalLogger.info('Loaded configuration', {
 });
 
 // load secrets
+const jwtKeys: KeyPair = {
+    public: getProperty(secrets, 'jwt.public'),
+    private: getProperty(secrets, 'jwt.private'),
+};
+
+if(!jwtKeys.public || !jwtKeys.private) {
+    throw new InvalidConfigurationError(`JWT keys missing. make sure to create a secrets file with 'jwt.public' and 'jwt.private' keys set. You can generate keys with the script scripts/gen-keys-jwt.sh`);
+}
+
 if(options.postgres) {
     const password = getProperty(secrets, ['postgres', options.postgres.user].join('.'));
     if(!password) {
@@ -118,7 +128,7 @@ if(options.postgres) {
     options.postgres.password = password;
 }
 
-const server = new Server(options);
+const server = new Server(options, jwtKeys);
 server.start().subscribe(() => {
 });
 

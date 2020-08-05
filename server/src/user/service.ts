@@ -1,4 +1,6 @@
-import { forkJoin, of, Observable } from 'rxjs';
+import * as bcrypt from 'bcrypt';
+import * as JWT from 'jsonwebtoken';
+import { bindNodeCallback, from, forkJoin, of, Observable, throwError } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
 
 import * as Uuid from 'uuid/v4';
@@ -7,24 +9,32 @@ import * as Api from '../../../common/api';
 
 import { GlobalLogger } from '../util/logger';
 
-import { NotFoundError } from '../common';
+import { BadRequestError, NotFoundError, UnauthorizedError, KeyPair } from '../common';
 import { DataStore, SessionDataStore } from './datastore';
-import { ActiveUser, User } from './models';
+import { ActiveUser, AuthenticationToken, User } from './models';
+
+const verifyJwt = bindNodeCallback<string, JWT.Secret, JWT.VerifyOptions, AuthenticationToken>(JWT.verify);
+const signJwt = bindNodeCallback<object, JWT.Secret, JWT.SignOptions, string>(JWT.sign);
 
 export class Service {
     public dataStore: DataStore;
     public sessionDataStore: SessionDataStore;
 
-    constructor(dataStore: DataStore, sessionDataStore: SessionDataStore) {
+    public passwordSaltRounds: number = 12;
+    // TODO: load the keys and pass them into here
+    private jwtKeys: KeyPair;
+
+    constructor(dataStore: DataStore, sessionDataStore: SessionDataStore, jwtKeys: KeyPair) {
         this.dataStore = dataStore;
         this.sessionDataStore = sessionDataStore;
+        this.jwtKeys = jwtKeys;
     }
 
     public getUser(userId: User.Id): Observable<User> {
         return this.dataStore.getUser(userId);
     }
 
-    public createUser(userBlueprint: Api.v1.Routes.Users.Create.Post.Request): Observable<User> {
+    public createUser(userBlueprint: User.Blueprint): Observable<User> {
         const newUser = new User({
             id: Uuid(),
             username: userBlueprint.username
@@ -42,7 +52,7 @@ export class Service {
         return this.dataStore.getActiveUser(activeUserId);
     }
 
-    public createActiveUser(sessionId: string, user: Api.v1.Models.User, platformData: Api.v1.Models.PlatformData): Observable<ActiveUser> {
+    public createActiveUser(sessionId: string, user: User, platformData: Api.v1.Models.PlatformData): Observable<ActiveUser> {
         const newActiveUser = new ActiveUser({
             id: Uuid(),
             platformData,
@@ -71,7 +81,8 @@ export class Service {
             catchError((err: Error) => {
                 if(err instanceof NotFoundError) {
                     const rootUserBlueprint = {
-                        username: 'mazenet'
+                        username: 'mazenet',
+                        profiles: [], // TODO: provide a way of signing in as the root user?
                     };
                     return this.createUser(rootUserBlueprint).pipe(
                         mergeMap((user) => {
@@ -85,11 +96,91 @@ export class Service {
                     );
                 }
 
-                return Observable.throw(err) as Observable<User.Id>;
+                return throwError(err) as Observable<User.Id>;
             }),
             mergeMap((userId) => {
                 return this.getUser(userId);
             })
+        );
+    }
+
+    public createAuthenticationToken(userId: User.Id): Observable<string> {
+        return signJwt({}, this.jwtKeys.private, {
+            algorithm: 'ES256',
+            issuer: 'mazenet',
+            audience: 'mazenet',
+            expiresIn: '1h',
+            subject: userId,
+        }) as Observable<string>;
+    }
+
+    public verifyAuthenticationToken(token: string): Observable<AuthenticationToken> {
+        return verifyJwt(token, this.jwtKeys.public, {
+            algorithms: ['ES256'],
+            issuer: 'mazenet',
+            audience: 'mazenet'
+        }) as Observable<AuthenticationToken>;
+    }
+
+    /**
+     * add a 'mazenet' provider to the user. create a new user if one is not provided
+     * @param password - plaintext password
+     * @param userId - if provided, try to attach this profile to an existing user. otherwise, a new user will be created
+     */
+    public registerProfile(username: string, password: string, userId?: User.Id): Observable<User> {
+        return forkJoin(
+            userId?
+                // if a userid is provided, only allow attaching if the user does not have any profiles associated with it (i.e. an anonymous user)
+                // TODO: add option to explicitly allow associating a username+password with an account with other profiles
+                forkJoin(
+                    this.getUser(userId),
+                    this.dataStore.getProfiles(userId)
+                ).pipe(
+                    map(([user, fullProfiles]) => {
+                        if(fullProfiles.length > 0) {
+                            throw new BadRequestError(`user '${userId}' is already associated with one or more profiles. Log out before trying to register a new user.`);
+                        }
+                        return user;
+                    })
+                ):
+                this.createUser({username}),
+            from(bcrypt.hash(password, this.passwordSaltRounds))
+        ).pipe(
+            mergeMap(([user, hashedPassword]) => {
+                const profile = new User.Profile({
+                    provider: 'mazenet',
+                    id: username,
+                    displayName: username,
+                });
+
+                return this.dataStore.insertProfile(user.id, profile, hashedPassword).pipe(
+                    map((fullProfile) => user)
+                );
+            })
+        );
+    }
+
+    /**
+     * try to login with username and password
+     * @param password - plaintext password
+     */
+    public loginUser(username: string, password: string): Observable<{user: User, authenticationToken: string}> {
+        return this.dataStore.getProfile('mazenet', username).pipe(
+            mergeMap((fullProfile) => forkJoin(
+                from(bcrypt.compare(password, fullProfile.secret)),
+                of(fullProfile)
+            )),
+            mergeMap(([compareResult, fullProfile]) => {
+                if(!compareResult) {
+                    throw new UnauthorizedError('Incorrect password');
+                }
+
+                return forkJoin(
+                    this.getUser(fullProfile.userId),
+                    this.createAuthenticationToken(fullProfile.userId)
+                );
+            }),
+            map(([user, authenticationToken]) => ({user, authenticationToken}))
         );
     }
 

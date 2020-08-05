@@ -14,39 +14,29 @@
 
 ## Installation
 ```bash
-$ git clone https://github.com/Fresh4Less/mazenet.git
-$ cd mazenet
+$ cd server
 $ npm install
+$ gulp
+$ cd ../client
+$ npm install
+$ npm run-script build
 ```
 
 ## Usage
 ```bash
+$ cd server
 $ npm start
 # command line arguments go after --
-$ npm start -- --logLevel=none
+$ npm start -- --logAll
 ```
 
-### Command line arguments
-
-#### `--logLevel=[level]`
-Highest level the access logger should print to stdout (in JSON form). Thrown errors will always
-be printed to stderr, regardless of this value.
-
-Allowed values:
- - `info`
- - `error`
- - `none`
-
-It can be useful to set this to `none` while debugging.
+See the `server/` and `client/` READMEs for more specific instructions.
 
 # API
 Mazenet server has HTTP and websocket APIs
-**[Current API: v1](/docs/v1/api.md)**
+**[Current API: v1](/server/docs/modules/_common_api_v1_.html)**
 
 # Contributing
-Add your changes to a new branch. Don't forget to write unit tests.
+Add your changes to a new branch. Don't forget to write tests.
 When your branch is ready, make a pull request.
-
-# License
-MIT License
 

@@ -12,6 +12,8 @@ gulp
 ```
 Typescript is compiled into `build/`.
 
+Mazenet requires a ES256 key pair to sign and validate JWT tokens used for user authentication. A key-pair for DEVELOPMENT USE ONLY is already provided. You can generate new keys with `scripts/gen-keys-jwt.sh`, then copy those keys into your own `secrets.json` (see configuration).
+
 # Run
 ```bash
 npm start
@@ -20,9 +22,9 @@ npm start
 npm start -- --port 80
 ```
 
-Run the server with pretty, colorful formatted log:
+Launch with [sift-cli](https://www.npmjs.com/package/sift-cli) to view and filter logs interactively:
 ```bash
-./start.sh --port 80
+sift npm start
 ```
 
 To develop on the postgres version, first set up and run a local postgres instance. Initialize the mazenet database with the psql command:
@@ -116,16 +118,29 @@ Credentials and other secrets are loaded from a JSON file on startup.
 
 The secrets file can be specified with the `secrets` option. If not specified, the default path is `{REPO_DIR}/server/secrets/secrets.json`.
 
+### jwt (object)
+User authentication is managed with JWT tokens, transported through the `authenticationToken` cookie. Mazenet uses the ES256 algorithm to sign and verify JWT tokens. You must provide the keys as a pair of public/private PEM encoded strings.
+
+*Within secrets.json:*
+```
+{
+	"jwt": {
+		"public": "-----BEGIN PUBLIC KEY-----\n...",
+		"private": "-----BEGIN EC PRIVATE KEY-----\n..."
+	}
+}
+```
+
 ### postgres (object)
 Specifies credentials for postgres users. Each property describes a user, with the value being a password string.
 
 *Within secrets.json:*
 ```
 {
-"postgres": {
-	    "elliot": "elliotPassword",
-	    "sam": "samPassword"
-}
+	"postgres": {
+		"elliot": "elliotPassword",
+		"sam": "samPassword"
+	}
 }
 ```
 
