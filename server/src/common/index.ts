@@ -65,6 +65,7 @@ export class AlreadyExistsError extends Error {
     }
 }
 
+// NOTE: MazenetRequest and MazenetSocketData now always get the full User on connect, so we can change userId to be the full User object
 interface MazenetRequest {
     userId?: User.Id;
     activeUser?: ActiveUser;

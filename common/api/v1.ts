@@ -359,6 +359,8 @@ export namespace Routes {
                 /** Information about the client's user account and the root room id. */
                 export class Response200 {
                     @validate()
+                    user!: Models.User;
+                    @validate()
                     activeUser!: Models.ActiveUser;
                     @validate()
                     rootRoomId!: Models.Room.Id;

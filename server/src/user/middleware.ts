@@ -1,12 +1,12 @@
 import * as cookie from 'cookie';
 import * as Express from 'express';
 import { from, forkJoin, Observable, of, throwError } from 'rxjs';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import * as Validator from 'fresh-validation';
 import * as FreshSocketIO from 'fresh-socketio-router';
 
 import * as Api from '../../../common/api';
-import { BadRequestError, Request, Response, Socket, UnauthorizedError } from '../common';
+import { BadRequestError, NotFoundError, Request, Response, Socket, UnauthorizedError } from '../common';
 
 import { Room } from '../room/models';
 import { Service as RoomService } from '../room/service';
@@ -39,14 +39,28 @@ export class Middleware {
                     ip: socket.request.connection.remoteAddress,
                     transport: 'ws',
                     reason: 'missing authenticationToken'
-                })
+                });
                 return next(new UnauthorizedError(`Websocket connection requires a the 'authenticationToken' cookie. Obtain a token with POST /users/login`));
             }
 
             this.service.verifyAuthenticationToken(cookies.authenticationToken).pipe(
-                catchError((err) => throwError(new UnauthorizedError(err.message)))
+                catchError((err) => { throw new UnauthorizedError(`Invalid authenticationToken: ${err.message}`) }),
+                mergeMap((authenticationToken) =>
+                    forkJoin(
+                        this.service.getUser((authenticationToken.sub)),
+                        of(authenticationToken)
+                    )
+                ),
+                catchError((err: Error) => {
+                    if(err instanceof NotFoundError) {
+                        // authenticationToken refers to a user that doesn't exist, rethrow as unauthorized error
+                        throw new UnauthorizedError(`Invalid authenticationToken: ${err.message}`);
+                    }
+
+                    throw err;
+                }),
             ).subscribe({
-                next: (authenticationToken) => {
+                next: ([user, authenticationToken]) => {
                     socket.mazenet = {
                         sessionId: socket.id,
                         userId: authenticationToken.sub
@@ -55,14 +69,15 @@ export class Middleware {
                     socket.on('disconnect', () => {
                         this.service.onUserDisconnect(socket.mazenet!.sessionId);
                     });
-                    next();
+                    return next();
                 },
                 error: (error: Error) => {
                     GlobalLogger.error(
                         'Socket failed authentication handshake on connect',
                         {error}
                     );
-                    next(error);
+
+                    return next(error);
                 }
             });
         };
@@ -74,34 +89,14 @@ export class Middleware {
                 // websocket doesn't need to validate JWT because it was validated when the connection was established
                 // NOTE: should we kill long-running websocket connections that have outlived their token lifespan?
                 req.userId = socketData.userId;
-                next();
+                return next();
             }
             else {
-                if(req.cookies.authenticationToken) {
-                    // every HTTP request needs to validate the JWT
-                    this.service.verifyAuthenticationToken(req.cookies.authenticationToken).pipe(
-                        catchError((err) => throwError(new UnauthorizedError(err.message)))
-                    ).subscribe({
-                        next: (authenticationToken) => {
-                            req.userId = authenticationToken.sub;
-                            next();
-                        },
-                        error: (err) => {
-                            next(err);
-                        }
-                    });
-                }
-                else {
-                    // craete an anonymous user for this session
-                    this.service.createUser({username: 'anonymous'}).pipe(
-                        mergeMap((user) => {
-                            return this.service.createAuthenticationToken(user.id).pipe(
-                                map((authenticationToken) => [user, authenticationToken])
-                            );
-                        })
-                    ).subscribe({
+                if(!req.cookies.authenticationToken) {
+                    // create an anonymous user for this session
+                    return this.createGuest().subscribe({
                         next: ([user, authenticationToken]) => {
-                            (res as Express.Response).cookie('authenticationToken', authenticationToken, {httpOnly: true});
+                            this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
                             next();
                         },
                         error: (err) => {
@@ -109,6 +104,50 @@ export class Middleware {
                         }
                     });
                 }
+
+                // every HTTP request needs to validate the JWT
+                this.service.verifyAuthenticationToken(req.cookies.authenticationToken).pipe(
+                    catchError((err) => throwError(new UnauthorizedError(`Invalid authenticationToken: ${err.message}`))),
+                    mergeMap((authenticationToken) =>
+                        forkJoin(
+                            this.service.getUser((authenticationToken.sub)),
+                            of(authenticationToken)
+                        )
+                    ),
+                    catchError((err: Error) => {
+                        if(err instanceof NotFoundError) {
+                            // authenticationToken refers to a user that doesn't exist, rethrow as unauthorized error
+                            throw new UnauthorizedError(`Invalid authenticationToken: ${err.message}`);
+                        }
+
+                        throw err;
+                    }),
+                    catchError((err: Error) => {
+                        // if connecting to the homepage with an invalid token, automatically create a new guest and session token
+                        if(err instanceof UnauthorizedError && req.url === '/') {
+                            return this.createGuest().pipe(
+                                mergeMap(([user, authenticationToken]) => {
+                                    this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
+                                    // NOTE: we don't need to verify the token we just created, we could just decode
+                                    return forkJoin(
+                                        of(user),
+                                        this.service.verifyAuthenticationToken(authenticationToken)
+                                    );
+                                })
+                            );
+                        }
+
+                        throw err;
+                    })
+                ).subscribe({
+                    next: ([user, authenticationToken]) => {
+                        req.userId = authenticationToken.sub;
+                        return next();
+                    },
+                    error: (err) => {
+                        next(err);
+                    }
+                });
             }
         });
 
@@ -128,7 +167,7 @@ export class Middleware {
 
             this.service.loginUser(body.username, body.password).subscribe({
                 next: ({user, authenticationToken}) => {
-                    (res as Express.Response).cookie('authenticationToken', authenticationToken), {httpOnly: true};
+                    this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
                     const response: Api.v1.Routes.Users.Login.Post.Response200 = user.toV1();
                     return res.status(200).json(response);
                 },
@@ -164,7 +203,7 @@ export class Middleware {
             ).subscribe({
                 next: ([user, authenticationToken]) => {
                     if(authenticationToken) {
-                        (res as Express.Response).cookie('authenticationToken', authenticationToken, {httpOnly: true});
+                        this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
                     }
                     const response: Api.v1.Routes.Users.Register.Post.Response201 = user.toV1();
                     res.status(201).json(user);
@@ -193,12 +232,15 @@ export class Middleware {
             this.service.getUser(req.userId).pipe(
                 mergeMap((user) => {
                     return forkJoin(
+                        of(user),
                         this.service.createActiveUser(socketData!.sessionId, user, body.platformData),
-                        this.roomService.getRootRoomId())
+                        this.roomService.getRootRoomId()
+                    )
                 })
-            ).subscribe(([activeUser, rootRoomId]) => {
+            ).subscribe(([user, activeUser, rootRoomId]) => {
                 socketData!.activeUser = activeUser;
                 const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
+                    user: user.toV1(),
                     activeUser: activeUser.toV1(),
                     rootRoomId,
                 };
@@ -209,6 +251,20 @@ export class Middleware {
         });
 
         this.router.use('/users', usersRouter);
+    }
+
+    public createGuest(): Observable<[User, string]> {
+        return this.service.createUser({username: 'anonymous'}).pipe(
+            mergeMap((user) => {
+                return this.service.createAuthenticationToken(user.id).pipe(
+                    map((authenticationToken) => ([user, authenticationToken] as [User, string]))
+                );
+            })
+        );
+    }
+
+    public setAuthenticationTokenCookie(authenticationToken: string, res: Express.Response) {
+        (res as Express.Response).cookie('authenticationToken', authenticationToken, {httpOnly: true});
     }
 }
 
