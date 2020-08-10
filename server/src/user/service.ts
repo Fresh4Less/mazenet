@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import * as JWT from 'jsonwebtoken';
 import { bindNodeCallback, from, forkJoin, of, Observable, throwError } from 'rxjs';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 
 import * as Uuid from 'uuid/v4';
 
@@ -37,7 +37,7 @@ export class Service {
     public createUser(userBlueprint: User.Blueprint): Observable<User> {
         const newUser = new User({
             id: Uuid(),
-            username: userBlueprint.username
+            username: userBlueprint.username,
         });
 
         return this.dataStore.insertUser(newUser).pipe(
@@ -111,7 +111,11 @@ export class Service {
             audience: 'mazenet',
             expiresIn: '1h',
             subject: userId,
-        }) as Observable<string>;
+        }).pipe(
+            tap((authenticationToken) => GlobalLogger.diag('create authenticationToken', {
+                userId,
+            }))
+        );
     }
 
     public verifyAuthenticationToken(token: string): Observable<AuthenticationToken> {
@@ -156,7 +160,11 @@ export class Service {
                 return this.dataStore.insertProfile(user.id, profile, hashedPassword).pipe(
                     map((fullProfile) => user)
                 );
-            })
+            }),
+            tap((user) => GlobalLogger.trace('register profile', {
+                id: user.id,
+                provider: 'mazenet'
+            }))
         );
     }
 
@@ -180,7 +188,21 @@ export class Service {
                     this.createAuthenticationToken(fullProfile.userId)
                 );
             }),
-            map(([user, authenticationToken]) => ({user, authenticationToken}))
+            map(([user, authenticationToken]) => ({user, authenticationToken})),
+            tap(({user, authenticationToken}) => GlobalLogger.trace('login', {
+                id: user.id,
+                provider: 'mazenet',
+            }))
+        );
+    }
+
+    public getProfiles(userId: User.Id): Observable<Map<string, User.Profile>> {
+        return this.dataStore.getProfiles(userId).pipe(
+            map((fullProfiles) => {
+                return new Map(fullProfiles.map((fullProfile) => {
+                    return [fullProfile.profile.provider, fullProfile.profile];
+                }));
+            })
         );
     }
 

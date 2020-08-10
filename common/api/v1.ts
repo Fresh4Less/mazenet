@@ -360,6 +360,9 @@ export namespace Routes {
                 export class Response200 {
                     @validate()
                     user!: Models.User;
+                    /** list of profiles associated with this user */
+                    //TODO: validate
+                    profiles!: {[provider: string]: Models.Profile};
                     @validate()
                     activeUser!: Models.ActiveUser;
                     @validate()
