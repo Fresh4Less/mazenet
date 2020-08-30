@@ -1,6 +1,6 @@
 {
   "name": "mazenet-client",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "dependencies": {
     "fresh-socketio-router": "^0.1.4",
     "immutable": "^4.0.0-rc.9",

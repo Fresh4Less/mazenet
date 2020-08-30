@@ -1,6 +1,6 @@
 {
   "name": "mazenet-server",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "mazenet backend",
   "main": "build/server/src/main.js",
   "scripts": {
