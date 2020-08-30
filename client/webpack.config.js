@@ -4,6 +4,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const webpack = require('webpack');
 const path = require('path');
+const repoPkg = require('../package.json');
+const clientPkg = require('./package.json');
+const serverPkg = require('../server/package.json')
 
 module.exports = {
     mode: 'production',
@@ -102,6 +105,12 @@ module.exports = {
         new webpack.ContextReplacementPlugin(/source-map/, /^$/),
         // Uncomment if you want a pretty visual view of the bundles and their sizes. :)
         // new BundleAnalyzerPlugin()
+        new webpack.DefinePlugin({
+            __REPO_VERSION__:  JSON.stringify(repoPkg.version),
+            __CLIENT_VERSION__: JSON.stringify(clientPkg.version),
+            __SERVER_VERSION__: JSON.stringify(serverPkg.version),
+            __BUILD_DATE__: JSON.stringify((new Date()).toISOString()),
+        })
     ],
     node: {
         fs: 'empty'

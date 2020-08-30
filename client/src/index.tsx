@@ -9,6 +9,19 @@ declare global {
 }
 window.Mazenet = window.Mazenet || {};
 
+/* Debug var defined in webpack.config.js */
+declare var __REPO_VERSION__: string;
+declare var __CLIENT_VERSION__: string;
+declare var __SERVER_VERSION__: string
+declare var __BUILD_DATE__: string;
+
+console.log(`MAZENET VERSIONS:
+\tMAZENT:\t${__REPO_VERSION__}
+\tCLIENT:\t${__CLIENT_VERSION__}
+\tSERVER:\t${__SERVER_VERSION__}`);
+let buildDate = new Date(__BUILD_DATE__);
+console.log(`BUILD_DATE: ${buildDate.toLocaleString('en-US')} [${Math.floor((new Date().getTime() - buildDate.getTime()) / 1000)} seconds ago]`);
+
 ReactDOM.render(
     <Mazenet/>,
     document.getElementById('root') as HTMLElement
