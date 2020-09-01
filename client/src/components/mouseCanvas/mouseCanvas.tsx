@@ -5,7 +5,7 @@ import './mouseCanvas.css';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
-import MediaPreloader from '../../services/MediaPreLoader';
+import MediaPreloader from '../../services/MediaPreloader';
 
 interface MouseCanvasProps {
     mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording };

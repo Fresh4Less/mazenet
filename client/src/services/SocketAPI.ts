@@ -10,7 +10,7 @@ import { ErrorService } from './ErrorService';
 import { Observable, Observer } from 'rxjs';
 import { TransactionManager } from './TransactionManager';
 import URLManager from './URLManager';
-import { UserService } from './user/userService';
+import { UserService } from './user/UserService';
 
 export class SocketAPI {
 

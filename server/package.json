@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node build/server/src/main.js",
     "start-pg": "node build/server/src/main.js --config config/dev-pg.json --secrets secrets/dev-pg.json",
+    "dev": "sift node build/server/src/main.js --logAll",
     "test": "jest --coverage --verbose"
   },
   "dependencies": {

@@ -14,7 +14,7 @@ import { Observable } from 'rxjs/Observable';
 import { SocketAPI } from '../services/SocketAPI';
 import { Models } from '../../../common/api/v1';
 import EllipsisLoader from './widgets/ellipsisLoader';
-import MediaPreloader from '..//services/MediaPreLoader';
+import MediaPreloader from '../services/MediaPreloader';
 import { ErrorService } from '../services/ErrorService';
 // import { UserPane } from './user/userPane';
 
