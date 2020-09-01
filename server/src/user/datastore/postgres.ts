@@ -6,7 +6,7 @@ import { catchError, map } from 'rxjs/operators';
 import { AlreadyExistsError, NotFoundError } from '../../common';
 import { handlePostgresError } from '../../util/postgres';
 import { Record } from '../../util/telemetry';
-import { ActiveUser, User } from '../models';
+import { Account, ActiveUser, User } from '../models';
 import { DataStore } from './index';
 
 export class PostgresDataStore implements DataStore {
@@ -175,7 +175,7 @@ export class PostgresDataStore implements DataStore {
         return throwError(new Error('getProfiles not implemented'));
     }
     @Record()
-    insertProfile(userId: User.Id, profile: User.Profile, secret: string) {
+    insertProfile(userId: User.Id, profile: Account.Profile, secret: string) {
         // TODO: stub
         return throwError(new Error('insertProfile not implemented'));
     }

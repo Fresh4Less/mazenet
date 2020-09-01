@@ -232,24 +232,19 @@ export class Middleware {
             this.service.getUser(req.userId).pipe(
                 mergeMap((user) => {
                     return forkJoin(
-                        of(user),
-                        this.service.getProfiles(user.id),
+                        this.service.getAccount(user.id),
                         this.service.createActiveUser(socketData!.sessionId, user, body.platformData),
                         this.roomService.getRootRoomId()
                     )
                 })
-            ).subscribe(([user, profiles, activeUser, rootRoomId]) => {
+            ).subscribe(([account, activeUser, rootRoomId]) => {
                 socketData!.activeUser = activeUser;
                 const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
-                    user: user.toV1(),
-                    profiles: Array.from(profiles.entries()).reduce(
-                        (obj, [provider, profile]) => {
-                            obj[provider] = profile.toV1();
-                            return obj;
-                        }, {} as {[provider: string]: Api.v1.Models.Profile}),
+                    account: account.toV1(),
                     activeUser: activeUser.toV1(),
                     rootRoomId,
                 };
+
                 return res.status(200).json(response);
             }, (err: Error) => {
                 next(err);

@@ -50,7 +50,15 @@ export namespace Models {
         id!: User.Id;
         @validate()
         username!: string;
+    }
+
+    export class Account {
+        @validate()
+        user!: User;
         /** email used for password recovery, notifications */
+        //TODO: validate
+        /** list of login profiles associated with this user */
+        profiles!: {[provider: string]: Models.Profile};
         @validate(true)
         email?: string;
     }
@@ -361,10 +369,7 @@ export namespace Routes {
                 /** Information about the client's user account and the root room id. */
                 export class Response200 {
                     @validate()
-                    user!: Models.User;
-                    /** list of profiles associated with this user */
-                    //TODO: validate
-                    profiles!: {[provider: string]: Models.Profile};
+                    account!: Models.Account;
                     @validate()
                     activeUser!: Models.ActiveUser;
                     @validate()

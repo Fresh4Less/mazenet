@@ -11,7 +11,7 @@ import { GlobalLogger } from '../util/logger';
 
 import { BadRequestError, NotFoundError, UnauthorizedError, KeyPair } from '../common';
 import { DataStore, SessionDataStore } from './datastore';
-import { ActiveUser, AuthenticationToken, User } from './models';
+import { ActiveUser, AuthenticationToken, User, Account } from './models';
 
 const verifyJwt = bindNodeCallback<string, JWT.Secret, JWT.VerifyOptions, AuthenticationToken>(JWT.verify);
 const signJwt = bindNodeCallback<object, JWT.Secret, JWT.SignOptions, string>(JWT.sign);
@@ -151,7 +151,7 @@ export class Service {
             from(bcrypt.hash(password, this.passwordSaltRounds))
         ).pipe(
             mergeMap(([user, hashedPassword]) => {
-                const profile = new User.Profile({
+                const profile = new Account.Profile({
                     provider: 'mazenet',
                     id: username,
                     displayName: username,
@@ -196,12 +196,32 @@ export class Service {
         );
     }
 
-    public getProfiles(userId: User.Id): Observable<Map<string, User.Profile>> {
+    public getProfiles(userId: User.Id): Observable<Map<string, Account.Profile>> {
         return this.dataStore.getProfiles(userId).pipe(
             map((fullProfiles) => {
                 return new Map(fullProfiles.map((fullProfile) => {
                     return [fullProfile.profile.provider, fullProfile.profile];
                 }));
+            })
+        );
+    }
+
+    public getAccount(userId: User.Id): Observable<Account> {
+        // TODO: add account data store
+        return forkJoin(
+            this.getUser(userId),
+            this.getProfiles(userId)
+        ).pipe(
+            map(([user, profiles]) => {
+                return new Account({
+                    user,
+                    profiles: Array.from(profiles.entries()).reduce(
+                        (obj, [provider, profile]) => {
+                            obj[provider] = profile.toV1();
+                            return obj;
+                        }, {} as {[provider: string]: Api.v1.Models.Profile}
+                    )
+                });
             })
         );
     }

@@ -1,7 +1,7 @@
 import { of, Observable, throwError } from 'rxjs';
 
 import { AlreadyExistsError, NotFoundError } from '../../common';
-import { ActiveUser, User } from '../models';
+import { Account, ActiveUser, User } from '../models';
 import { DataStore, FullProfile } from './index';
 
 export class InMemoryDataStore implements DataStore {
@@ -91,7 +91,7 @@ export class InMemoryDataStore implements DataStore {
         return of(Array.from(profiles.values()));
     }
 
-    public insertProfile(userId: User.Id, profile: User.Profile, secret: string) {
+    public insertProfile(userId: User.Id, profile: Account.Profile, secret: string) {
         if(!this.users.has(userId)) {
             return throwError(new NotFoundError(`User with id '${userId}' not found`));
         }
