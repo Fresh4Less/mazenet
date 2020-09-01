@@ -55,8 +55,8 @@ export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
                 <StyleTool
                     room={this.props.room}
                 />
+                <UserTool/>
                 <InfoTool/>
-                {!!this.state.user ? <UserTool user={this.state.user}/> : null}
             </span>
         );
 

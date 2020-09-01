@@ -6,9 +6,11 @@
     background: #222;
 }
 
-#Mazenet.loading {
-    color: white;
-    font-size: 40px;
+#Mazenet .loading {
+    color: rgb(0,255,0);
+    font-size: 4vw;
+    margin-left: 10px;
+    margin-top: 8px;
 }
 
 #Mazenet.loaded {

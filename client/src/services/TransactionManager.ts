@@ -2,16 +2,17 @@ import { WebResponse } from '../models/freshIO/WebResponse';
 import { ErrorService } from './ErrorService';
 import { Observer } from 'rxjs/Observer';
 
+// Global tracker for all request IDs used within any transation managers.
+let IDCounter: number = 0;
+
 /**
  * Stores and completes Observers of pending transactions.
  */
 export class TransactionManager {
 
-    private idCounter: number;
     private requestObserverMap: { [id: string]: Observer<any>};
 
     constructor() {
-        this.idCounter = 0;
         this.requestObserverMap = {};
     }
 
@@ -22,7 +23,7 @@ export class TransactionManager {
      * @returns {string} the request ID to send with this transaction's request
      */
     public NewTransactionWithObserver(o: Observer<any>): string {
-        const id = `id-${this.idCounter++}`;
+        const id = `id-${IDCounter++}`;
         this.requestObserverMap[id] = o;
         return id;
     }

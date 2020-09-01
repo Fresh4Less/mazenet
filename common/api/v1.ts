@@ -83,7 +83,9 @@ export namespace Models {
         }
     }
 
-    /** Client session of a user */
+    /** Client session of a user, these could be other live users (cursors) you
+     * see wandering around in a room.
+     */
     export class ActiveUser {
         @validate()
         id!: ActiveUser.Id;

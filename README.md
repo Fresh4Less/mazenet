@@ -14,6 +14,7 @@
 
 ## Installation
 ```bash
+$ npm install
 $ cd server
 $ npm install
 $ gulp

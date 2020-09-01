@@ -13,6 +13,12 @@ import { Observer } from 'rxjs/Observer';
 import { Observable } from 'rxjs/Observable';
 import { SocketAPI } from '../services/SocketAPI';
 import { Models } from '../../../common/api/v1';
+import EllipsisLoader from './widgets/ellipsisLoader';
+import MediaPreloader from '..//services/MediaPreLoader';
+import { ErrorService } from '../services/ErrorService';
+// import { UserPane } from './user/userPane';
+
+const cursorLimit = 500;
 
 interface MouseMoveInfo {
     element: HTMLDivElement;
@@ -22,6 +28,9 @@ interface MouseMoveInfo {
 
 interface MazenetState {
     room: Models.Room | null;
+    user: Models.User | null;
+    mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording } | null;
+    mediaLoaded: boolean
 }
 
 export default class Mazenet extends React.PureComponent<any, MazenetState> {
@@ -35,18 +44,30 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
 
         this.state = {
             room: null,
+            user: null,
+            mouseRecordings: null,
+            mediaLoaded: false,
         };
 
         /* Room */
         SocketAPI.Instance.roomEnteredObservable.subscribe(val => {
-            this.setState({
-                room: val.room,
+            this.setState({room: val.room});
+            const roomID = val.room.id;
+            SocketAPI.Instance.GetCursorRecordings(roomID, cursorLimit).subscribe(cursorVal => {
+                /**
+                 * Check to see if we have actually entered a different room by
+                 * the time this observable returns something.
+                 */
+                if (this.state.room && this.state.room.id == roomID) {
+                    this.setState({
+                        mouseRecordings: cursorVal.cursorRecordings
+                    });
+                }
             });
+            
         });
         SocketAPI.Instance.roomUpdatedObservable.subscribe(val => {
-            this.setState({
-                room: val
-            });
+            this.setState({room: val});
         });
 
         let structureChangeCallback = (value: Models.Structure) => {
@@ -54,11 +75,23 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
                 this.state.room.structures[value.id] = value;
                 this.forceUpdate();
             }
-
         };
 
         SocketAPI.Instance.structureCreatedObservable.subscribe(structureChangeCallback);
         SocketAPI.Instance.structureUpdatedObservable.subscribe(structureChangeCallback);
+
+        /* User */
+        SocketAPI.Instance.users.userObservable.subscribe(val => {
+            this.setState({user: val});
+        })
+
+        /* Media */
+        MediaPreloader.Instance.Loaded.subscribe((v) => {
+            if (!v[0]) {  // Not OK
+                ErrorService.Fatal('error preloading media', v[1]);
+            }
+            this.setState({mediaLoaded: true});
+        })
 
         /* Mouse Recording Stuff */
         this.mouseMoveHandler = this.mouseMove.bind(this);
@@ -80,23 +113,45 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
     }
 
     render() {
-        return (
-            <div id={'Mazenet'} className={this.state.room ? 'loaded' : 'loading'}>
-                {this.state.room && <Toolbar room={this.state.room}/>}
-                {!this.state.room && 'Loading...'}
-                <div
-                    id={'BelowToolbar'}
-                    onMouseMove={this.mouseMoveHandler}
-                >
-
-                    {this.state.room && <ActiveRoom room={this.state.room}/>}
-                    <MouseCanvas/>
-                    <ActiveUsers/>
-                    {this.state.room && <StructureWorkshop room={this.state.room}/>}
-                    {this.state.room && <Styles room={this.state.room}/>}
+        if (this.state.room == null /*|| this.state.user == null*/ || this.state.mouseRecordings == null) {
+            return (
+                <div id={'Mazenet'}>
+                    <div className={'loading'}>
+                        <div>&gt; Loading into Mazenet</div>
+                        <div>&gt; Room<EllipsisLoader animate={this.state.room == null}/>
+                            {this.state.room != null && <span>OK</span>}
+                        </div>
+                        <div>&gt; User<EllipsisLoader animate={this.state.user == null}/>
+                            {this.state.user != null && <span>OK</span>}
+                        </div>
+                        <div>&gt; Cursors<EllipsisLoader animate={this.state.mouseRecordings == null}/>
+                            {this.state.mouseRecordings != null && <span>OK</span>}
+                        </div>
+                        <div>&gt; Media<EllipsisLoader animate={this.state.mediaLoaded == null}/>
+                            {this.state.mediaLoaded != null && <span>OK</span>}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        );
+            )
+        } else {
+            return (
+                <div id={'Mazenet'} className={'loaded'}>
+                    <Toolbar room={this.state.room}/>
+                    <div
+                        id={'BelowToolbar'}
+                        onMouseMove={this.mouseMoveHandler}
+                    >
+                        {/* Order is important, things render in the order listed. */}
+                        <ActiveRoom room={this.state.room}/>
+                        <MouseCanvas mouseRecordings={this.state.mouseRecordings}/>
+                        <ActiveUsers/>
+                        <StructureWorkshop room={this.state.room}/>
+                        <Styles room={this.state.room}/>
+                        {/* <UserPane user={this.state.user}/> */}
+                    </div>
+                </div>
+            );
+        }
     }
 
     private mouseMove(event: React.MouseEvent<HTMLDivElement>) {

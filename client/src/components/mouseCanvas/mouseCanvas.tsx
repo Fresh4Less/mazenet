@@ -2,48 +2,36 @@
 import * as React from 'react';
 
 import './mouseCanvas.css';
-import { SocketAPI } from '../../services/SocketAPI';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
+import MediaPreloader from '../../services/MediaPreLoader';
 
-const cursorIcon = require('./../../media/cursor.png');
-
-const cursorLimit = 500;
-
-interface MouseCanvasState {
-    room: Models.Room | null;
+interface MouseCanvasProps {
     mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording };
 }
 
-export default class MouseCanvas extends React.PureComponent<any, MouseCanvasState> {
+interface MouseCanvasState {}
+
+export default class MouseCanvas extends React.PureComponent<MouseCanvasProps, MouseCanvasState> {
 
     private activeAnimation: number = 0;
     private nextFrameMarkers: { [cursorRecordingId: string]: number } = {};
-    private cursorSprite: HTMLImageElement = document.createElement('img');
     private resizeCb: () => void | null;
 
-    constructor(props: any) {
+    constructor(props: MouseCanvasProps) {
         super(props);
 
-        SocketAPI.Instance.roomEnteredObservable.subscribe((enterVal => {
-            this.setState({
-               mouseRecordings: {}
-            });
-            SocketAPI.Instance.GetCursorRecordings(enterVal.room.id, cursorLimit).subscribe(cursorVal => {
-                this.nextFrameMarkers = {};
-                this.setState({
-                    room: enterVal.room,
-                    mouseRecordings: cursorVal.cursorRecordings
-                });
-            });
-        }));
+        this.state = {};
+    }
 
-        this.state = {
-            room: null,
-            mouseRecordings: {}
-        };
-        this.cursorSprite.src = cursorIcon;
+    shouldComponentUpdate(nextProps: MouseCanvasProps, nextState: MouseCanvasProps): boolean {
+        if (nextProps.mouseRecordings != this.props.mouseRecordings) {
+            this.nextFrameMarkers = {};
+            return true;
+        }
+        return false
+       
     }
 
     render() {
@@ -53,7 +41,7 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
     }
 
     private initAnimation(c: HTMLCanvasElement | null) {
-        if (c && Object.keys(this.state.mouseRecordings).length) {
+        if (c && Object.keys(this.props.mouseRecordings).length) {
             const ctxNullable = c.getContext('2d');
             let ctx: CanvasRenderingContext2D;
             if (ctxNullable === null) {
@@ -81,8 +69,8 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
     private rootFrameLoop(ctx: CanvasRenderingContext2D) {
         const animationNumber = ++this.activeAnimation;
         let t: number = 0;
-        let cursorSprite = new Sprite(this.cursorSprite.width, this.cursorSprite.height, this.cursorSprite);
-
+        const cursorImg = MediaPreloader.Instance.CursorSprite
+        let cursorSprite = new Sprite(cursorImg.width, cursorImg.height, cursorImg);
         const frameLoop = () => { // TODO: Rewrite with throttled Observable?
             /* Check if a new animation got started by entering a new room or something. */
             if (this.activeAnimation > animationNumber) {
@@ -92,9 +80,9 @@ export default class MouseCanvas extends React.PureComponent<any, MouseCanvasSta
                 frameLoop();
                 ctx.globalAlpha = 0.3; // TODO: Magic number, move into user-config or something.
                 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                Object.keys(this.state.mouseRecordings).forEach((cursorRecordingId: string) => {
+                Object.keys(this.props.mouseRecordings).forEach((cursorRecordingId: string) => {
                     /* Figure out what frame to draw. */
-                    const frames = this.state.mouseRecordings[cursorRecordingId].frames;
+                    const frames = this.props.mouseRecordings[cursorRecordingId].frames;
                     if (frames.length === 0) {
                         return;
                     }

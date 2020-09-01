@@ -10,6 +10,7 @@ import { ErrorService } from './ErrorService';
 import { Observable, Observer } from 'rxjs';
 import { TransactionManager } from './TransactionManager';
 import URLManager from './URLManager';
+import { UserService } from './user/userService';
 
 export class SocketAPI {
 
@@ -19,7 +20,6 @@ export class SocketAPI {
      * Managers for transactional SocketIO requests. Maps callbacks
      */
     readonly connectedObservable: Observable<Routes.Users.Connect.Post.Response200>;
-    readonly userCreateObservable: Observable<Models.User>;
     readonly roomEnteredObservable: Observable<Routes.Rooms.Enter.Post.Response200>;
     readonly roomUpdatedObservable: Observable<Models.Room>;
     readonly cursorRecordingsObservable: Observable<Routes.Rooms.CursorRecordings.Get.Response200>;
@@ -28,6 +28,11 @@ export class SocketAPI {
     readonly activeUserEnteredObservable: Observable<Models.ActiveUser>;
     readonly activeUserExitedObservable: Observable<Models.ActiveUser.Id>;
     readonly activeUserDesktopCursorMovedObservable: Observable<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>;
+
+    /*
+     * Sub-services for managing specific stuff.
+     */
+    readonly users: UserService;
 
     private socket: Socket;
     private transactionManager: TransactionManager;
@@ -48,7 +53,6 @@ export class SocketAPI {
 
         /* Setup the Observable feeds */
         this.connectedObservable = this.initConnectedObservable();
-        // TODO userCreatedObservable
         this.roomEnteredObservable = this.initRoomEnteredObservable();
         this.roomUpdatedObservable = this.initRoomUpdatedObservable();
         this.cursorRecordingsObservable = this.initCursorRecordingsObservable();
@@ -57,6 +61,10 @@ export class SocketAPI {
         this.activeUserEnteredObservable = this.initActiveUserEnteredObservable();
         this.activeUserExitedObservable = this.initActiveUserExitedObservable();
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
+
+        /* Setup the sub-services */
+        this.users = new UserService(this.socket);
+
         window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
 
         /* Connect and enter the initial room */
@@ -157,7 +165,9 @@ export class SocketAPI {
                 this.socket.on(Routes.Users.Connect.Route, (res: WebResponse) => {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
+                        console.log('socketapi connect', res);
                         observer.next(res200);
+                        this.users.SetUser(res200.user);
                         this.transactionManager.CompleteTransaction(res, res200);
                     } else {
                         ErrorService.Fatal('could not connect to the server.', res);
