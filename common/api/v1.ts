@@ -323,7 +323,7 @@ export namespace Routes {
                     password!: string;
                 }
 
-                export class Response201 extends Models.User {}
+                export type Response201 = undefined;
                 export class Response409 extends ErrorResponse {}
             }
         }
@@ -342,7 +342,7 @@ export namespace Routes {
                     password!: string;
                 }
 
-                export class Response200 extends Models.User {}
+                export type Response200 = undefined;
                 export class Response401 extends ErrorResponse {}
             }
         }

@@ -168,8 +168,8 @@ export class Middleware {
             this.service.loginUser(body.username, body.password).subscribe({
                 next: ({user, authenticationToken}) => {
                     this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
-                    const response: Api.v1.Routes.Users.Login.Post.Response200 = user.toV1();
-                    return res.status(200).json(response);
+                    const response: Api.v1.Routes.Users.Login.Post.Response200 = undefined;
+                    return res.status(200).json(undefined);
                 },
                 error: (err) => {
                     next(err);
@@ -205,7 +205,7 @@ export class Middleware {
                     if(authenticationToken) {
                         this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
                     }
-                    const response: Api.v1.Routes.Users.Register.Post.Response201 = user.toV1();
+                    const response: Api.v1.Routes.Users.Register.Post.Response201 = undefined;
                     res.status(201).json(user);
                 },
                 error: (err) => {
