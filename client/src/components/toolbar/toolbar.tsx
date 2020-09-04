@@ -10,7 +10,7 @@ import TextTool from './textTool';
 import ConfigTool from './configTool';
 import StyleTool from './styleTool';
 import { InfoTool } from './infoTool';
-import { UserTool } from './userTool';
+import { AccountTool } from './accountTool';
 
 interface ToolbarProps {
     room: Models.Room;
@@ -55,7 +55,7 @@ export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
                 <StyleTool
                     room={this.props.room}
                 />
-                <UserTool/>
+                <AccountTool/>
                 <InfoTool/>
             </span>
         );

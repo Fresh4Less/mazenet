@@ -16,7 +16,8 @@ import { Models } from '../../../common/api/v1';
 import EllipsisLoader from './widgets/ellipsisLoader';
 import MediaPreloader from '../services/MediaPreloader';
 import { ErrorService } from '../services/ErrorService';
-// import { UserPane } from './user/userPane';
+import { AccountPane } from './account/accountPane';
+import { AccountService } from '../services/account/AccountService';
 
 const cursorLimit = 500;
 
@@ -28,7 +29,7 @@ interface MouseMoveInfo {
 
 interface MazenetState {
     room: Models.Room | null;
-    user: Models.User | null;
+    account: Models.Account | null;
     mouseRecordings: { [cursorRecordingId: string]: Models.CursorRecording } | null;
     mediaLoaded: boolean
 }
@@ -44,7 +45,7 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
 
         this.state = {
             room: null,
-            user: null,
+            account: null,
             mouseRecordings: null,
             mediaLoaded: false,
         };
@@ -80,17 +81,19 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
         SocketAPI.Instance.structureCreatedObservable.subscribe(structureChangeCallback);
         SocketAPI.Instance.structureUpdatedObservable.subscribe(structureChangeCallback);
 
-        /* User */
-        SocketAPI.Instance.users.userObservable.subscribe(val => {
-            this.setState({user: val});
+        /* Account */
+        AccountService.Instance.accountObservable.subscribe(val => {
+            this.setState({account: val});
         })
 
         /* Media */
-        MediaPreloader.Instance.Loaded.subscribe((v) => {
-            if (!v[0]) {  // Not OK
-                ErrorService.Fatal('error preloading media', v[1]);
+        MediaPreloader.Instance.Loaded.subscribe({
+            complete: () => {
+                this.setState({mediaLoaded: true});
+            },
+            error: (err) => {
+                ErrorService.Fatal('error preloading media', err);
             }
-            this.setState({mediaLoaded: true});
         })
 
         /* Mouse Recording Stuff */
@@ -113,7 +116,7 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
     }
 
     render() {
-        if (this.state.room == null /*|| this.state.user == null*/ || this.state.mouseRecordings == null) {
+        if (this.state.room == null || this.state.account == null || this.state.mouseRecordings == null) {
             return (
                 <div id={'Mazenet'}>
                     <div className={'loading'}>
@@ -121,8 +124,8 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
                         <div>&gt; Room<EllipsisLoader animate={this.state.room == null}/>
                             {this.state.room != null && <span>OK</span>}
                         </div>
-                        <div>&gt; User<EllipsisLoader animate={this.state.user == null}/>
-                            {this.state.user != null && <span>OK</span>}
+                        <div>&gt; Account<EllipsisLoader animate={this.state.account == null}/>
+                            {this.state.account != null && <span>OK</span>}
                         </div>
                         <div>&gt; Cursors<EllipsisLoader animate={this.state.mouseRecordings == null}/>
                             {this.state.mouseRecordings != null && <span>OK</span>}
@@ -147,7 +150,7 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
                         <ActiveUsers/>
                         <StructureWorkshop room={this.state.room}/>
                         <Styles room={this.state.room}/>
-                        {/* <UserPane user={this.state.user}/> */}
+                        <AccountPane account={this.state.account}/>
                     </div>
                 </div>
             );

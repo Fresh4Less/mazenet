@@ -91,7 +91,9 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
                         dangerouslySetInnerHTML={{__html: svg}}
                     />
                 </div>
-                {this.props.children}
+                <div className={'content'}>
+                    {this.props.children}
+                </div>
                 <div
                     className={'resizer'}
                     onMouseDown={(e) => {

@@ -10,11 +10,13 @@ import { ErrorService } from './ErrorService';
 import { Observable, Observer } from 'rxjs';
 import { TransactionManager } from './TransactionManager';
 import URLManager from './URLManager';
-import { UserService } from './user/UserService';
+//import { AccountService } from './account/AccountService';
 
 export class SocketAPI {
-
     private static _instance: SocketAPI;
+    public static get Instance(): SocketAPI {
+        return this._instance || (this._instance = new this());
+    }
 
     /*
      * Managers for transactional SocketIO requests. Maps callbacks
@@ -28,11 +30,6 @@ export class SocketAPI {
     readonly activeUserEnteredObservable: Observable<Models.ActiveUser>;
     readonly activeUserExitedObservable: Observable<Models.ActiveUser.Id>;
     readonly activeUserDesktopCursorMovedObservable: Observable<Events.Server.Rooms.ActiveUsers.Desktop.CursorMoved>;
-
-    /*
-     * Sub-services for managing specific stuff.
-     */
-    readonly users: UserService;
 
     private socket: Socket;
     private transactionManager: TransactionManager;
@@ -62,24 +59,23 @@ export class SocketAPI {
         this.activeUserExitedObservable = this.initActiveUserExitedObservable();
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
 
-        /* Setup the sub-services */
-        this.users = new UserService(this.socket);
-
         window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
 
-        /* Connect and enter the initial room */
-        this.Connect().subscribe(res200 => {
+        this.Connect(false).subscribe(res200 => {
             this.rootPageId = res200.rootRoomId;
             const urlRoom = URLManager.ParseRoomId();
             this.EnterRoom(urlRoom ? urlRoom : this.rootPageId);
         });
     }
 
-    public static get Instance(): SocketAPI {
-        return this._instance || (this._instance = new this());
-    }
-
-    private Connect(): Observable<Routes.Users.Connect.Post.Response200> {
+    public Connect(toggleSocketConnection: boolean): Observable<Routes.Users.Connect.Post.Response200> {
+        if (toggleSocketConnection) {
+            // Refreshes socket connection with the latest HTTP-only cookies.
+            // Required if we changed login and need to reconnect.
+            this.socket.close();
+            this.socket.open();
+        }
+        
         const o = new Observable<Routes.Users.Connect.Post.Response200>(
             observer => {
                 const requestID = this.transactionManager.NewTransactionWithObserver(observer);
@@ -89,6 +85,10 @@ export class SocketAPI {
             }).publish();
         o.connect();
         return o;
+    }
+
+    public Reconnect(): Observable<Routes.Users.Connect.Post.Response200> {
+        return this.Connect(true);
     }
 
     public EnterRootPage(): Observable<Routes.Rooms.Enter.Post.Response200> {
@@ -165,9 +165,7 @@ export class SocketAPI {
                 this.socket.on(Routes.Users.Connect.Route, (res: WebResponse) => {
                     if (res.status === 200) {
                         const res200 = (res.body as Routes.Users.Connect.Post.Response200);
-                        console.log('socketapi connect', res);
                         observer.next(res200);
-                        this.users.SetUser(res200.user);
                         this.transactionManager.CompleteTransaction(res, res200);
                     } else {
                         ErrorService.Fatal('could not connect to the server.', res);

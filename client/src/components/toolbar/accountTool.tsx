@@ -1,29 +1,25 @@
 import * as React from 'react';
 import ToolbarToolInterface from './toolbarToolInterface';
 
-import svg from './user.svg';
-import { UserPane } from '../user/userPane';
+import svg from './account.svg';
+import { AccountPane } from '../account/accountPane';
 
-interface UserToolProps {
+interface AccountToolProps {
 }
 
-interface UserToolState {
+interface AccountToolState {
 }
 
-export class UserTool extends React.PureComponent<UserToolProps, UserToolState> implements ToolbarToolInterface {
+export class AccountTool extends React.PureComponent<AccountToolProps, AccountToolState> implements ToolbarToolInterface {
 
-    constructor(props: UserToolProps) {
+    constructor(props: AccountToolProps) {
         super(props);
         this.state = {
         };
     }
 
-    static getDerivedStateFromProps(nextProps: UserToolProps, prevState: UserToolState): UserToolState {
-        return {};
-    }
-
     public Use() {
-        UserPane.Instance.Activate();
+        AccountPane.Instance.Activate();
     }
 
     render() {
