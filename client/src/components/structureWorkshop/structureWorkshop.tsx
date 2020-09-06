@@ -74,6 +74,10 @@ export class StructureWorkshop extends React.Component<StructureWorkshopProps, S
         return true;
     }
 
+    public IsActive(): boolean {
+        return this.state.active;
+    }
+
     private click(e: React.MouseEvent<HTMLDivElement>): void {
         if (this.overlayDiv === null ||
             this.state.structure === null ||

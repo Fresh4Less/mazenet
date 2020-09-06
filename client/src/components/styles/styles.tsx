@@ -44,16 +44,16 @@ export class Styles extends React.Component<StylesProps, StylesState> {
         };
     }
 
-    public Activate(): void {
+    public Toggle(): void {
         this.setState({
-            active: true
+            active: !this.state.active
         });
     }
 
     public render(): JSX.Element {
         return (
             <WindowPane
-                startPos={{x: 0.1, y: 0.2}}
+                startPos={{x: 0.1, y: 0.1}}
                 startWidth={0.7}
                 startHeight={0.6}
                 closePressed={() => {

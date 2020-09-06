@@ -16,8 +16,9 @@ import { Models } from '../../../common/api/v1';
 import EllipsisLoader from './widgets/ellipsisLoader';
 import MediaPreloader from '../services/MediaPreloader';
 import { ErrorService } from '../services/ErrorService';
-import { AccountPane } from './account/accountPane';
+import { Account } from './account/account';
 import { AccountService } from '../services/account/AccountService';
+import { Help } from './help/help';
 
 const cursorLimit = 500;
 
@@ -150,7 +151,8 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
                         <ActiveUsers/>
                         <StructureWorkshop room={this.state.room}/>
                         <Styles room={this.state.room}/>
-                        <AccountPane account={this.state.account}/>
+                        <Account account={this.state.account}/>
+                        <Help/>
                     </div>
                 </div>
             );

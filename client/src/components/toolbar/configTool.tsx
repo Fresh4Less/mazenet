@@ -12,14 +12,18 @@ interface ConfigToolProps {
 export default class ConfigTool extends React.PureComponent<ConfigToolProps, any> implements ToolbarToolInterface {
 
     public Use() {
-        StructureWorkshopService.Instance.SelectStructureAndEdit(this.props.room);
+        if (StructureWorkshopService.Instance.WorkshopIsActive()) {
+            StructureWorkshopService.Instance.CloseWorkshop(false);
+        } else {
+            StructureWorkshopService.Instance.SelectStructureAndEdit(this.props.room);
+        }
     }
 
     render() {
         return  (
             <span
                 className={'noselect tool'}
-                title={'(E)dit structures in the room.'}
+                title={'Edit structures in the room.'}
                 onClick={() => {this.Use(); }}
                 dangerouslySetInnerHTML={{__html: svg}}
             />

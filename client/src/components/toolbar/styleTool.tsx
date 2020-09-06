@@ -13,7 +13,7 @@ export default class StyleTool extends React.PureComponent<StyleToolProps, any> 
     private enabled: boolean;
 
     public Use() {
-        Styles.Instance.Activate();
+        Styles.Instance.Toggle();
     }
 
     render() {
@@ -23,7 +23,7 @@ export default class StyleTool extends React.PureComponent<StyleToolProps, any> 
         return  (
             <span
                 className={'noselect tool' + disabledClass}
-                title={'(S)tyle room.'}
+                title={'Style room.'}
                 onClick={() => {this.Use(); }}
                 dangerouslySetInnerHTML={{__html: svg}}
             />

@@ -14,7 +14,12 @@ export default class TextTool extends React.PureComponent<TextToolProps, any> im
     private enabled: boolean = true;
 
     public Use() {
-        StructureWorkshopService.Instance.CreateStructureText(this.props.room);
+        if (StructureWorkshopService.Instance.WorkshopIsActive()) {
+            StructureWorkshopService.Instance.CloseWorkshop(false);
+        } else {
+            StructureWorkshopService.Instance.CreateStructureText(this.props.room);
+        }
+        
     }
 
     render() {
@@ -22,7 +27,7 @@ export default class TextTool extends React.PureComponent<TextToolProps, any> im
         return  (
             <span
                 className={'noselect tool' + disabledClass}
-                title={'(W)rite room text.'}
+                title={'Write room text.'}
                 onClick={() => {this.Use(); }}
                 dangerouslySetInnerHTML={{__html: svg}}
             />

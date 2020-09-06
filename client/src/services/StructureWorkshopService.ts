@@ -123,6 +123,19 @@ export class StructureWorkshopService {
         }
     }
 
+    public WorkshopIsActive(): boolean {
+        if (this.structureWorkshopComponent) {
+            return this.structureWorkshopComponent.IsActive();
+        }
+        return false
+    }
+
+    public CloseWorkshop(force:boolean) {
+        if (this.structureWorkshopComponent) {
+            this.structureWorkshopComponent.Close(force);
+        }
+    }
+
     public static get Instance(): StructureWorkshopService {
         return this._instance || (this._instance = new StructureWorkshopService());
     }

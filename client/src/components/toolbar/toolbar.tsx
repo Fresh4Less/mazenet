@@ -9,7 +9,7 @@ import { Models } from '../../../../common/api/v1';
 import TextTool from './textTool';
 import ConfigTool from './configTool';
 import StyleTool from './styleTool';
-import { InfoTool } from './infoTool';
+import { HelpTool } from './helpTool';
 import { AccountTool } from './accountTool';
 
 interface ToolbarProps {
@@ -56,7 +56,7 @@ export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
                     room={this.props.room}
                 />
                 <AccountTool/>
-                <InfoTool/>
+                <HelpTool/>
             </span>
         );
 

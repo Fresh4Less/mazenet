@@ -16,14 +16,18 @@ export default class TunnelTool extends React.PureComponent<TunnelToolProps, any
     }
 
     public Use() {
-        StructureWorkshopService.Instance.CreateStructureTunnel(this.props.room);
+        if (StructureWorkshopService.Instance.WorkshopIsActive()) {
+            StructureWorkshopService.Instance.CloseWorkshop(false);
+        } else {
+            StructureWorkshopService.Instance.CreateStructureTunnel(this.props.room);
+        }
     }
 
     render() {
         return  (
            <span
                className={'noselect tool'}
-               title={'(T)unnel a new room.'}
+               title={'Tunnel a new room.'}
                onClick={() => {this.Use(); }}
                dangerouslySetInnerHTML={{__html: svg}}
            />);

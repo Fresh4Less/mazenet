@@ -5,13 +5,13 @@ import { ErrorService } from '../../services/ErrorService';
 import { Models } from '../../../../common/api/v1';
 import { AccountService } from '../../services/account/AccountService';
 
-import './accountPane.css';
+import './account.css';
 
-interface AccountPaneProps {
+interface AccountProps {
     account: Models.Account;
 }
 
-interface AccountPaneState {
+interface AccountState {
     active: boolean;
 
     loginUsername: string;
@@ -28,19 +28,19 @@ interface AccountPaneState {
     
 }
 
-export class AccountPane extends React.Component<AccountPaneProps, AccountPaneState> {
-    private static _instance: AccountPane;
-    public static get Instance(): AccountPane {
-        return AccountPane._instance;
+export class Account extends React.Component<AccountProps, AccountState> {
+    private static _instance: Account;
+    public static get Instance(): Account {
+        return Account._instance;
     }
 
-    constructor(props: AccountPaneProps) {
+    constructor(props: AccountProps) {
         super(props);
 
-        if (AccountPane._instance) {
-            ErrorService.Warning('Multiple Styles panes initialized.');
+        if (Account._instance) {
+            ErrorService.Warning('Multiple Account panes initialized.');
         }
-        AccountPane._instance = this;
+        Account._instance = this;
 
         this.state = {
             active: false,
@@ -59,9 +59,9 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
         };
     }
 
-    public Activate(): void {
+    public Toggle(): void {
         this.setState({
-            active: true
+            active: !this.state.active
         });
     }
 
@@ -127,9 +127,9 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
 
         return (
             <WindowPane
-                startPos={{x: 0.5, y: 0.2}}
-                startWidth={0.5}
-                startHeight={0.6}
+                startPos={{x: 0.7, y: 0.0}}
+                startWidth={0.3}
+                startHeight={0.4}
                 closePressed={() => {
                     this.setState({
                         active: false
@@ -193,13 +193,16 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
 
     private loginView(): JSX.Element {
         return (
-        <form onSubmit={(e)=>{this.login(e)}} >
+        <form
+            id="login"
+            onSubmit={(e)=>{this.login(e)}} >
             <h2>Login</h2>
             <div>
                 <input
                     name='username'
                     type='text'
                     placeholder='username'
+                    autoComplete='username'
                     required
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         this.setState({loginUsername: e.currentTarget.value});
@@ -210,6 +213,7 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
                     name='password'
                     type='password'
                     placeholder='password'
+                    autoComplete='current-password'
                     required
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         this.setState({loginPassword: e.currentTarget.value});
@@ -228,13 +232,16 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
 
     private registerView(): JSX.Element {
         return (
-        <form onSubmit={(e)=>{this.register(e)}} >
+        <form
+            id="register"
+            onSubmit={(e)=>{this.register(e)}} >
             <h2>Register</h2>
             <div>
                 <input
                     name='username'
                     type='text'
                     placeholder='username'
+                    autoComplete='username'
                     required
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         this.setState({registerUsername: e.currentTarget.value});
@@ -245,6 +252,7 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
                     name='password'
                     type='password'
                     placeholder='password'
+                    autoComplete='new-password'
                     required
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         this.setState({registerPassword: e.currentTarget.value});
@@ -255,6 +263,7 @@ export class AccountPane extends React.Component<AccountPaneProps, AccountPaneSt
                     name='confirmPassword'
                     type='password'
                     placeholder='confirm password'
+                    autoComplete='new-password'
                     required
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         this.setState({registerConfirmPassword: e.currentTarget.value});
