@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as css from './toolbar.css';
+
 import ToolbarToolInterface from './toolbarToolInterface';
 
 import svg from './help.svg';
@@ -13,7 +15,7 @@ export class HelpTool extends React.PureComponent<any, any> implements ToolbarTo
     render() {
         return  (
             <span
-                className={'noselect tool'}
+            className={`${css.noselect} ${css.tool}`}
                 title={'Help.'}
                 onClick={() => {this.Use(); }}
                 dangerouslySetInnerHTML={{__html: svg}}

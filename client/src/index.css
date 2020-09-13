@@ -15,17 +15,6 @@ body {
     height: 100%;
 }
 
-#Toolbar {
-    height: 40px;
-}
-
-#BelowToolbar {
-    /* Change this value with the above value. */
-    height: calc(100% - 40px);
-    /* Allows absolute positioning within. */
-    position: relative;
-}
-
 .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */

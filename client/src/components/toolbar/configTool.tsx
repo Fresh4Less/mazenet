@@ -1,5 +1,8 @@
-import { Models } from '../../../../common/api/v1';
+
 import * as React from 'react';
+import * as css from './toolbar.css';
+
+import { Models } from '../../../../common/api/v1';
 import ToolbarToolInterface from './toolbarToolInterface';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 
@@ -22,7 +25,7 @@ export default class ConfigTool extends React.PureComponent<ConfigToolProps, any
     render() {
         return  (
             <span
-                className={'noselect tool'}
+                className={`${css.noselect} ${css.tool}`}
                 title={'Edit structures in the room.'}
                 onClick={() => {this.Use(); }}
                 dangerouslySetInnerHTML={{__html: svg}}

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as css from './styles.css';
+
 import { Models } from '../../../../common/api/v1';
 import { parseCss, stylesheetToString } from '../../../../common/util/stylesheet';
 import { StylesMode } from './styles';
@@ -62,7 +64,7 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
             return null;
         }
         return (
-            <div className={'body'}>
+            <div className={css.body}>
                 <textarea
                     placeholder="Type some styles."
                     value={this.state.cssString}
@@ -74,7 +76,7 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
                     }}
                 />
                 <div
-                    className={'help-toggler'}
+                    className={css.helpToggler}
                     title={'Toggle Help'}
                     onClick={() => {
                         this.setState({
@@ -82,7 +84,7 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
                         });
                     }}
                 >
-                    <span className={'arrow'}>
+                    <span className={css.arrow}>
                         {this.state.help ? '<' : '>'}
                     </span>
                 </div>
@@ -106,7 +108,7 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
             return (
                 <li
                     key={e.selector}
-                    className={'selector'}
+                    className={css.selector}
                     onClick={() => {
                         this.addSelectorToSheet(e.selector);
                     }}
@@ -123,7 +125,7 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
             return (
                 <li
                     key={id}
-                    className={'selector'}
+                    className={css.selector}
                     onClick={() => {
                         this.addSelectorToSheet(selector);
                     }}
@@ -137,7 +139,7 @@ export class AdvancedStyles extends React.Component<AdvancedStylesProps, Advance
         });
 
         return (
-            <div className={'help'}>
+            <div className={css.help}>
                 <h1>Advanced Styles Help</h1>
                 <h2>Info</h2>
                 <ul>

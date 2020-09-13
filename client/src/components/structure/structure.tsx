@@ -4,8 +4,6 @@ import { Models } from '../../../../common/api/v1';
 import Tunnel from './tunnel';
 import Text from './text';
 
-import './structure.css';
-
 export interface StructureProps {
     room: Models.Room;
     structure: Models.Structure;

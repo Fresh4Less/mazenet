@@ -22,3 +22,10 @@
             #EB3F3F 20px
     );
 }
+
+#BelowToolbar {
+    /* Change this value with the above value. */
+    height: calc(100% - 40px);
+    /* Allows absolute positioning within. */
+    position: relative;
+}

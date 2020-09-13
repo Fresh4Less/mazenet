@@ -1,7 +1,7 @@
 // Handles popping up tools and such.
 import * as React from 'react';
+import * as css from './mouseCanvas.css';
 
-import './mouseCanvas.css';
 import { Models } from '../../../../common/api/v1';
 import { ErrorService } from '../../services/ErrorService';
 import { Sprite } from '../../models/canvas/Sprite';
@@ -36,7 +36,7 @@ export default class MouseCanvas extends React.PureComponent<MouseCanvasProps, M
 
     render() {
         return (
-            <canvas ref={(c) => { this.initAnimation(c); }} id={'MouseCanvas'}/>
+            <canvas ref={(c) => { this.initAnimation(c); }} id={css.MouseCanvas}/>
         );
     }
 

@@ -1,6 +1,7 @@
 import * as React from 'react';
-import ToolbarToolInterface from './toolbarToolInterface';
+import * as css from './toolbar.css';
 
+import ToolbarToolInterface from './toolbarToolInterface';
 import svg from './account.svg';
 import { Account } from '../account/account';
 
@@ -26,7 +27,7 @@ export class AccountTool extends React.PureComponent<AccountToolProps, AccountTo
 
         return (
             <span
-                className={'noselect tool'}
+                className={`${css.noselect} ${css.tool}`}
                 title={'View Account'}
                 onClick={() => {
                     this.Use();

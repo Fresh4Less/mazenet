@@ -1,7 +1,9 @@
 import * as React from 'react';
+import * as tunnelCSS from './tunnel.css';
+import * as structureCSS from './structure.css';
+
 import { Models } from '../../../../common/api/v1';
 
-import './tunnel.css';
 import { SocketAPI } from '../../services/SocketAPI';
 import { ChangeEvent } from 'react';
 import { StructureProps } from './structure';
@@ -56,7 +58,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
             <div
                 id={`id-${this.props.structure.id}`}
                 style={style}
-                className={'structure tunnel noselect tunnel-font'}
+                className={`${structureCSS.structure} ${tunnelCSS.tunnel} tunnel ${tunnelCSS.noselect}`}
                 onClick={() => {SocketAPI.Instance.EnterRoom(this.state.targetId); }}
             >
                 {this.state.text}
@@ -78,14 +80,14 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
         };
         return (
             <div
-                className={'structure tunnel-edit'}
+                className={`${structureCSS.structure} ${tunnelCSS.tunnelEdit}`}
                 style={containerStyle}
                 onClick={(e) => {
                     this.focusOnInput();
                     e.stopPropagation(); // Keep from repositioning in StructureWorkshop.
                 }}
             >
-                <div className={'action-buttons'}>
+                <div className={`${structureCSS.actionButtons}`}>
                     <button
                         onClick={() => {
                             this.cancel();
@@ -103,7 +105,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
                     </button>
                 </div>
                 <input
-                    className={'tunnel-font'}
+                    className={`${tunnelCSS.tunnel}`}
                     style={inputStyle}
                     value={this.state.text}
                     placeholder={placeholder}
@@ -122,7 +124,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
                 <div
                     style={inputStyle}
                 >
-                    <span className={'input-underline'}/>
+                    <span className={`${tunnelCSS.inputUnderline}`}/>
                 </div>
             </div>
         );
@@ -209,7 +211,7 @@ export default class Tunnel extends React.Component<TunnelProps, TunnelState> {
 
     private static measureCharacterWidth(): number {
         let sizerDiv = document.createElement('div');
-        sizerDiv.className = 'input-text-width-tester tunnel-font';
+        sizerDiv.className = `${tunnelCSS.inputTextWidthTester} ${tunnelCSS.tunnel}`;
         sizerDiv.innerText = 'c';
         document.body.appendChild(sizerDiv);
         let width = sizerDiv.clientWidth;

@@ -1,7 +1,8 @@
 import * as React from 'react';
+import * as css from './styles.css';
+
 import { Models } from '../../../../common/api/v1';
 
-import './styles.css';
 import { WindowPane } from '../windowPane/windowPane';
 import { SocketAPI } from '../../services/SocketAPI';
 import { AdvancedStyles } from './advancedStyles';
@@ -64,8 +65,8 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                 title={'Room Styles'}
                 hidden={!this.state.active}
             >
-                <div className={'styles'}>
-                    <div className={'header'}>
+                <div className={css.styles}>
+                    <div className={css.header}>
                         <button
                             title={'Reset the styles to whatever is currently saved within this room.'}
                             onClick={() => {
@@ -103,8 +104,8 @@ export class Styles extends React.Component<StylesProps, StylesState> {
                         active={this.state.advancedMode}
                         ref={e => {if (e) {this.advancedStyles = e; }}}
                     />
-                    <div className={'footer'}>
-                        <div className={'error'}>
+                    <div className={css.footer}>
+                        <div className={css.error}>
                             {this.state.errorText}
                         </div>
                     </div>

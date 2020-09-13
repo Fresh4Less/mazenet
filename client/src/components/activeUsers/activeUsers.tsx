@@ -50,7 +50,11 @@ export class ActiveUsers extends React.Component<any, ActiveUsersState> {
             });
         });
         SocketAPI.Instance.activeUserDesktopCursorMovedObservable.subscribe(value => {
-            const pData = this.state.users[value.activeUserId].platformData;
+            const activeUser = this.state.users[value.activeUserId];
+            if (!activeUser) {
+                return;
+            }
+            const pData = activeUser.platformData;
             // TODO: Compare roomid when fixed on server.
             if ( pData.pType === 'desktop' && this.activeUserRefs[value.activeUserId]) {
                 // Force a re-render of only the ActiveUser that moved. The appears to work great.
