@@ -122,7 +122,8 @@ export class Service {
     public createStructure(
         userId: User.Id,
         roomId: Api.v1.Models.Room.Id,
-        structureBlueprint: Api.v1.Models.Structure.Blueprint
+        structureBlueprint: Api.v1.Models.Structure.Blueprint,
+        activeUserId?: ActiveUser.Id
     ): Observable<Structure> {
         //TODO: make this logic a dispatch?
         let initStructureDataObservable: Observable<StructureData>;
@@ -154,6 +155,7 @@ export class Service {
                     roomIds: getStructureRoomIds(structure),
                     structure,
                     userId,
+                    activeUserId,
                 });
                 GlobalLogger.trace('create structure', {structure, userId: userId});
                 return structure;
@@ -164,7 +166,8 @@ export class Service {
     public updateStructure(
         userId: User.Id,
         id: Api.v1.Models.Structure.Id,
-        patch: Api.v1.Models.Structure.Patch
+        patch: Api.v1.Models.Structure.Patch,
+        activeUserId?: ActiveUser.Id
     ): Observable<Structure> {
         return this.dataStore.updateStructure(id, patch).pipe(
             map((structure) => {
@@ -173,6 +176,7 @@ export class Service {
                     roomIds: getStructureRoomIds(structure),
                     structure,
                     userId,
+                    activeUserId,
                 });
                 GlobalLogger.trace('update structure', {structureId: id, patch, userId: userId});
                 return structure;
@@ -230,7 +234,8 @@ export class Service {
     public updateRoom(
         userId: User.Id,
         id: Api.v1.Models.Room.Id,
-        patch: Api.v1.Models.Room.Patch
+        patch: Api.v1.Models.Room.Patch,
+        activeUserId?: ActiveUser.Id
     ): Observable<Room> {
         return this.dataStore.updateRoom(id, patch).pipe(
             map((room) => {
@@ -238,6 +243,7 @@ export class Service {
                     event: 'update',
                     room,
                     userId,
+                    activeUserId,
                 });
                 GlobalLogger.trace('update room', {roomId: id, patch, userId: userId});
                 return room;
@@ -253,9 +259,9 @@ export class Service {
         return this.activeUserRoomDataStore.getActiveUserRoomData(activeUserId);
     }
 
-    protected createStructureTrees(userId: User.Id, roomId: Room.Id, structureTrees: StructureBlueprintTree[]): Observable<Structure | Room> {
+    protected createStructureTrees(userId: User.Id, roomId: Room.Id, structureTrees: StructureBlueprintTree[], activeUserId?: ActiveUser.Id): Observable<Structure | Room> {
         return merge(...structureTrees.map((tree) => {
-            return this.createStructure(userId, roomId, tree.structure).pipe(
+            return this.createStructure(userId, roomId, tree.structure, activeUserId).pipe(
                 mergeMap((structure: Structure) => {
                     let childRoomId: Room.Id | undefined;
                     switch(structure.data.sType) {
@@ -268,10 +274,10 @@ export class Service {
                     const observables: Array<Observable<Structure | Room>> = [of(structure)];
                     if(childRoomId) {
                         if(tree.roomPatch) {
-                            observables.push(this.updateRoom(userId, childRoomId, tree.roomPatch));
+                            observables.push(this.updateRoom(userId, childRoomId, tree.roomPatch, activeUserId));
                         }
                         if(tree.children) {
-                            observables.push(this.createStructureTrees(userId, childRoomId, tree.children).pipe(
+                            observables.push(this.createStructureTrees(userId, childRoomId, tree.children, activeUserId).pipe(
                                 map((subStructures) => structure)
                             ));
                         }

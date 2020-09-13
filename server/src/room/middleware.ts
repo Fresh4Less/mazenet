@@ -208,7 +208,9 @@ export class Middleware {
             } catch (err) {
                 throw new BadRequestError(err.message);
             }
-            return this.service.updateRoom(req.userId, body.id, body.patch).pipe(
+
+            const socketData = req.socket && (req.socket as Socket).mazenet;
+            return this.service.updateRoom(req.userId, body.id, body.patch, socketData && socketData.activeUser!.id).pipe(
                     mergeMap((room) => {
                         return this.service.getRoomDocument(body.id);
                 })
@@ -251,7 +253,9 @@ export class Middleware {
             } catch (err) {
                 throw new BadRequestError(err.message);
             }
-            return this.service.createStructure(req.userId, body.roomId, body.structure).subscribe((structure) => {
+
+            const socketData = req.socket && (req.socket as Socket).mazenet;
+            return this.service.createStructure(req.userId, body.roomId, body.structure, socketData && socketData.activeUser!.id).subscribe((structure) => {
                 return res.status(201).json(structure.toV1());
             }, (err: Error) => {
                 return next(err);
@@ -269,7 +273,9 @@ export class Middleware {
             } catch (err) {
                 throw new BadRequestError(err.message);
             }
-            return this.service.updateStructure(req.userId, body.id, body.patch).subscribe((structure) => {
+
+            const socketData = req.socket && (req.socket as Socket).mazenet;
+            return this.service.updateStructure(req.userId, body.id, body.patch, socketData && socketData.activeUser!.id).subscribe((structure) => {
                 return res.status(200).json(structure.toV1());
             }, (err: Error) => {
                 return next(err);
@@ -315,8 +321,7 @@ export class Middleware {
                     event.room.id,
                     Api.v1.Events.Server.Rooms.Updated.Route,
                     roomDocument.toV1(),
-                    event.userId,
-                    true);
+                    event.activeUserId)
             })
         ).subscribe();
     }
@@ -342,8 +347,7 @@ export class Middleware {
                 roomId,
                 Api.v1.Events.Server.Rooms.Structures.Created.Route,
                 {roomId, structure},
-                event.userId,
-                true
+                event.activeUserId,
             ).subscribe();
         });
     }
@@ -355,8 +359,7 @@ export class Middleware {
                 roomId,
                 Api.v1.Events.Server.Rooms.Structures.Updated.Route,
                 {roomId, structure},
-                event.userId,
-                true
+                event.activeUserId,
             ).subscribe();
         });
     }
@@ -365,19 +368,15 @@ export class Middleware {
         roomId: Room.Id,
         route: string,
         data: any,
-        ignoreUser: ActiveUser.Id | User.Id,
-        ignoreUserNonActive?: boolean
+        ignoreUser?: ActiveUser.Id | User.Id,
     ) {
         return this.service.getActiveUsersInRoom(roomId).pipe(
             map((activeUsers) => {
                 for (const [activeUserId, activeUserRoomData] of activeUsers) {
-                    if(ignoreUserNonActive) {
-                        if(ignoreUser === activeUserRoomData.activeUser.userId) {
-                            continue;
-                        }
-                    } else if(activeUserId === ignoreUser) {
+                    if(activeUserId === ignoreUser) {
                         continue;
                     }
+
                     const userSocketId = this.userService.getSessionFromActiveUser(activeUserId);
                     if(userSocketId) {
                         this.socketNamespace.to(userSocketId).emit(route, data);

@@ -211,6 +211,7 @@ export interface UpdatedEvent {
     event: 'update';
     room: Room;
     userId: User.Id;
+    activeUserId?: ActiveUser.Id;
 }
 
 export interface StructureCreatedEvent {
@@ -218,6 +219,7 @@ export interface StructureCreatedEvent {
     roomIds: Room.Id[];
     userId: User.Id;
     structure: Structure;
+    activeUserId?: ActiveUser.Id;
 }
 
 export interface StructureUpdatedEvent {
@@ -225,4 +227,5 @@ export interface StructureUpdatedEvent {
     roomIds: Room.Id[];
     userId: User.Id;
     structure: Structure;
+    activeUserId?: ActiveUser.Id;
 }
