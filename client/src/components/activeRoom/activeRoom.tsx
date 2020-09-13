@@ -1,6 +1,6 @@
 import * as React from 'react';
+import * as css from './activeRoom.css';
 
-import './activeRoom.css';
 import { Models } from '../../../../common/api/v1';
 import Structure from '../structure/structure';
 import { stylesheetToString } from '../../../../common/util/stylesheet';
@@ -54,7 +54,7 @@ export class ActiveRoom extends React.Component<ActiveRoomProps, ActiveRoomState
 
         return (
             <div id={`id-${room.id}`}>
-                <div className={'room'}>
+                <div className={`${css.room} room`}>
                     {structureElements}
                 </div>
             </div>

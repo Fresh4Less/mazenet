@@ -5,7 +5,7 @@ import { ErrorService } from '../../services/ErrorService';
 import { Models } from '../../../../common/api/v1';
 import { AccountService } from '../../services/account/AccountService';
 
-import './account.css';
+import * as css from './account.css';
 
 interface AccountProps {
     account: Models.Account;
@@ -137,7 +137,7 @@ export class Account extends React.Component<AccountProps, AccountState> {
                 }}
                 hidden={!this.state.active}
                 title={'Account'}
-            ><div className={'account'}>{view}</div></WindowPane>
+            ><div className={css.account}>{view}</div></WindowPane>
         );
     }
 
@@ -180,11 +180,11 @@ export class Account extends React.Component<AccountProps, AccountState> {
 
     private loginOrRegisterView(): JSX.Element {
         return (
-            <div className={'login-columns'}>
-                <div className={'column'}>
+            <div className={css.loginColumns}>
+                <div className={css.column}>
                     {this.loginView()}
                 </div>
-                <div className={'column'}>
+                <div className={css.column}>
                     {this.registerView()}
                 </div>
             </div>

@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as css from './toolbar.css';
+
 import { Models } from '../../../../common/api/v1';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 import ToolbarToolInterface from './toolbarToolInterface';
@@ -26,10 +28,10 @@ export default class TunnelTool extends React.PureComponent<TunnelToolProps, any
     render() {
         return  (
            <span
-               className={'noselect tool'}
-               title={'Tunnel a new room.'}
-               onClick={() => {this.Use(); }}
-               dangerouslySetInnerHTML={{__html: svg}}
+                className={`${css.noselect} ${css.tool}`}
+                title={'Tunnel a new room.'}
+                onClick={() => {this.Use(); }}
+                dangerouslySetInnerHTML={{__html: svg}}
            />);
     }
 }

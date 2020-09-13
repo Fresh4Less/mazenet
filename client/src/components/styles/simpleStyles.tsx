@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as css from './styles.css';
+
 import { Models } from '../../../../common/api/v1';
 import { StylesMode } from './styles';
 
@@ -22,7 +24,7 @@ export class SimpleStyles extends React.Component<SimpleStylesProps, any> implem
             return null;
         }
         return (
-            <div className={'body'}>
+            <div className={css.body}>
                 I am the simple room styles view. I am not complete yet but will include handy inputs and drop-downs to
                 customize room and styles. May not be as powerful as the Advanced Mode but will be good for those
                 who have no experience writing CSS.

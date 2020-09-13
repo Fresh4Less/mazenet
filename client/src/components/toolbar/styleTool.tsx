@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as css from './toolbar.css';
+
 import { Models } from '../../../../common/api/v1';
 import ToolbarToolInterface from './toolbarToolInterface';
 
@@ -22,7 +24,7 @@ export default class StyleTool extends React.PureComponent<StyleToolProps, any> 
         const disabledClass = this.enabled ? '' : ' disabled';
         return  (
             <span
-                className={'noselect tool' + disabledClass}
+                className={`${css.noselect} ${css.tool} ${disabledClass}`}
                 title={'Style room.'}
                 onClick={() => {this.Use(); }}
                 dangerouslySetInnerHTML={{__html: svg}}

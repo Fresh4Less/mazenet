@@ -1,8 +1,9 @@
 import * as React from 'react';
+import * as textCSS from './text.css';
+import * as structureCSS from './structure.css';
+
 import { Models } from '../../../../common/api/v1';
 import { StructureProps } from './structure';
-
-import './text.css';
 
 interface TextProps extends StructureProps {
     textData: Models.StructureData.Text;
@@ -61,7 +62,7 @@ export default class Text extends React.Component<TextProps, TextState> {
             <pre
                 id={`id-${this.props.structure.id}`}
                 style={style}
-                className={'structure text'}
+                className={`${structureCSS.structure} ${textCSS.text} text`}
             >
                 {this.props.textData.text}
             </pre>
@@ -81,12 +82,12 @@ export default class Text extends React.Component<TextProps, TextState> {
         return (
             <div
                 style={style}
-                className={'structure text'}
+                className={`${structureCSS.structure} ${textCSS.text} text`}
                 onClick={(e) => {
                     e.stopPropagation(); // Keep from repositioning in StructureWorkshop.
                 }}
             >
-                <div className={'action-buttons'}>
+                <div className={`${structureCSS.actionButtons}`}>
                     <button
                         onClick={() => {
                             this.cancel();

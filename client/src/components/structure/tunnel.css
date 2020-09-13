@@ -1,12 +1,10 @@
-.structure.tunnel {
+.tunnel {
     z-index: 3; /* text = 1; mouseRecordings = 2; tunnel = 3; users = 9; StructureWorkshop = 10; StylePane = 20; */
     text-decoration: underline;
-    cursor: pointer;
-}
-.tunnel-font {
     color: black;
     font-family: Lucida Console, Courier, monospace;
     font-size: 20px;
+    cursor: pointer;
 }
 
 /* Edit Mode */
@@ -41,4 +39,14 @@ textarea:focus, input:focus {
     border: rgba(0,0,0,0.6) solid 1px;
     background: rgba(255, 255, 255, 0.5);
     font-weight: bold;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }

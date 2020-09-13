@@ -1,8 +1,8 @@
 
 // Handles popping up tools and such.
 import * as React from 'react';
+import * as css from './toolbar.css';
 
-import './toolbar.css';
 import { SocketAPI } from '../../services/SocketAPI';
 import TunnelTool from './tunnelTool';
 import { Models } from '../../../../common/api/v1';
@@ -42,7 +42,7 @@ export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
 
     render() {
         let tools = (
-            <span className={'right'}>
+            <span className={css.right}>
                 <TunnelTool
                     room={this.props.room}
                 />
@@ -62,9 +62,9 @@ export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
 
         const subtitle = this.props.room.title;
         return (
-            <div id={'Toolbar'}>
+            <div id={css.Toolbar}>
                 <span
-                    id={'Title'}
+                    id={css.Title}
                     title={this.notInRoot() ? 'Return to the root room.' : 'Welcome to Mazenet!'}
                     onClick={() => {
                         if (this.notInRoot() && window.confirm('Leave the current room and return to the root?')) {
@@ -74,7 +74,7 @@ export class Toolbar extends React.Component<ToolbarProps, ToolbarState> {
                 >
                     mazenet
                 </span>
-                <span title={`In the room '${subtitle}'`} id={'Subtitle'}>
+                <span title={`In the room '${subtitle}'`} id={css.Subtitle}>
                     {subtitle}
                 </span>
                 {tools}

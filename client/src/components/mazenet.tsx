@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { Toolbar } from './toolbar/toolbar';
 
-import './mazenet.css';
 import { ActiveRoom } from './activeRoom/activeRoom';
 import { ActiveUsers } from './activeUsers/activeUsers';
 import { StructureWorkshop } from './structureWorkshop/structureWorkshop';
@@ -19,6 +18,8 @@ import { ErrorService } from '../services/ErrorService';
 import { Account } from './account/account';
 import { AccountService } from '../services/account/AccountService';
 import { Help } from './help/help';
+
+import * as css from './mazenet.css';
 
 const cursorLimit = 500;
 
@@ -69,6 +70,7 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
             
         });
         SocketAPI.Instance.roomUpdatedObservable.subscribe(val => {
+            console.log('room update', val);
             this.setState({room: val});
         });
 
@@ -117,10 +119,10 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
     }
 
     render() {
-        if (this.state.room == null || this.state.account == null || this.state.mouseRecordings == null) {
+        if (this.state.room == null || this.state.account == null || this.state.mouseRecordings == null || css.loaded == "loaded") {
             return (
-                <div id={'Mazenet'}>
-                    <div className={'loading'}>
+                <div id={css.Mazenet}>
+                    <div className={css.loading}>
                         <div>&gt; Loading into Mazenet</div>
                         <div>&gt; Room<EllipsisLoader animate={this.state.room == null}/>
                             {this.state.room != null && <span>OK</span>}
@@ -139,10 +141,10 @@ export default class Mazenet extends React.PureComponent<any, MazenetState> {
             )
         } else {
             return (
-                <div id={'Mazenet'} className={'loaded'}>
+                <div id={css.Mazenet} className={css.loaded}>
                     <Toolbar room={this.state.room}/>
                     <div
-                        id={'BelowToolbar'}
+                        id={css.BelowToolbar}
                         onMouseMove={this.mouseMoveHandler}
                     >
                         {/* Order is important, things render in the order listed. */}

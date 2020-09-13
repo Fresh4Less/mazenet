@@ -3,7 +3,7 @@ import * as React from 'react';
 import { WindowPane } from '../windowPane/windowPane';
 import { ErrorService } from '../../services/ErrorService';
 
-import './help.css';
+import * as css from './help.css';
 
 interface HelpState {
     active: boolean;
@@ -48,7 +48,7 @@ export class Help extends React.Component<any, HelpState> {
                 hidden={!this.state.active}
                 title={'Help'}
             >
-                <div className={'help'}>
+                <div className={css.help}>
                     <h2>Tutorial</h2>
                     <div>A tutorial would go here.</div>
                     <h2>About</h2>
