@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Models } from '../../../../common/api/v1';
 
-import './windowPane.css';
+import * as css from './windowPane.css';
 import svg from './close.svg';
 
 interface WindowPaneProps {
@@ -68,22 +68,22 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
         };
         return (
             <div
-                className={'windowPane' + (this.props.hidden ? ' hidden' : '')}
+                className={css.windowPane + ' ' + (this.props.hidden ? css.hidden : '')}
                 style={style}
             >
                 <div
-                    className={'toolbar'}
+                    className={css.toolbar}
                     onMouseDown={(e) => {
                         this.draggingOnMouseDown(e);
                     }}
                 >
                     <span
-                        className={'title'}
+                        className={css.title}
                     >
                         {this.props.title}
                     </span>
                     <span
-                        className={'close'}
+                        className={css.close}
                         title={'Close'}
                         onClick={() => {
                             this.props.closePressed();
@@ -91,9 +91,11 @@ export class WindowPane extends React.PureComponent<WindowPaneProps, WindowPaneS
                         dangerouslySetInnerHTML={{__html: svg}}
                     />
                 </div>
-                {this.props.children}
+                <div className={css.content}>
+                    {this.props.children}
+                </div>
                 <div
-                    className={'resizer'}
+                    className={css.resizer}
                     onMouseDown={(e) => {
                         this.resizingOnMouseDown(e);
                     }}

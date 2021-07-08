@@ -15,7 +15,11 @@
     font-weight: bold;
     cursor: pointer;
     border: none;
-    margin: 5px;
+    padding: 5px;
+}
+
+.styles .header button:hover {
+    background: #0000003d;
 }
 
 .styles .header button:not:first-of-type {

@@ -210,19 +210,22 @@ export interface ExitedRoomEvent {
 export interface UpdatedEvent {
     event: 'update';
     room: Room;
-    user: User;
+    userId: User.Id;
+    activeUserId?: ActiveUser.Id;
 }
 
 export interface StructureCreatedEvent {
     event: 'structure-create';
     roomIds: Room.Id[];
-    user: User;
+    userId: User.Id;
     structure: Structure;
+    activeUserId?: ActiveUser.Id;
 }
 
 export interface StructureUpdatedEvent {
     event: 'structure-update';
     roomIds: Room.Id[];
-    user: User;
+    userId: User.Id;
     structure: Structure;
+    activeUserId?: ActiveUser.Id;
 }

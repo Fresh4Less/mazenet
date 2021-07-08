@@ -3,7 +3,7 @@ NodeJS backend for Mazenet. Exposes the Mazenet API through an interactive WebSo
 
 # Install
 ```bash
-npm install
+yarn install
 ```
 
 # Build
@@ -12,17 +12,19 @@ gulp
 ```
 Typescript is compiled into `build/`.
 
+Mazenet requires a ES256 key pair to sign and validate JWT tokens used for user authentication. A key-pair for DEVELOPMENT USE ONLY is already provided. You can generate new keys with `scripts/gen-keys-jwt.sh`, then copy those keys into your own `secrets.json` (see configuration).
+
 # Run
 ```bash
-npm start
+yarn start
 
 # args to server come after `--`
-npm start -- --port 80
+yarn start -- --port 80
 ```
 
-Run the server with pretty, colorful formatted log:
+Launch with [sift-cli](https://www.npmjs.com/package/sift-cli) to view and filter logs interactively:
 ```bash
-./start.sh --port 80
+sift yarn start
 ```
 
 To develop on the postgres version, first set up and run a local postgres instance. Initialize the mazenet database with the psql command:
@@ -33,7 +35,7 @@ CREATE DATABASE "mazenet";
 Then run `psql -f scripts/initdb.psql mazenet` to initialize the tables and mazenet role.
 Finally, start the server with:
 ```bash
-npm run start-pg
+yarn start-pg
 ```
 
 ## Configuration
@@ -48,7 +50,7 @@ To explicitly set a boolean option to false, prefix the option name with `no-` (
 
 **Nested arguments**: Some options ore objects with one or more levels of nesting. These options can be passed to the command line with dot notation:
 ```
-npm start -- --postgres.database mzDb --postgres.port 1234
+yarn start -- --postgres.database mzDb --postgres.port 1234
 ```
 
 ### port (number)
@@ -116,16 +118,29 @@ Credentials and other secrets are loaded from a JSON file on startup.
 
 The secrets file can be specified with the `secrets` option. If not specified, the default path is `{REPO_DIR}/server/secrets/secrets.json`.
 
+### jwt (object)
+User authentication is managed with JWT tokens, transported through the `authenticationToken` cookie. Mazenet uses the ES256 algorithm to sign and verify JWT tokens. You must provide the keys as a pair of public/private PEM encoded strings.
+
+*Within secrets.json:*
+```
+{
+	"jwt": {
+		"public": "-----BEGIN PUBLIC KEY-----\n...",
+		"private": "-----BEGIN EC PRIVATE KEY-----\n..."
+	}
+}
+```
+
 ### postgres (object)
 Specifies credentials for postgres users. Each property describes a user, with the value being a password string.
 
 *Within secrets.json:*
 ```
 {
-"postgres": {
-	    "elliot": "elliotPassword",
-	    "sam": "samPassword"
-}
+	"postgres": {
+		"elliot": "elliotPassword",
+		"sam": "samPassword"
+	}
 }
 ```
 
@@ -141,11 +156,11 @@ HTML Documentation is generated in `/docs`.
 
 ## Run Tests
 ```bash
-npm test
+yarn test
 ```
 By default, the integration tests use the in-memory data store. To test against a live Postgres database, use the postgres Jest configuration:
 ```bash
-npm test -- --config ./jest-pg.config.js
+yarn test -- --config ./jest-pg.config.js
 ```
 
 ## Initialize Postgres DB Schema

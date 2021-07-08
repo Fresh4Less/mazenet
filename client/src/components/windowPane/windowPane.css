@@ -1,6 +1,6 @@
 .windowPane {
     z-index: 20; /* text = 1; mouseRecordings = 2; tunnel = 3; users = 9; StructureWorkshop = 10; StylePane = 20; */
-    overflow: auto;
+    overflow: hidden;
     position:absolute;
     display: inline-block;
     background-color: rgba(255, 255, 255, 0.76);
@@ -14,7 +14,7 @@
 }
 
 .windowPane .toolbar {
-    background-color: rgb(64,64,64);
+    background-color: #222;
     color: white;
     font-size: 18px;
     line-height: 20px;
@@ -33,6 +33,13 @@
 .windowPane .toolbar .close svg {
     width: 15px;
     height: 20px;
+}
+
+.windowPane .content {
+    overflow: auto;
+    width: 100%;
+    /* 100% minus height of toolbar */
+    height: calc(100% - 20px); 
 }
 
 .windowPane .resizer {

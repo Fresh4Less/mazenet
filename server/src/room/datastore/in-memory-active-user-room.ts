@@ -14,7 +14,6 @@ export class InMemoryActiveUserRoomDataStore implements ActiveUserRoomDataStore 
     constructor() {
         this.activeUserRoomData = new Map<ActiveUser.Id, ActiveUserRoomData>();
         this.roomActiveUsers = new Map<Room.Id, Map<ActiveUser.Id, ActiveUserRoomData>>();
-
     }
 
     public getActiveUsersInRoom(roomId: Room.Id) {

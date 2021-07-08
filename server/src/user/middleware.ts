@@ -1,19 +1,23 @@
+import * as cookie from 'cookie';
 import * as Express from 'express';
-import { forkJoin, Observable } from 'rxjs';
+import { from, forkJoin, Observable, of, throwError } from 'rxjs';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import * as Validator from 'fresh-validation';
+import * as FreshSocketIO from 'fresh-socketio-router';
 
-import FreshSocketIO = require('fresh-socketio-router');
 import * as Api from '../../../common/api';
-import * as Validator from '../../../common/util/validator';
-import { BadRequestError, Request, Response, Socket, UnauthorizedError } from '../common';
+import { BadRequestError, NotFoundError, Request, Response, Socket, UnauthorizedError } from '../common';
 
 import { Room } from '../room/models';
 import { Service as RoomService } from '../room/service';
 import { ActiveUser, User } from './models';
 import { Service } from './service';
+import { GlobalLogger } from '../util/logger';
 
 // temporary imports, won't be needed later
 import * as Uuid from 'uuid/v4';
 
+// TODO: set authenticationToken cookie to secure (HTTPS only) in production
 export class Middleware {
 
     public service: Service;
@@ -27,68 +31,220 @@ export class Middleware {
         this.roomService = roomService;
 
         this.socketMiddleware = (socket: Socket, next: (err?: any) => void) => {
-            //TODO: authenticate based on JWT
-            socket.mazenet = {
-                sessionId: socket.id
-            };
+            const cookies = cookie.parse(socket.request.headers.cookie || '');
+            if(!cookies.authenticationToken) {
+                // websocket connection requires an authentication token
+                // TODO: restructure request logs to make message more human readable, rather than a separate 'reason' message
+                GlobalLogger.request('ws-handshake-failed', {
+                    ip: socket.request.connection.remoteAddress,
+                    transport: 'ws',
+                    reason: 'missing authenticationToken'
+                });
+                return next(new UnauthorizedError(`Websocket connection requires a the 'authenticationToken' cookie. Obtain a token with POST /users/login`));
+            }
 
-            socket.on('disconnect', () => {
-                this.service.onUserDisconnect(socket.mazenet!.sessionId);
+            this.service.verifyAuthenticationToken(cookies.authenticationToken).pipe(
+                catchError((err) => { throw new UnauthorizedError(`Invalid authenticationToken: ${err.message}`) }),
+                mergeMap((authenticationToken) =>
+                    forkJoin(
+                        this.service.getUser((authenticationToken.sub)),
+                        of(authenticationToken)
+                    )
+                ),
+                catchError((err: Error) => {
+                    if(err instanceof NotFoundError) {
+                        // authenticationToken refers to a user that doesn't exist, rethrow as unauthorized error
+                        throw new UnauthorizedError(`Invalid authenticationToken: ${err.message}`);
+                    }
+
+                    throw err;
+                }),
+            ).subscribe({
+                next: ([user, authenticationToken]) => {
+                    socket.mazenet = {
+                        sessionId: socket.id,
+                        userId: authenticationToken.sub
+                    };
+
+                    socket.on('disconnect', () => {
+                        this.service.onUserDisconnect(socket.mazenet!.sessionId);
+                    });
+                    return next();
+                },
+                error: (error: Error) => {
+                    GlobalLogger.error(
+                        'Socket failed authentication handshake on connect',
+                        {error}
+                    );
+
+                    return next(error);
+                }
             });
-            next();
         };
         this.router = Express.Router();
+
         this.router.use((req: Request, res: Response, next: Express.NextFunction) => {
             const socketData = (req.socket as Socket).mazenet;
             if(socketData) {
-                // this is a socketio connection
-                //TODO: do we need to validate that activeUser is valid for this user?
-                //TODO: standardize error handling
-                req.activeUser = this.service.getActiveUserFromSession(socketData!.sessionId);
-                if(!socketData!.user) {
-                    this.service.createUser({username: 'anonymous'}).subscribe((user) => {
-                        socketData!.user = user;
-                        req.user = user;
-                        return next();
-                    }, (error) => next(error));
-                } else {
-                    req.user = socketData!.user;
-                    return next();
+                // websocket doesn't need to validate JWT because it was validated when the connection was established
+                // NOTE: should we kill long-running websocket connections that have outlived their token lifespan?
+                req.userId = socketData.userId;
+                return next();
+            }
+            else {
+                if(!req.cookies.authenticationToken) {
+                    // create an anonymous user for this session
+                    return this.createGuest().subscribe({
+                        next: ([user, authenticationToken]) => {
+                            this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
+                            next();
+                        },
+                        error: (err) => {
+                            next(err);
+                        }
+                    });
                 }
-            } else {
-                //TODO: authenticate based on JWT
-                this.service.createUser({username: 'anonymous'}).subscribe((user) => {
-                    req.user = user;
-                    return next();
-                }, (error) => next(error));
+
+                // every HTTP request needs to validate the JWT
+                this.service.verifyAuthenticationToken(req.cookies.authenticationToken).pipe(
+                    catchError((err) => throwError(new UnauthorizedError(`Invalid authenticationToken: ${err.message}`))),
+                    mergeMap((authenticationToken) =>
+                        forkJoin(
+                            this.service.getUser((authenticationToken.sub)),
+                            of(authenticationToken)
+                        )
+                    ),
+                    catchError((err: Error) => {
+                        if(err instanceof NotFoundError) {
+                            // authenticationToken refers to a user that doesn't exist, rethrow as unauthorized error
+                            throw new UnauthorizedError(`Invalid authenticationToken: ${err.message}`);
+                        }
+
+                        throw err;
+                    }),
+                    catchError((err: Error) => {
+                        // if connecting to the homepage with an invalid token, automatically create a new guest and session token
+                        if(err instanceof UnauthorizedError && req.url === '/') {
+                            return this.createGuest().pipe(
+                                mergeMap(([user, authenticationToken]) => {
+                                    this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
+                                    // NOTE: we don't need to verify the token we just created, we could just decode
+                                    return forkJoin(
+                                        of(user),
+                                        this.service.verifyAuthenticationToken(authenticationToken)
+                                    );
+                                })
+                            );
+                        }
+
+                        throw err;
+                    })
+                ).subscribe({
+                    next: ([user, authenticationToken]) => {
+                        req.userId = authenticationToken.sub;
+                        return next();
+                    },
+                    error: (err) => {
+                        next(err);
+                    }
+                });
             }
         });
 
         const usersRouter = Express.Router();
+        usersRouter.post('/login', (req: Request, res: Response, next: Express.NextFunction) => {
+            const socketData = (req.socket as Socket).mazenet;
+            if(socketData) {
+                throw new BadRequestError('Login not allowed over websocket session. Use HTTP instead.');
+            }
+
+            let body: Api.v1.Routes.Users.Login.Post.Request;
+            try {
+                body = Validator.validateData(req.body, Api.v1.Routes.Users.Login.Post.Request, 'body');
+            } catch (err) {
+                throw new BadRequestError(err.message);
+            }
+
+            this.service.loginUser(body.username, body.password).subscribe({
+                next: ({user, authenticationToken}) => {
+                    this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
+                    const response: Api.v1.Routes.Users.Login.Post.Response200 = undefined;
+                    return res.status(200).json(undefined);
+                },
+                error: (err) => {
+                    next(err);
+                }
+            });
+        });
+
+        usersRouter.post('/register', (req: Request, res: Response, next: Express.NextFunction) => {
+            const socketData = (req.socket as Socket).mazenet;
+            if(socketData) {
+                throw new BadRequestError('User registration not allowed over websocket session. Use HTTP instead.');
+            }
+
+            let body: Api.v1.Routes.Users.Register.Post.Request;
+            try {
+                body = Validator.validateData(req.body, Api.v1.Routes.Users.Register.Post.Request, 'body');
+            } catch (err) {
+                throw new BadRequestError(err.message);
+            }
+
+            this.service.registerProfile(body.username, body.password, req.userId).pipe(
+                mergeMap((user) => {
+                    // if the user does not already have a session token, create one now
+                    const tokenObservable: Observable<string | undefined> = req.userId?
+                        of(undefined):
+                        this.service.createAuthenticationToken(user.id);
+                    return tokenObservable.pipe(
+                        map((authenticationToken) => [user, authenticationToken] as [User, string | undefined])
+                    );
+                })
+            ).subscribe({
+                next: ([user, authenticationToken]) => {
+                    if(authenticationToken) {
+                        this.setAuthenticationTokenCookie(authenticationToken, res as Express.Response);
+                    }
+                    const response: Api.v1.Routes.Users.Register.Post.Response201 = undefined;
+                    res.status(201).json(user);
+                },
+                error: (err) => {
+                    next(err);
+                }
+            });
+        });
+
         usersRouter.post('/connect', (req: Request, res: Response, next: Express.NextFunction) => {
             const socketData = (req.socket as Socket).mazenet;
             if(!socketData) {
                 throw new BadRequestError('Only websocket sessions can /connect to the Mazenet');
             }
-            if(!req.user) {
+            if(!req.userId) {
                 throw new UnauthorizedError('User must be logged in');
             }
-            let body: Api.v1.Models.PlatformData;
+            let body: Api.v1.Routes.Users.Connect.Post.Request;
             try {
-                body = Validator.validateData(req.body, Api.v1.Routes.Users.Connect.Post.Request.Desktop, 'body');
+                body = Validator.validateData(req.body, Api.v1.Routes.Users.Connect.Post.Request, 'body');
             } catch (err) {
                 throw new BadRequestError(err.message);
             }
 
-            forkJoin(
-                this.service.createActiveUser(socketData!.sessionId, req.user, body),
-                this.roomService.getRootRoomId())
-            .subscribe(([activeUser, rootRoomId]) => {
+            this.service.getUser(req.userId).pipe(
+                mergeMap((user) => {
+                    return forkJoin(
+                        this.service.getAccount(user.id),
+                        this.service.createActiveUser(socketData!.sessionId, user, body.platformData),
+                        this.roomService.getRootRoomId()
+                    )
+                })
+            ).subscribe(([account, activeUser, rootRoomId]) => {
                 socketData!.activeUser = activeUser;
                 const response: Api.v1.Routes.Users.Connect.Post.Response200 = {
+                    account: account.toV1(),
                     activeUser: activeUser.toV1(),
                     rootRoomId,
                 };
+
                 return res.status(200).json(response);
             }, (err: Error) => {
                 next(err);
@@ -97,4 +253,19 @@ export class Middleware {
 
         this.router.use('/users', usersRouter);
     }
+
+    public createGuest(): Observable<[User, string]> {
+        return this.service.createUser({username: 'anonymous'}).pipe(
+            mergeMap((user) => {
+                return this.service.createAuthenticationToken(user.id).pipe(
+                    map((authenticationToken) => ([user, authenticationToken] as [User, string]))
+                );
+            })
+        );
+    }
+
+    public setAuthenticationTokenCookie(authenticationToken: string, res: Express.Response) {
+        (res as Express.Response).cookie('authenticationToken', authenticationToken, {httpOnly: true});
+    }
 }
+

@@ -16,6 +16,7 @@ import * as CookieParser from 'cookie-parser';
 
 //import * as SocketIOCookieParser from 'socket.io-cookie-parser';
 
+import { KeyPair } from './common';
 import { GlobalLogger } from './util/logger';
 
 import * as Mazenet from './mazenet';
@@ -68,12 +69,15 @@ export class Server {
     public socketServer!: SocketIO.Server;
     public usingSsl: boolean;
     public postgresPool?: Pool;
+    
+    private jwtKeys: KeyPair;
 
-    constructor(options: Partial<Server.Options>) {
+    constructor(options: Partial<Server.Options>, jwtKeys: KeyPair) {
         this.options = Object.assign({}, Server.defaultOptions, options);
         if(this.options.postgres) {
             this.options.postgres = Object.assign({}, Server.defaultPostgresOptions, options.postgres);
         }
+        this.jwtKeys = jwtKeys;
         this.usingSsl = false;
     }
 
@@ -168,7 +172,7 @@ export class Server {
             this.app.use(BodyParser.json());
             this.app.use(CookieParser());
             if(this.options.clientPath) {
-                this.app.use(Express.static(this.options.clientPath));
+                this.app.get(/\/.+/, Express.static(this.options.clientPath));
             }
 
             // setting wsEngine prevents crash when starting more than one websocket instance (e.g. in tests)
@@ -183,7 +187,11 @@ export class Server {
                 GlobalLogger.info('Using in-memory data store');
             }
 
-            const mazenet = new Mazenet.Mazenet(this.app, this.socketServer, {postgresPool: this.postgresPool});
+            const mazenet = new Mazenet.Mazenet(this.app, this.socketServer, this.jwtKeys, {postgresPool: this.postgresPool});
+
+            if(this.options.clientPath) {
+                this.app.get('/', Express.static(this.options.clientPath));
+            }
         } catch (error) {
             return Observable.throw(error) as Observable<void>;
         }

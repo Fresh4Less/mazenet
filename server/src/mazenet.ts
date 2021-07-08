@@ -14,6 +14,7 @@ import * as User from './user';
 
 import { GlobalLogger } from './util/logger';
 import { ErrorHandler, RequestLogger } from './util/middleware';
+import { KeyPair } from './common';
 
 export namespace Mazenet {
     export interface Options {
@@ -27,11 +28,13 @@ export class Mazenet {
     public options: Mazenet.Options;
     public expressApp: Express.Router;
     public socketServer: SocketIO.Server;
+    private jwtKeys: KeyPair;
 
-    constructor(expressApp: Express.Router, socketServer: SocketIO.Server, options?: Partial<Mazenet.Options>) {
+    constructor(expressApp: Express.Router, socketServer: SocketIO.Server, jwtKeys: KeyPair, options?: Partial<Mazenet.Options>) {
         this.options = Object.assign({}, Mazenet.defaultOptions, options);
         this.expressApp = expressApp;
         this.socketServer = socketServer;
+        this.jwtKeys = jwtKeys;
         this.Init();
     }
 
@@ -62,7 +65,7 @@ export class Mazenet {
         }
 
         const userSessionDataStore = new User.DataStore.SimpleSessionDataStore();
-        const userService = new User.Service(userDataStore, userSessionDataStore);
+        const userService = new User.Service(userDataStore, userSessionDataStore, this.jwtKeys);
 
         const cursorService = new CursorRecording.Service(cursorDataStore, liveCursorRecordingDataStore, userService);
         const roomService = new Room.Service(roomDataStore, activeUserRoomDataStore, userService, cursorService);

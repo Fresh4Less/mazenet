@@ -1,0 +1,44 @@
+.account {
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255, 0.8);
+}
+
+.account .error {
+    color:red;
+    font-family: monospace;
+}
+
+.account .login-columns {
+    display: table;
+    table-layout: fixed;
+
+    width: 100%;
+}
+
+.account .login-columns .column {
+    text-align: center;
+    display: table-cell;
+    height: 100%;
+}
+
+.account .column input:not([type=submit]) {
+    width: 90%;
+    padding-bottom: 5px;
+    border-bottom: 1px solid black;
+}
+
+.account .column input[type=submit]:hover {
+    background: rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.account table {
+    width: 100%
+}
+.account table thead {
+    border: 2px black solid;
+}
+.account table td {
+    border: 1px black dotted;
+}

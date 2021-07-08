@@ -5,14 +5,14 @@
  *        export class Response201 extends Models.User {};
  * see issue: https://github.com/Microsoft/TypeScript/issues/2559
  */
-import * as Validator from '../util/validator';
+import { validate } from 'fresh-validation';
 
 export class ErrorResponse {
     /** HTTP status code */
-    @Validator.validate()
+    @validate()
     code!: number;
     /** A short message describing the error */
-    @Validator.validate()
+    @validate()
     message!: string;
 
     data?: Error.Data;
@@ -25,19 +25,42 @@ export namespace Error {
 export namespace Models {
     /** Absolute position on the page in range [0,1] */
     export class Position {
-        @Validator.validate()
+        @validate()
         x!: number;
-        @Validator.validate()
+        @validate()
         y!: number;
     }
 
-    /** Mazenet user */
-    export class User {
-        @Validator.validate()
-        id!: User.Id;
+    /** A standarized set of profile information used for authentication
+     */
+    export class Profile {
+        /** provider that the user authenticates with, e.g. email, google, facebook */
+        @validate()
+        provider!: string;
+        /** a unique id identifying the user. in mazenet scheme, this is username
+         * otherwise, it is an id provided by the provider */
+        @validate()
+        id!: string;
+        @validate(true)
+        displayName?: string;
+    }
 
-        @Validator.validate()
+    export class User {
+        @validate()
+        id!: User.Id;
+        @validate()
         username!: string;
+    }
+
+    export class Account {
+        @validate()
+        user!: User;
+        /** email used for password recovery, notifications */
+        //TODO: validate
+        /** list of login profiles associated with this user */
+        profiles!: {[provider: string]: Models.Profile};
+        @validate(true)
+        email?: string;
     }
 
     export namespace User {
@@ -50,33 +73,35 @@ export namespace Models {
 
     export namespace PlatformData {
         export class Desktop {
-            @Validator.validate()
+            @validate()
             pType!: 'desktop';
-            @Validator.validate()
+            @validate()
             cursorPos!: Position;
         }
         export namespace Desktop {
             export class Patch {
-                @Validator.validate(true)
+                @validate(true)
                 cursorPos?: Position;
             }
         }
 
         export class Mobile {
-            @Validator.validate()
+            @validate()
             pType!: 'mobile';
         }
     }
 
-    /** Client session of a user */
+    /** Client session of a user, these could be other live users (cursors) you
+     * see wandering around in a room.
+     */
     export class ActiveUser {
-        @Validator.validate()
+        @validate()
         id!: ActiveUser.Id;
-        @Validator.validate()
+        @validate()
         userId!: User.Id;
-        @Validator.validate()
+        @validate()
         username!: string;
-        @Validator.validate({union: {discriminant: 'pType', types: {
+        @validate({union: {discriminant: 'pType', types: {
             'desktop': PlatformData.Desktop,
             'mobile': PlatformData.Mobile,
         }}})
@@ -90,36 +115,36 @@ export namespace Models {
 
     /** A single rule in a stylesheet. e.g. 'a { color: blue; }' */
     export class StylesheetRule {
-        @Validator.validate(false, String)
+        @validate(false, String)
         selectors!: string[];
-        @Validator.validate()
+        @validate()
         /** maps css property names to values */
         properties!: { [name: string]: string };
     }
 
     /** css AST */
     export class Stylesheet {
-        @Validator.validate(false, StylesheetRule)
+        @validate(false, StylesheetRule)
         rules!: StylesheetRule[];
     }
 
     /** Room that users can create and occupy */
     export class Room {
-        @Validator.validate()
+        @validate()
         id!: Room.Id;
         /** Id of the user who created the room */
-        @Validator.validate()
+        @validate()
         creator!: User.Id;
-        @Validator.validate()
+        @validate()
         title!: string;
         /** set of owners of this room */
-        @Validator.validate(false, String)
+        @validate(false, String)
         owners!: User.Id[];
         /** map of structures in the room */
-        @Validator.validate()
+        @validate()
         structures!: { [structureId: string]: Structure };
         /** sanitized CSS for the room */
-        @Validator.validate()
+        @validate()
         stylesheet!: Stylesheet;
     }
 
@@ -127,11 +152,11 @@ export namespace Models {
         /** 128-bit UUID/v4 */
         export type Id = string;
         export class Patch {
-            @Validator.validate(true)
+            @validate(true)
             title?: string;
-            @Validator.validate(true, String)
+            @validate(true, String)
             owners?: User.Id[];
-            @Validator.validate(true)
+            @validate(true)
             stylesheet?: Stylesheet;
         }
     }
@@ -144,50 +169,50 @@ export namespace Models {
 
     export namespace StructureData {
         export class Tunnel {
-            @Validator.validate()
+            @validate()
             sType!: 'tunnel';
             /** Id of the room that created the tunnel */
-            @Validator.validate()
+            @validate()
             sourceId!: Room.Id;
             /** Id of the room this tunnel leads to */
-            @Validator.validate()
+            @validate()
             targetId!: Room.Id;
             /** display text when viewed from the source room */
-            @Validator.validate()
+            @validate()
             sourceText!: string;
             /** display text when viewed from the target room */
-            @Validator.validate()
+            @validate()
             targetText!: string;
         }
 
         export namespace Tunnel {
             export class Patch {
-                @Validator.validate(true)
+                @validate(true)
                 sourceText?: string;
-                @Validator.validate(true)
+                @validate(true)
                 targetText?: string;
             }
         }
 
         export class Text {
-            @Validator.validate()
+            @validate()
             sType!: 'text';
             /** id of the room where text is displayed */
-            @Validator.validate()
+            @validate()
             roomId!: Room.Id;
             /** text contents of the textbox */
-            @Validator.validate()
+            @validate()
             text!: string;
             /** percent width of the view */
-            @Validator.validate()
+            @validate()
             width!: number;
         }
 
         export namespace Text {
             export class Patch {
-                @Validator.validate(true)
+                @validate(true)
                 text?: string;
-                @Validator.validate(true)
+                @validate(true)
                 width?: number;
             }
         }
@@ -197,36 +222,36 @@ export namespace Models {
 
     export namespace StructureDataBlueprint {
         export class Tunnel {
-            @Validator.validate()
+            @validate()
             sType!: 'tunnel';
             /** Id of the room that created the tunnel */
-            @Validator.validate()
+            @validate()
             sourceText!: string;
             /** display text when viewed from the target room */
-            @Validator.validate()
+            @validate()
             targetText!: string;
         }
 
         export class Text {
-            @Validator.validate()
+            @validate()
             sType!: 'text';
-            @Validator.validate()
+            @validate()
             text!: string;
-            @Validator.validate()
+            @validate()
             width!: number;
         }
     }
 
     /* Structures like links and images that can be placed in a room */
     export class Structure {
-        @Validator.validate()
+        @validate()
         id!: Structure.Id;
         /** Id of the user who created the structure */
-        @Validator.validate()
+        @validate()
         creator!: User.Id;
-        @Validator.validate()
+        @validate()
         pos!: Position;
-        @Validator.validate({union: {discriminant: 'sType', types: {
+        @validate({union: {discriminant: 'sType', types: {
             'tunnel': StructureData.Tunnel,
             'text': StructureData.Text,
         }}})
@@ -238,15 +263,15 @@ export namespace Models {
         export type Id = string;
 
         export class Blueprint {
-            @Validator.validate()
+            @validate()
             pos!: Models.Position;
-            @Validator.validate()
+            @validate()
             data!: Models.StructureDataBlueprint;
         }
         export class Patch {
-            @Validator.validate(true)
+            @validate(true)
             pos?: Position;
-            @Validator.validate({union: {types: {
+            @validate({union: {types: {
                 'tunnel': StructureData.Tunnel.Patch,
                 'text': StructureData.Text.Patch,
             }}})
@@ -256,20 +281,20 @@ export namespace Models {
 
     /* One frame of a cursor recording */
     export class CursorRecordingFrame {
-        @Validator.validate()
+        @validate()
         pos!: Position;
         /** time step this frame occured on */
-        @Validator.validate()
+        @validate()
         t!: number;
     }
 
     export class CursorRecording {
-        @Validator.validate()
+        @validate()
         id!: CursorRecording.Id;
         /** id of the ActiveUser the cursor belongs to */
-        @Validator.validate()
+        @validate()
         activeUserId!: ActiveUser.Id;
-        @Validator.validate(false, CursorRecordingFrame)
+        @validate(false, CursorRecordingFrame)
         frames!: CursorRecordingFrame[];
     }
 
@@ -285,20 +310,43 @@ export namespace Routes {
      */
     export namespace Users {
         /**
-         * route: '/users/create'
+         * route: '/users/register'
          */
-        export namespace Create {
-            /** Create a new user */
+        export namespace Register {
+            export const Route = '/users/register';
+            /** Register a new user with an email and password. HTTP only */
             export namespace Post {
                 export class Request {
-                    @Validator.validate()
+                    @validate()
                     username!: string;
+                    @validate()
+                    password!: string;
                 }
 
-                /** Information about the client's user account and the root room id. */
-                export class Response201 extends Models.User {}
+                export type Response201 = undefined;
+                export class Response409 extends ErrorResponse {}
             }
         }
+
+        export namespace Login {
+            export const Route = '/users/login';
+            /** authenticate the user with username and password
+             * only valid over HTTP (no websockets)
+             * on successful login, sets "authorizationToken" cookie
+             */
+            export namespace Post {
+                export class Request {
+                    @validate()
+                    username!: string;
+                    @validate()
+                    password!: string;
+                }
+
+                export type Response200 = undefined;
+                export class Response401 extends ErrorResponse {}
+            }
+        }
+
         /**
          * route: '/users/connect'
          */
@@ -309,14 +357,22 @@ export namespace Routes {
              * Should be the first event emitted to the server on connection.
              */
             export namespace Post {
-                // TODO: check if this union type validates correctly
-                export const Request = Models.PlatformData;
+                // TODO: check if this union type @validates correctly
+                export class Request {
+                    @validate({union: {discriminant: 'pType', types: {
+                        'desktop': Models.PlatformData.Desktop,
+                        'mobile': Models.PlatformData.Mobile,
+                    }}})
+                    platformData!: Models.PlatformData;
+                }
 
                 /** Information about the client's user account and the root room id. */
                 export class Response200 {
-                    @Validator.validate()
+                    @validate()
+                    account!: Models.Account;
+                    @validate()
                     activeUser!: Models.ActiveUser;
-                    @Validator.validate()
+                    @validate()
                     rootRoomId!: Models.Room.Id;
                 }
             }
@@ -335,9 +391,9 @@ export namespace Routes {
             export namespace Post {
                 /** A Room containing `id` and any fields to be updated */
                 export class Request {
-                    @Validator.validate()
+                    @validate()
                     id!: Models.Room.Id;
-                    @Validator.validate()
+                    @validate()
                     patch!: Models.Room.Patch;
                 }
 
@@ -353,15 +409,15 @@ export namespace Routes {
             export const Route = '/rooms/enter';
             export namespace Post {
                 export class Request {
-                    @Validator.validate()
+                    @validate()
                     id!: Models.Room.Id;
                 }
 
                 /** Successfully entered the room */
                 export class Response200 {
-                    @Validator.validate()
+                    @validate()
                     room!: Models.Room;
-                    @Validator.validate()
+                    @validate()
                     users!: { [activeUserId: string]: Models.ActiveUser };
                 }
 
@@ -381,9 +437,9 @@ export namespace Routes {
                 export const Route = '/rooms/structures/create';
                 export namespace Post {
                     export class Request {
-                        @Validator.validate()
+                        @validate()
                         roomId!: Models.Room.Id;
-                        @Validator.validate()
+                        @validate()
                         structure!: Models.Structure.Blueprint;
                     }
 
@@ -403,9 +459,9 @@ export namespace Routes {
                 export namespace Post {
                     /** A Structure containing `id` and any fields to be updated */
                     export class Request {
-                        @Validator.validate()
+                        @validate()
                         id!: Models.Structure.Id;
-                        @Validator.validate()
+                        @validate()
                         patch!: Models.Structure.Patch;
                     }
 
@@ -422,18 +478,18 @@ export namespace Routes {
             export const Route = '/rooms/cursor-recordings';
             export namespace Get {
                 export class Request {
-                    @Validator.validate()
+                    @validate()
                     roomId!: Models.Room.Id;
                     /** Only get the n most recent recordings. If 0, get all recordings */
-                    @Validator.validate(true)
+                    @validate(true)
                     limit?: number;
                     /** Specifies the response format */
-                    @Validator.validate(true)
-                    format?: 'json' | 'binary'; // TODO: test this validates correctly
+                    @validate(true)
+                    format?: 'json' | 'binary'; // TODO: test this @validates correctly
                 }
 
                 export class Response200 {
-                    @Validator.validate()
+                    @validate()
                     cursorRecordings!: { [cursorRecordingId: string]: Models.CursorRecording };
                 }
 
@@ -461,9 +517,9 @@ export namespace Events {
                 export class Created {
                     static Route = '/rooms/structures/created';
 
-                    @Validator.validate()
+                    @validate()
                     roomId!: Models.Room.Id;
-                    @Validator.validate()
+                    @validate()
                     structure!: Models.Structure;
                 }
 
@@ -473,9 +529,9 @@ export namespace Events {
                 export class Updated {
                     static Route = '/rooms/structures/updated';
 
-                    @Validator.validate()
+                    @validate()
                     roomId!: Models.Room.Id;
-                    @Validator.validate()
+                    @validate()
                     structure!: Models.Structure;
                 }
             }
@@ -485,9 +541,9 @@ export namespace Events {
                 export class Entered {
                     static Route = '/rooms/active-users/entered';
 
-                    @Validator.validate()
+                    @validate()
                     roomId!: Models.Room.Id;
-                    @Validator.validate()
+                    @validate()
                     activeUser!: Models.ActiveUser;
                 }
 
@@ -495,9 +551,9 @@ export namespace Events {
                 export class Exited {
                     static Route = '/rooms/active-users/exited';
 
-                    @Validator.validate()
+                    @validate()
                     roomId!: Models.Room.Id;
-                    @Validator.validate()
+                    @validate()
                     activeUserId!: Models.ActiveUser.Id;
                 }
 
@@ -506,11 +562,11 @@ export namespace Events {
                     export class CursorMoved {
                         static Route = '/rooms/active-users/desktop/cursor-moved';
 
-                        @Validator.validate()
+                        @validate()
                         roomId!: Models.Room.Id;
-                        @Validator.validate()
+                        @validate()
                         activeUserId!: Models.ActiveUser.Id;
-                        @Validator.validate()
+                        @validate()
                         pos!: Models.Position;
                     }
                 }
@@ -525,7 +581,7 @@ export namespace Events {
             export class CursorMoved {
                 static Route = '/rooms/active-users/desktop/cursor-moved';
 
-                @Validator.validate()
+                @validate()
                 pos!: Models.Position;
             }
         }

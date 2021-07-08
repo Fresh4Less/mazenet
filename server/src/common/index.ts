@@ -65,21 +65,29 @@ export class AlreadyExistsError extends Error {
     }
 }
 
+// NOTE: MazenetRequest and MazenetSocketData now always get the full User on connect, so we can change userId to be the full User object
 interface MazenetRequest {
-    user?: User;
+    userId?: User.Id;
     activeUser?: ActiveUser;
+}
+
+export interface KeyPair {
+    public: string;
+    private: string;
 }
 
 //export type Request = (Express.Request | FreshSocketIO.Request) & MazenetRequest;
-export type Request = (Express.Request | FreshSocketIO.Request) & MazenetRequest;
+export type Request = (Express.Request | FreshSocketIO.Request)
+    & MazenetRequest
+    & { cookies: {[name: string]: string}};
 export type Response = Express.Response | FreshSocketIO.Response;
 
-interface MazenetSocketData {
+export interface MazenetSocketData {
     sessionId: string;
-    user?: User;
+    userId?: User.Id;
     activeUser?: ActiveUser;
 }
-interface MazenetSocket {
+export interface MazenetSocket {
     mazenet?: MazenetSocketData;
 }
 export type Socket = SocketIO.Socket & MazenetSocket;

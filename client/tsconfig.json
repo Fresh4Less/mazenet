@@ -23,7 +23,7 @@
       "node_modules/@types",
       "types",
       "../common/types"
-    ]
+    ],
   },
   "exclude": [
     "node_modules",

@@ -1,10 +1,16 @@
 import { Observable } from 'rxjs';
 
 import { AlreadyExistsError } from '../../common';
-import { ActiveUser, User } from '../models';
+import { Account, ActiveUser, User } from '../models';
 
 import { InMemoryDataStore } from './in-memory';
 import { PostgresDataStore } from './postgres';
+
+interface FullProfile {
+    userId: User.Id;
+    profile: Account.Profile;
+    secret: string;
+}
 
 interface DataStore {
     getUser: (userId: User.Id) => Observable<User>;
@@ -15,6 +21,10 @@ interface DataStore {
 
     getRootUserId: () => Observable<User.Id>;
     setRootUserId: (userId: User.Id) => Observable<null>;
+
+    getProfile: (provider: string, id: string) => Observable<FullProfile>;
+    getProfiles: (userId: User.Id) => Observable<FullProfile[]>;
+    insertProfile: (userId: User.Id, profile: Account.Profile, secret: string) => Observable<FullProfile>;
 }
 
 interface SessionDataStore {
@@ -74,6 +84,7 @@ class SimpleSessionDataStore implements SessionDataStore {
 }
 
 export {
+    FullProfile,
     DataStore,
     SessionDataStore,
     SimpleSessionDataStore,

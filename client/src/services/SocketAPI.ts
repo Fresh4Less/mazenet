@@ -10,16 +10,18 @@ import { ErrorService } from './ErrorService';
 import { Observable, Observer } from 'rxjs';
 import { TransactionManager } from './TransactionManager';
 import URLManager from './URLManager';
+//import { AccountService } from './account/AccountService';
 
 export class SocketAPI {
-
     private static _instance: SocketAPI;
+    public static get Instance(): SocketAPI {
+        return this._instance || (this._instance = new this());
+    }
 
     /*
      * Managers for transactional SocketIO requests. Maps callbacks
      */
     readonly connectedObservable: Observable<Routes.Users.Connect.Post.Response200>;
-    readonly userCreateObservable: Observable<Models.User>;
     readonly roomEnteredObservable: Observable<Routes.Rooms.Enter.Post.Response200>;
     readonly roomUpdatedObservable: Observable<Models.Room>;
     readonly cursorRecordingsObservable: Observable<Routes.Rooms.CursorRecordings.Get.Response200>;
@@ -48,7 +50,6 @@ export class SocketAPI {
 
         /* Setup the Observable feeds */
         this.connectedObservable = this.initConnectedObservable();
-        // TODO userCreatedObservable
         this.roomEnteredObservable = this.initRoomEnteredObservable();
         this.roomUpdatedObservable = this.initRoomUpdatedObservable();
         this.cursorRecordingsObservable = this.initCursorRecordingsObservable();
@@ -57,28 +58,37 @@ export class SocketAPI {
         this.activeUserEnteredObservable = this.initActiveUserEnteredObservable();
         this.activeUserExitedObservable = this.initActiveUserExitedObservable();
         this.activeUserDesktopCursorMovedObservable = this.initActiveUserDesktopCursorMovedObservable();
+
         window.addEventListener('hashchange', this.checkURLAndLoadPage.bind(this));
 
-        /* Connect and enter the initial room */
-        this.Connect().subscribe(res200 => {
+        this.Connect(false).subscribe(res200 => {
             this.rootPageId = res200.rootRoomId;
             const urlRoom = URLManager.ParseRoomId();
             this.EnterRoom(urlRoom ? urlRoom : this.rootPageId);
         });
     }
 
-    public static get Instance(): SocketAPI {
-        return this._instance || (this._instance = new this());
-    }
-
-    private Connect(): Observable<Routes.Users.Connect.Post.Response200> {
+    public Connect(toggleSocketConnection: boolean): Observable<Routes.Users.Connect.Post.Response200> {
+        if (toggleSocketConnection) {
+            // Refreshes socket connection with the latest HTTP-only cookies.
+            // Required if we changed login and need to reconnect.
+            this.socket.close();
+            this.socket.open();
+        }
+        
         const o = new Observable<Routes.Users.Connect.Post.Response200>(
             observer => {
                 const requestID = this.transactionManager.NewTransactionWithObserver(observer);
-                this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', SocketAPI.Platform(), requestID));
+                this.socket.emit(Routes.Users.Connect.Route, new WebRequest('POST', {
+                    platformData: SocketAPI.Platform()
+                }, requestID));
             }).publish();
         o.connect();
         return o;
+    }
+
+    public Reconnect(): Observable<Routes.Users.Connect.Post.Response200> {
+        return this.Connect(true);
     }
 
     public EnterRootPage(): Observable<Routes.Rooms.Enter.Post.Response200> {

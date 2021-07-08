@@ -4,7 +4,9 @@
     box-sizing: border-box;
     border-bottom: 1px solid rgba(255, 255, 255, 0.73);
     color: #f3f3f3;
-    background-color: #404040;
+    stroke: #f3f3f3;
+    fill: #f3f3f3;
+    background-color: #222;
 }
 
 #Toolbar #Title {
@@ -41,4 +43,14 @@
 #Toolbar .disabled {
     filter: grayscale(100%);
     cursor: not-allowed;
+}
+
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }

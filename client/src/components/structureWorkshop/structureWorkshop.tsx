@@ -1,6 +1,6 @@
 import * as React from 'react';
+import * as css from './structureWorkshop.css';
 
-import './structureWorkshop.css';
 import { Models } from '../../../../common/api/v1';
 import { StructureWorkshopService } from '../../services/StructureWorkshopService';
 import Structure from '../structure/structure';
@@ -74,6 +74,10 @@ export class StructureWorkshop extends React.Component<StructureWorkshopProps, S
         return true;
     }
 
+    public IsActive(): boolean {
+        return this.state.active;
+    }
+
     private click(e: React.MouseEvent<HTMLDivElement>): void {
         if (this.overlayDiv === null ||
             this.state.structure === null ||
@@ -120,8 +124,8 @@ export class StructureWorkshop extends React.Component<StructureWorkshopProps, S
         let roomStructureSelectors = this.state.structure === null ? this.renderRoomStructureSelectors() : null;
         return (
             <div
-                id={'StructureWorkshop'}
-                className={this.state.positioning ? 'seeking-position' : ''}
+                id={css.StructureWorkshop}
+                className={this.state.positioning ? css.seekingPosition : ''}
                 ref={(el) => {
                     this.overlayDiv = el;
                 }}
@@ -130,7 +134,7 @@ export class StructureWorkshop extends React.Component<StructureWorkshopProps, S
                 {structure}
                 {roomStructureSelectors}
                 <div
-                    className={'close-button'}
+                    className={css.closeButton}
                     title={'Close Structure Workshop.'}
                     onClick={() => {
                         this.Close(false);
@@ -164,7 +168,7 @@ export class StructureWorkshop extends React.Component<StructureWorkshopProps, S
             return (
                 <div
                     key={id}
-                    className={'structure-selector'}
+                    className={css.structureSelector}
                     title={`Structure ID: ${structure.id}`}
                     style={style}
                     onClick={(e) => {

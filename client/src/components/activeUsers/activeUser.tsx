@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Models } from '../../../../common/api/v1';
 
 const cursorIcon = require('./../../media/cursor.png');
-import './activeUser.css';
+import * as css from './activeUser.css';
 import { MazenetUtils } from '../../services/MazenetUtils';
 
 interface ActiveUserProps {
@@ -39,7 +39,7 @@ export default class ActiveUser extends React.Component<ActiveUserProps, any> {
                 return (
                     <div
                         style={style}
-                        className={'active-user'}
+                        className={css.activeUser}
                         onClick={() => {
                             alert(`ActiveUser: \n${JSON.stringify(this.props.user, null, 4)}`);
                         }}
