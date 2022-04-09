@@ -18,7 +18,7 @@
     "express": "^4.17.1",
     "fresh-socketio-router": "^0.1.4",
     "json-stringify-safe": "^5.0.1",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "pg": "^8.3.0",
     "postcss-selector-parser": "^6.0.2",
     "postcss-values-parser": "^1.5.0",
