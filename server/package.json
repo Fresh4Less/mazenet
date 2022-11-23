@@ -24,7 +24,7 @@
     "postcss-values-parser": "^1.5.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^6.6.2",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "socket.io-cookie-parser": "^1.0.0",
     "uuid": "^3.4.0"
   },
