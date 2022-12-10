@@ -15,7 +15,7 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "css": "^2.2.4",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "fresh-socketio-router": "^0.1.4",
     "json-stringify-safe": "^5.0.1",
     "minimist": "^1.2.5",
